@@ -4,7 +4,7 @@
 
 Per i clienti, è un posto dove trovare facilmente un prestatore e prenotare senza scambi infiniti di messaggi. Per i prestatori, è uno strumento per presentare il proprio lavoro e gestire le prenotazioni, anche con durate variabili e senza sovrapposizioni.
 
-Il nome viene dai *griot*, i narratori e custodi della memoria nell'Africa occidentale: l'idea è dare visibilità a chi tramanda un sapere, un servizio alla volta.
+Il nome viene dai _griot_, i narratori e custodi della memoria nell'Africa occidentale: l'idea è dare visibilità a chi tramanda un sapere, un servizio alla volta.
 
 ## Stack
 
