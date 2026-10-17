@@ -31,6 +31,7 @@ test('a provider shows name, city, avatar and categories', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->has('providers.data.0', fn (Assert $card) => $card
                 ->where('id', $provider->id)
+                ->where('slug', $provider->slug)
                 ->where('name', $provider->name)
                 ->where('city', $provider->city)
                 ->where('avatar_url', null)

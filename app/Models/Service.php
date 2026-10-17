@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Database\Factories\ServiceFactory;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -36,6 +38,17 @@ class Service extends Model
             'duration_max' => 'integer',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Only services visible to customers.
+     *
+     * @param  Builder<Service>  $query
+     */
+    #[Scope]
+    protected function active(Builder $query): void
+    {
+        $query->where('is_active', true);
     }
 
     /**

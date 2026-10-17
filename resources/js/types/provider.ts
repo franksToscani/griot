@@ -18,6 +18,7 @@ export type ProviderFilterOptions = {
 // Shape of App\Http\Resources\ProviderResource.
 export type ProviderListItem = {
     id: number;
+    slug: string;
     name: string;
     city: string;
     avatar_url: string | null;
@@ -46,4 +47,50 @@ export type Paginated<T> = {
         total: number;
         links: PaginationLink[];
     };
+};
+
+export type ServiceOption = {
+    id: number;
+    name: string;
+    // Decimal string such as "20.00".
+    extra_price: string;
+    extra_duration: number;
+};
+
+export type Service = {
+    id: number;
+    name: string;
+    description: string | null;
+    // Decimal string such as "90.00".
+    price: string;
+    duration_min: number;
+    duration_max: number;
+    options: ServiceOption[];
+};
+
+export type ServiceGroup = {
+    category: Category;
+    services: Service[];
+};
+
+// One day from Monday (1) to Sunday (7); a closed day has no slots.
+export type OpeningDay = {
+    weekday: number;
+    day: string;
+    slots: { start: string; end: string }[];
+};
+
+// Shape of App\Http\Resources\ProviderProfileResource.
+export type ProviderProfile = {
+    slug: string;
+    name: string;
+    city: string;
+    bio: string | null;
+    avatar_url: string | null;
+    contacts: {
+        whatsapp: { number: string; url: string | null } | null;
+        instagram: { username: string; url: string | null } | null;
+    };
+    service_groups: ServiceGroup[];
+    opening_hours: OpeningDay[];
 };
