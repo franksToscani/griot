@@ -6,5 +6,11 @@
     "nav.login": "Accedi",
     "nav.dashboard": "Il mio pannello",
     "providers.list.title": "Trova un professionista",
-    "providers.list.empty": "Nessun professionista trovato."
+    "providers.list.empty": "Nessun professionista trovato.",
+    "providers.list.empty_filtered": "Nessun professionista corrisponde ai filtri scelti.",
+    "providers.filters.category": "Categoria",
+    "providers.filters.city": "Città",
+    "providers.filters.all_categories": "Tutte le categorie",
+    "providers.filters.all_cities": "Tutte le città",
+    "providers.filters.reset": "Azzera filtri"
 }

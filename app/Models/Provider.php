@@ -50,6 +50,46 @@ class Provider extends Model
     }
 
     /**
+     * Only providers with at least one active service in the category with the given slug.
+     *
+     * @param  Builder<Provider>  $query
+     */
+    #[Scope]
+    protected function inCategory(Builder $query, string $slug): void
+    {
+        $query->whereHas('services', fn (Builder $services) => $services
+            ->where('is_active', true)
+            ->whereHas('category', fn (Builder $category) => $category->where('slug', $slug)));
+    }
+
+    /**
+     * Only providers in the given city.
+     *
+     * @param  Builder<Provider>  $query
+     */
+    #[Scope]
+    protected function inCity(Builder $query, string $city): void
+    {
+        $query->where('city', $city);
+    }
+
+    /**
+     * The distinct cities of the published providers, in alphabetical order.
+     *
+     * @return list<string>
+     */
+    public static function publishedCities(): array
+    {
+        return array_values(static::query()
+            ->published()
+            ->distinct()
+            ->orderBy('city')
+            ->get(['city'])
+            ->map(fn (Provider $provider) => $provider->city)
+            ->all());
+    }
+
+    /**
      * Get the user account that owns the provider.
      *
      * @return BelongsTo<User, $this>
