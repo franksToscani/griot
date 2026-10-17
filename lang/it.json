@@ -1,5 +1,10 @@
 {
     "common.loading": "Caricamento…",
+    "common.pagination.label": "Pagine",
+    "common.pagination.previous": "Precedente",
+    "common.pagination.next": "Successiva",
+    "nav.login": "Accedi",
+    "nav.dashboard": "Il mio pannello",
     "providers.list.title": "Trova un professionista",
     "providers.list.empty": "Nessun professionista trovato."
 }
