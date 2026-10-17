@@ -55,4 +55,14 @@ class Provider extends Model
     {
         return $this->hasMany(Service::class);
     }
+
+    /**
+     * Get the weekly availabilities of the provider.
+     *
+     * @return HasMany<Availability, $this>
+     */
+    public function availabilities(): HasMany
+    {
+        return $this->hasMany(Availability::class);
+    }
 }
