@@ -67,4 +67,14 @@ class Service extends Model
     {
         return $this->hasMany(ServiceOption::class);
     }
+
+    /**
+     * Get the bookings made for the service.
+     *
+     * @return HasMany<Booking, $this>
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
 }

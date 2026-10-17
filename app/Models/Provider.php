@@ -65,4 +65,14 @@ class Provider extends Model
     {
         return $this->hasMany(Availability::class);
     }
+
+    /**
+     * Get the bookings received by the provider.
+     *
+     * @return HasMany<Booking, $this>
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
 }
