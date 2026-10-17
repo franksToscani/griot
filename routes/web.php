@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 Route::inertia('/', 'welcome')->name('home');
 
 Route::get('providers', [ProviderController::class, 'index'])->name('providers.index');
+Route::get('providers/{slug}', [ProviderController::class, 'show'])->name('providers.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');

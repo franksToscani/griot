@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProviderIndexRequest;
 use App\Http\Resources\CategoryResource;
+use App\Http\Resources\ProviderProfileResource;
 use App\Http\Resources\ProviderResource;
 use App\Models\Provider;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -40,6 +42,25 @@ class ProviderController extends Controller
                 'categories' => CategoryResource::collection($request->categoryOptions())->resolve($request),
                 'cities' => $request->cityOptions(),
             ],
+        ]);
+    }
+
+    /**
+     * Show the public page of a published provider.
+     */
+    public function show(Request $request, string $slug): Response
+    {
+        // Searching among the published ones only: an unpublished provider gets the same 404
+        // as a missing one, so the page does not reveal that it exists.
+        $provider = Provider::query()
+            ->published()
+            ->withPublicProfile()
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        return Inertia::render('providers/show', [
+            // resolve() gives the provider's fields directly, without a "data" wrapper.
+            'provider' => (new ProviderProfileResource($provider))->resolve($request),
         ]);
     }
 }
