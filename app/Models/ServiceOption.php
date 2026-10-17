@@ -6,6 +6,7 @@ use Database\Factories\ServiceOptionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class ServiceOption extends Model
 {
@@ -35,5 +36,15 @@ class ServiceOption extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
+    }
+
+    /**
+     * Get the bookings in which the option was chosen.
+     *
+     * @return BelongsToMany<Booking, $this>
+     */
+    public function bookings(): BelongsToMany
+    {
+        return $this->belongsToMany(Booking::class);
     }
 }

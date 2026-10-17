@@ -7,6 +7,7 @@ use Database\Factories\BookingFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * A customer booking. starts_at and ends_at are stored in UTC.
@@ -68,5 +69,15 @@ class Booking extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
+    }
+
+    /**
+     * Get the extra options chosen for the booking.
+     *
+     * @return BelongsToMany<ServiceOption, $this>
+     */
+    public function options(): BelongsToMany
+    {
+        return $this->belongsToMany(ServiceOption::class);
     }
 }
