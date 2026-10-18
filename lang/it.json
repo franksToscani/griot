@@ -1,4 +1,7 @@
 {
+    "booking.slots.date_outside_window": "Scegli un giorno da oggi fino a :days giorni da adesso.",
+    "booking.slots.service_invalid": "Il servizio scelto non è disponibile per questo professionista.",
+    "booking.slots.options_invalid": "Alcune opzioni scelte non appartengono a questo servizio.",
     "common.loading": "Caricamento…",
     "common.pagination.label": "Pagine",
     "common.pagination.previous": "Precedente",
