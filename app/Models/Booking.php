@@ -3,7 +3,11 @@
 namespace App\Models;
 
 use App\Enums\BookingStatus;
+use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use Database\Factories\BookingFactory;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -49,6 +53,33 @@ class Booking extends Model
             'ends_at' => 'datetime',
             'status' => BookingStatus::class,
         ];
+    }
+
+    /**
+     * Only bookings that keep the provider busy: pending or confirmed, never cancelled.
+     *
+     * @param  Builder<Booking>  $query
+     */
+    #[Scope]
+    protected function occupying(Builder $query): void
+    {
+        $query->whereIn('status', [BookingStatus::Pending, BookingStatus::Confirmed]);
+    }
+
+    /**
+     * Only bookings that overlap the span [$start, $end): a booking that ends exactly when
+     * the span starts, or starts exactly when it ends, does not overlap.
+     *
+     * @param  Builder<Booking>  $query
+     */
+    #[Scope]
+    protected function overlapping(Builder $query, CarbonInterface $start, CarbonInterface $end): void
+    {
+        // The dates are written in the query as they are, without a time zone: they are moved
+        // to UTC first, like the stored values, so that a local date cannot shift the span.
+        $query
+            ->where('starts_at', '<', CarbonImmutable::instance($end)->utc())
+            ->where('ends_at', '>', CarbonImmutable::instance($start)->utc());
     }
 
     /**
