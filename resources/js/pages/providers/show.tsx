@@ -1,15 +1,17 @@
 import { Head, Link } from '@inertiajs/react';
+import { BookingSheet } from '@/components/booking-sheet';
 import { ProviderAvatar } from '@/components/provider-avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useTranslation } from '@/hooks/use-translation';
-import { formatDuration, formatPrice } from '@/lib/format';
+import { formatDuration, formatOptionExtras, formatPrice } from '@/lib/format';
 import { index } from '@/routes/providers';
-import type { ProviderProfile, Service } from '@/types';
+import type { BookingWindow, ProviderProfile, Service } from '@/types';
 
 type Props = {
     provider: ProviderProfile;
+    bookingWindow: BookingWindow;
 };
 
 // External links open in a new tab without giving the new page access to this one.
@@ -19,7 +21,7 @@ const externalLink = {
     className: 'underline underline-offset-4',
 } as const;
 
-export default function ProvidersShow({ provider }: Props) {
+export default function ProvidersShow({ provider, bookingWindow }: Props) {
     const { t } = useTranslation();
     const { whatsapp, instagram } = provider.contacts;
 
@@ -85,6 +87,12 @@ export default function ProvidersShow({ provider }: Props) {
                                                         )}
                                                         <ServiceItem
                                                             service={service}
+                                                            providerSlug={
+                                                                provider.slug
+                                                            }
+                                                            bookingWindow={
+                                                                bookingWindow
+                                                            }
                                                         />
                                                     </li>
                                                 ),
@@ -203,7 +211,15 @@ export default function ProvidersShow({ provider }: Props) {
     );
 }
 
-function ServiceItem({ service }: { service: Service }) {
+function ServiceItem({
+    service,
+    providerSlug,
+    bookingWindow,
+}: {
+    service: Service;
+    providerSlug: string;
+    bookingWindow: BookingWindow;
+}) {
     const { t, locale } = useTranslation();
 
     return (
@@ -231,19 +247,11 @@ function ServiceItem({ service }: { service: Service }) {
                     <ul className="list-disc pl-5">
                         {service.options.map((option) => {
                             // Only the extras that actually add something.
-                            const extras = [
-                                Number(option.extra_price) !== 0 &&
-                                    t('providers.show.option_extra_price', {
-                                        price: formatPrice(
-                                            locale,
-                                            option.extra_price,
-                                        ),
-                                    }),
-                                option.extra_duration !== 0 &&
-                                    t('providers.show.option_extra_duration', {
-                                        minutes: option.extra_duration,
-                                    }),
-                            ].filter(Boolean);
+                            const extras = formatOptionExtras(
+                                t,
+                                locale,
+                                option,
+                            );
 
                             return (
                                 <li key={option.id}>
@@ -256,6 +264,13 @@ function ServiceItem({ service }: { service: Service }) {
                     </ul>
                 </div>
             )}
+            <div>
+                <BookingSheet
+                    providerSlug={providerSlug}
+                    service={service}
+                    bookingWindow={bookingWindow}
+                />
+            </div>
         </div>
     );
 }

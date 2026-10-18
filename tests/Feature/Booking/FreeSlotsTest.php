@@ -305,3 +305,17 @@ test('the number of queries does not grow with the number of slots', function ()
     expect($manyQueries)->toBe($fewQueries);
     expect($fewQueries)->toBe(1);
 });
+
+test('the booking window days are exactly the days isWithinWindow accepts', function () {
+    $this->travelTo(CarbonImmutable::parse(WINTER_MONDAY.' 10:00', 'Europe/Rome'));
+    $freeSlots = app(FreeSlots::class);
+
+    $window = $freeSlots->bookingWindow();
+
+    // 12 January plus 60 calendar days is 13 March.
+    expect($window)->toBe(['first_day' => '2026-01-12', 'last_day' => '2026-03-13']);
+    expect($freeSlots->isWithinWindow(CarbonImmutable::parse($window['first_day'])))->toBeTrue();
+    expect($freeSlots->isWithinWindow(CarbonImmutable::parse($window['last_day'])))->toBeTrue();
+    expect($freeSlots->isWithinWindow(CarbonImmutable::parse($window['first_day'])->subDay()))->toBeFalse();
+    expect($freeSlots->isWithinWindow(CarbonImmutable::parse($window['last_day'])->addDay()))->toBeFalse();
+});

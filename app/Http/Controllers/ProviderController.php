@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Booking\FreeSlots;
 use App\Http\Requests\ProviderIndexRequest;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\ProviderProfileResource;
@@ -48,7 +49,7 @@ class ProviderController extends Controller
     /**
      * Show the public page of a published provider.
      */
-    public function show(Request $request, string $slug): Response
+    public function show(Request $request, string $slug, FreeSlots $freeSlots): Response
     {
         // Searching among the published ones only: an unpublished provider gets the same 404
         // as a missing one, so the page does not reveal that it exists.
@@ -61,6 +62,8 @@ class ProviderController extends Controller
         return Inertia::render('providers/show', [
             // resolve() gives the provider's fields directly, without a "data" wrapper.
             'provider' => (new ProviderProfileResource($provider))->resolve($request),
+            // The days the booking form offers: the same rule the server applies.
+            'bookingWindow' => $freeSlots->bookingWindow(),
         ]);
     }
 }

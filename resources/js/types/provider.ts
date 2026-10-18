@@ -94,3 +94,15 @@ export type ProviderProfile = {
     service_groups: ServiceGroup[];
     opening_hours: OpeningDay[];
 };
+
+// One item of "slots" in the free slots endpoint: the start in UTC and the provider's local time.
+export type FreeSlot = {
+    start: string;
+    time: string;
+};
+
+// The first and last bookable days, as "YYYY-MM-DD" local dates of the provider.
+export type BookingWindow = {
+    first_day: string;
+    last_day: string;
+};
