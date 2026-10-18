@@ -73,12 +73,27 @@ final class FreeSlots
      */
     public function isWithinWindow(CarbonInterface $date): bool
     {
-        $today = CarbonImmutable::now(config()->string('booking.timezone'));
-        $lastDay = $today->addDays(config()->integer('booking.max_days_ahead'));
+        $window = $this->bookingWindow();
         $day = $date->toDateString();
 
         // "Y-m-d" strings sort like the dates they represent.
-        return $day >= $today->toDateString() && $day <= $lastDay->toDateString();
+        return $day >= $window['first_day'] && $day <= $window['last_day'];
+    }
+
+    /**
+     * The first and the last bookable local calendar days, as "Y-m-d": today in the booking
+     * time zone, and today plus the booking window (calendar days, not periods of 24 hours).
+     *
+     * @return array{first_day: string, last_day: string}
+     */
+    public function bookingWindow(): array
+    {
+        $today = CarbonImmutable::now(config()->string('booking.timezone'));
+
+        return [
+            'first_day' => $today->toDateString(),
+            'last_day' => $today->addDays(config()->integer('booking.max_days_ahead'))->toDateString(),
+        ];
     }
 
     /**
