@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Provider;
 use App\Models\Service;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<Booking>
@@ -38,6 +39,8 @@ class BookingFactory extends Factory
             'ends_at' => $startsAt->copy()->addMinutes(fake()->numberBetween(2, 8) * 15),
             'status' => BookingStatus::Pending,
             'notes' => fake()->optional()->sentence(),
+            // Set here and not in a model event: DatabaseSeeder runs WithoutModelEvents.
+            'public_token' => Str::random(48),
         ];
     }
 

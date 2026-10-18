@@ -7,6 +7,7 @@ use App\Enums\Weekday;
 use App\Models\Provider;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 /**
  * Example bookings in the week after the seeder runs. They fall inside the providers'
@@ -36,18 +37,19 @@ class BookingSeeder extends Seeder
             $endsAt = $startsAt->addMinutes($service->duration_max + $options->sum('extra_duration'));
 
             // The customer phone identifies the example booking, so a new run moves it instead of duplicating it.
-            $booking = $provider->bookings()->updateOrCreate(
-                ['customer_phone' => $data['customer_phone']],
-                [
-                    'service_id' => $service->id,
-                    'customer_name' => $data['customer_name'],
-                    'customer_email' => $data['customer_email'],
-                    'starts_at' => $startsAt,
-                    'ends_at' => $endsAt,
-                    'status' => $data['status'],
-                    'notes' => $data['notes'],
-                ],
-            );
+            $booking = $provider->bookings()->firstOrNew(['customer_phone' => $data['customer_phone']]);
+            $booking->fill([
+                'service_id' => $service->id,
+                'customer_name' => $data['customer_name'],
+                'customer_email' => $data['customer_email'],
+                'starts_at' => $startsAt,
+                'ends_at' => $endsAt,
+                'status' => $data['status'],
+                'notes' => $data['notes'],
+            ]);
+            // Not fillable, so set directly; only on the first run, so the private link stays the same.
+            $booking->public_token ??= Str::random(48);
+            $booking->save();
 
             $booking->options()->sync($options);
         }

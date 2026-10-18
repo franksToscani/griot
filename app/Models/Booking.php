@@ -15,6 +15,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * A customer booking. starts_at and ends_at are stored in UTC.
+ *
+ * public_token is the secret code in the customer's private link: it is the only way the
+ * customer finds the booking, so it must never appear in a Resource, a log or an error
+ * message. It is not fillable: only the code sets it (CreateBooking, the factory, the seeder).
  */
 class Booking extends Model
 {
