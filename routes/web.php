@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BookingCancellationController;
 use App\Http\Controllers\BookingConfirmationController;
 use App\Http\Controllers\ProviderBookingController;
 use App\Http\Controllers\ProviderController;
@@ -24,6 +25,12 @@ Route::get('bookings/{booking:public_token}', BookingConfirmationController::cla
     ->where('booking', '[A-Za-z0-9]{48}')
     ->middleware(PrivateBookingPage::class)
     ->name('bookings.show');
+// POST only, in the web group with CSRF protection: a GET (a link, a prefetch) cannot cancel.
+// Same pattern, binding and headers as bookings.show.
+Route::post('bookings/{booking:public_token}/cancel', BookingCancellationController::class)
+    ->where('booking', '[A-Za-z0-9]{48}')
+    ->middleware(PrivateBookingPage::class)
+    ->name('bookings.cancel');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');

@@ -1,8 +1,20 @@
-import { Head, Link } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslation } from '@/hooks/use-translation';
 import { centsToPrice, formatPrice, priceToCents } from '@/lib/format';
 import { show as providerShow } from '@/routes/providers';
@@ -12,10 +24,16 @@ type Props = {
     booking: BookingConfirmation;
     // The whole private address: the only prop that holds the secret code.
     private_url: string;
+    // Whether the customer can still cancel online; the server checks again on submit.
+    can_cancel: boolean;
 };
 
 // The private page of a booking, reached with the secret link.
-export default function BookingsShow({ booking, private_url }: Props) {
+export default function BookingsShow({
+    booking,
+    private_url,
+    can_cancel,
+}: Props) {
     const { t, locale } = useTranslation();
 
     // Same sum as the booking form, in whole cents. Indicative: no paid price is stored.
@@ -135,6 +153,15 @@ export default function BookingsShow({ booking, private_url }: Props) {
                     </CardContent>
                 </Card>
 
+                {booking.status !== 'cancelled' &&
+                    (can_cancel ? (
+                        <CancelBooking privateUrl={private_url} />
+                    ) : (
+                        <p className="text-sm text-muted-foreground">
+                            {t('booking.cancel.too_late')}
+                        </p>
+                    ))}
+
                 <Card>
                     <CardHeader>
                         <CardTitle>
@@ -162,5 +189,63 @@ export default function BookingsShow({ booking, private_url }: Props) {
                 </Card>
             </div>
         </>
+    );
+}
+
+// The cancel button and its confirmation window. After a submit the server redirects back to
+// this page: cancelled (the button disappears) or too late (can_cancel becomes false).
+function CancelBooking({ privateUrl }: { privateUrl: string }) {
+    const { t } = useTranslation();
+
+    return (
+        <div>
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button variant="destructive">
+                        {t('booking.cancel.button')}
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>
+                            {t('booking.cancel.confirm_title')}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t('booking.cancel.confirm_description')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    {/* The address of this page plus "/cancel": the code stays in one prop only. */}
+                    <Form
+                        action={`${privateUrl}/cancel`}
+                        method="post"
+                        options={{ preserveScroll: true }}
+                    >
+                        {({ processing, errors }) => (
+                            <div className="flex flex-col gap-4">
+                                <InputError message={errors.cancel} />
+                                <DialogFooter className="gap-2">
+                                    <DialogClose asChild>
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                        >
+                                            {t('booking.cancel.confirm_no')}
+                                        </Button>
+                                    </DialogClose>
+                                    <Button
+                                        type="submit"
+                                        variant="destructive"
+                                        disabled={processing}
+                                    >
+                                        {processing && <Spinner />}
+                                        {t('booking.cancel.confirm_yes')}
+                                    </Button>
+                                </DialogFooter>
+                            </div>
+                        )}
+                    </Form>
+                </DialogContent>
+            </Dialog>
+        </div>
     );
 }

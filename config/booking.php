@@ -51,4 +51,17 @@ return [
 
     'max_days_ahead' => 60,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Cancellation Notice
+    |--------------------------------------------------------------------------
+    |
+    | A customer can cancel a booking online up to this many minutes before
+    | it starts, that moment included. Minutes are counted on the instant in
+    | UTC, so a change of daylight saving time does not move the limit.
+    |
+    */
+
+    'cancellation_notice_minutes' => 1440,
+
 ];
