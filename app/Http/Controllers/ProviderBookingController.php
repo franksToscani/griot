@@ -7,9 +7,11 @@ use App\Booking\InvalidBookingOptions;
 use App\Booking\SlotNotAvailable;
 use App\Http\Requests\StoreBookingRequest;
 use App\Models\Provider;
+use App\Notifications\NewBookingNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Throwable;
 
 /**
  * Receives the booking form of a published provider's page.
@@ -39,6 +41,17 @@ class ProviderBookingController extends Controller
             throw ValidationException::withMessages(['starts_at' => __('booking.create.slot_taken')]);
         } catch (InvalidBookingOptions) {
             throw ValidationException::withMessages(['options' => __('booking.slots.options_invalid')]);
+        }
+
+        // Sent here, after create() has returned: its transaction is already committed, so the
+        // queued job can never run before the commit, nor for a booking that was rolled back.
+        // A failure while queueing the email is reported and nothing more: the booking stays
+        // and the customer still gets the private page. A failure while sending, inside the
+        // queued job, cannot touch the booking: the job runs later, on its own.
+        try {
+            $publishedProvider->user->notify(new NewBookingNotification($booking));
+        } catch (Throwable $exception) {
+            report($exception);
         }
 
         // On to the booking's private page. This redirect is the only place where the public_token
