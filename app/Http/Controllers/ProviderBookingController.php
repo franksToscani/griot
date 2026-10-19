@@ -54,9 +54,10 @@ class ProviderBookingController extends Controller
             report($exception);
         }
 
-        // On to the booking's private page. This redirect is the only place where the public_token
-        // goes in an address, passed as a string and not as the model; it never goes in the flash
-        // message, in a log or in an error.
+        // On to the booking's private page. The public_token goes in a redirect address in two
+        // places, both towards the customer's private page: here and after a cancellation
+        // (BookingCancellationController). It is passed as a string and not as the model; it
+        // never goes in the flash message, in a log or in an error.
         Inertia::flash('toast', ['type' => 'success', 'message' => __('booking.create.created')]);
 
         return to_route('bookings.show', ['booking' => $booking->public_token]);

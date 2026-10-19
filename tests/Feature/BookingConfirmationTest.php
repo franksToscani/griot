@@ -67,6 +67,7 @@ test('a valid link shows the booking', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('bookings/show')
             ->where('private_url', bcUrl($booking))
+            ->where('can_cancel', true)
             ->where('booking', [
                 'status' => 'pending',
                 'provider' => ['name' => 'Salone Awa', 'city' => 'Bologna', 'slug' => $booking->provider->slug],
@@ -165,16 +166,18 @@ test('the response is not cached, not sent as referrer and not indexed', functio
     $response->assertHeader('X-Robots-Tag', 'noindex, nofollow');
 });
 
-test('every status is shown', function (BookingStatus $status) {
+test('every status is shown', function (BookingStatus $status, bool $canCancel) {
     $booking = bcBooking(['status' => $status]);
 
     $this->get(bcUrl($booking))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->where('booking.status', $status->value));
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('booking.status', $status->value)
+            ->where('can_cancel', $canCancel));
 })->with([
-    'pending' => [BookingStatus::Pending],
-    'confirmed' => [BookingStatus::Confirmed],
-    'cancelled' => [BookingStatus::Cancelled],
+    'pending' => [BookingStatus::Pending, true],
+    'confirmed' => [BookingStatus::Confirmed, true],
+    'cancelled' => [BookingStatus::Cancelled, false],
 ]);
 
 test('the link keeps working if the provider is unpublished and the service deactivated', function () {
