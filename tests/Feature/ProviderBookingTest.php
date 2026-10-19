@@ -65,24 +65,43 @@ function pbPost(Provider|string $provider, array $data)
     return test()->post(route('providers.bookings.store', $slug), $data);
 }
 
-test('a valid form creates a pending booking and goes back to the provider page with a message', function () {
+test('a valid form creates a pending booking and goes to its private page with a message', function () {
     $provider = pbProvider();
     $service = pbService($provider);
     $option = ServiceOption::factory()->for($service)->create(['extra_duration' => 30]);
 
-    pbPost($provider, pbForm($service, [
+    $response = pbPost($provider, pbForm($service, [
         'options' => [$option->id, $option->id],
         'customer_email' => 'awa@example.com',
         'notes' => 'Porto io le extension.',
-    ]))
-        ->assertRedirect(route('providers.show', $provider->slug))
+    ]));
+    $booking = Booking::query()->sole();
+
+    $response
+        ->assertRedirect(route('bookings.show', ['booking' => $booking->public_token]))
         ->assertSessionHasNoErrors()
         ->assertInertiaFlash('toast', [
             'type' => 'success',
             'message' => 'Richiesta inviata. Il professionista deve ancora confermarla.',
         ]);
+    // The address ends with the secret code, not with the id.
+    expect($response->headers->get('Location'))
+        ->toEndWith('/bookings/'.$booking->public_token)
+        ->not->toEndWith('/bookings/'.$booking->id);
 
-    $booking = Booking::query()->sole();
+    // Following the redirect, the private page shows the booking just created.
+    $this->get($response->headers->get('Location'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('bookings/show')
+            ->where('booking.status', 'pending')
+            ->where('booking.provider.slug', $provider->slug)
+            ->where('booking.service.name', $service->name)
+            ->where('booking.options', [['name' => $option->name, 'extra_price' => $option->extra_price]])
+            ->where('booking.local_date', '2026-10-19')
+            ->where('booking.local_start', '09:00')
+            ->where('booking.local_end', '10:30'));
+
     expect($booking->status)->toBe(BookingStatus::Pending);
     expect($booking->provider_id)->toBe($provider->id);
     expect($booking->service_id)->toBe($service->id);
@@ -255,19 +274,23 @@ test('provider_id, status, public_token and ends_at in the input are ignored', f
     expect($booking->ends_at->toIso8601String())->toBe('2026-10-19T08:00:00+00:00');
 });
 
-test('the token is not in the redirect, in the flash message or in the provider page', function () {
+test('the token is only in the redirect address and in private_url, never in the flash message', function () {
     $provider = pbProvider();
     $service = pbService($provider);
 
     $response = pbPost($provider, pbForm($service));
     $token = Booking::query()->sole()->public_token;
 
-    expect($response->headers->get('Location'))->not->toContain($token);
+    expect($response->headers->get('Location'))->toEndWith('/bookings/'.$token);
+    // After the POST the session holds the flash message, not the address: no previous URL is
+    // stored for a POST.
     expect(json_encode(session()->all()))->not->toContain($token);
 
-    $this->get($response->headers->get('Location'))
-        ->assertOk()
-        ->assertDontSee($token, false);
+    $page = $this->get($response->headers->get('Location'))->assertOk()->viewData('page');
+    expect($page['props']['private_url'])->toEndWith('/bookings/'.$token);
+    // Without its address and private_url, the page (props and flash) does not hold the token.
+    unset($page['url'], $page['props']['private_url']);
+    expect(json_encode($page))->not->toContain($token);
 });
 
 test('email and notes can be missing, name and phone are trimmed', function () {
@@ -319,7 +342,7 @@ test('option ids sent as strings, as the browser form does, are accepted', funct
 
     // The Inertia form sends {"options": ["<id>"]}: the ids are strings.
     $this->postJson(route('providers.bookings.store', $provider->slug), pbForm($service, ['options' => [(string) $option->id]]))
-        ->assertRedirect(route('providers.show', $provider->slug));
+        ->assertRedirect(route('bookings.show', ['booking' => Booking::query()->sole()->public_token]));
 
     expect(Booking::query()->sole()->options()->pluck('service_options.id')->all())->toBe([$option->id]);
 });
