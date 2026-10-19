@@ -33,7 +33,7 @@ class ProviderBookingController extends Controller
 
         // ServiceNotOfProvider is not caught: the service comes from this provider, so it would be a bug.
         try {
-            $createBooking->create($publishedProvider, $service, $request->optionIds(), $request->startsAt(), $request->customer());
+            $booking = $createBooking->create($publishedProvider, $service, $request->optionIds(), $request->startsAt(), $request->customer());
         } catch (SlotNotAvailable) {
             // Taken in the meantime, or never bookable (past, off the grid, outside the window).
             throw ValidationException::withMessages(['starts_at' => __('booking.create.slot_taken')]);
@@ -41,11 +41,11 @@ class ProviderBookingController extends Controller
             throw ValidationException::withMessages(['options' => __('booking.slots.options_invalid')]);
         }
 
-        // PROVISIONAL: back to the provider page with a message. Issue #29 replaces this with the
-        // confirmation page and the private link. The booking's public_token never goes in the
-        // redirect, in the flash message or in the page props.
+        // On to the booking's private page. This redirect is the only place where the public_token
+        // goes in an address, passed as a string and not as the model; it never goes in the flash
+        // message, in a log or in an error.
         Inertia::flash('toast', ['type' => 'success', 'message' => __('booking.create.created')]);
 
-        return to_route('providers.show', $publishedProvider->slug);
+        return to_route('bookings.show', ['booking' => $booking->public_token]);
     }
 }

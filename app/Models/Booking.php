@@ -19,11 +19,27 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * public_token is the secret code in the customer's private link: it is the only way the
  * customer finds the booking, so it must never appear in a Resource, a log or an error
  * message. It is not fillable: only the code sets it (CreateBooking, the factory, the seeder).
+ * It is also hidden, so toArray() and toJson() leave it out if a model ever reaches a page or
+ * a log by mistake; $booking->public_token and the route binding bookings/{booking:public_token}
+ * still read it.
+ *
+ * @property CarbonImmutable $starts_at
+ * @property CarbonImmutable $ends_at
+ * @property BookingStatus $status
  */
 class Booking extends Model
 {
     /** @use HasFactory<BookingFactory> */
     use HasFactory;
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'public_token',
+    ];
 
     protected $fillable = [
         'service_id',
