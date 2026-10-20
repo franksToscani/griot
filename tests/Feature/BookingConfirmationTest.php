@@ -182,7 +182,7 @@ test('every status is shown', function (BookingStatus $status, bool $canCancel) 
 
 test('the link keeps working if the provider is unpublished and the service deactivated', function () {
     $booking = bcBooking();
-    $booking->provider->update(['is_published' => false]);
+    $booking->provider->forceFill(['is_published' => false])->save();
     $booking->service->update(['is_active' => false]);
 
     $this->get(bcUrl($booking))

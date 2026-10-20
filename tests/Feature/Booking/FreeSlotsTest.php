@@ -223,7 +223,7 @@ test('an inactive service has no slots', function () {
 
 test('an unpublished provider has no slots', function () {
     $provider = mondayProvider('09:00-13:00');
-    $provider->update(['is_published' => false]);
+    $provider->forceFill(['is_published' => false])->save();
 
     expect(freeStarts($provider, serviceBlocking($provider, 60)))->toBe([]);
 });

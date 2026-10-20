@@ -196,7 +196,7 @@ test('a start that is not a free slot is refused and nothing is created', functi
 
 test('an unpublished provider or an inactive service cannot be booked', function () {
     $unpublished = cbProvider();
-    $unpublished->update(['is_published' => false]);
+    $unpublished->forceFill(['is_published' => false])->save();
     $provider = cbProvider();
     $inactive = Service::factory()->inactive()->for($provider)->create();
 

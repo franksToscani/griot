@@ -153,7 +153,7 @@ test('an inactive service returns an empty list, not an error', function () {
 
 test('an unpublished or missing provider gives a 404, even with wrong parameters', function () {
     $unpublished = slotsApiProvider();
-    $unpublished->update(['is_published' => false]);
+    $unpublished->forceFill(['is_published' => false])->save();
     $service = slotsApiService($unpublished);
     $valid = ['service' => $service->id, 'date' => SLOTS_MONDAY];
 

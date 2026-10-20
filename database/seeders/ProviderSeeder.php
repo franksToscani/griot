@@ -24,17 +24,19 @@ class ProviderSeeder extends Seeder
             $user = $this->findOrCreateUser($data['email'], $data['owner']);
             $category = Category::query()->where('slug', $data['category'])->firstOrFail();
 
-            $provider = $user->provider()->updateOrCreate(
-                ['slug' => $data['slug']],
-                [
-                    'name' => $data['name'],
-                    'bio' => $data['bio'],
-                    'city' => $data['city'],
-                    'whatsapp' => $data['whatsapp'],
-                    'instagram' => $data['instagram'],
-                    'is_published' => $data['is_published'],
-                ],
-            );
+            // Found by slug, so a second run updates instead of duplicating. forceFill(): slug
+            // and is_published are not fillable, like the token in BookingSeeder.
+            $provider = $user->provider()->firstOrNew(['slug' => $data['slug']]);
+            $provider->forceFill([
+                'slug' => $data['slug'],
+                'name' => $data['name'],
+                'bio' => $data['bio'],
+                'city' => $data['city'],
+                'whatsapp' => $data['whatsapp'],
+                'instagram' => $data['instagram'],
+                'is_published' => $data['is_published'],
+            ]);
+            $user->provider()->save($provider);
 
             foreach ($data['services'] as $serviceData) {
                 $service = $provider->services()->updateOrCreate(

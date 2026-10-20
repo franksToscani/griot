@@ -16,15 +16,18 @@ class Provider extends Model
     /** @use HasFactory<ProviderFactory> */
     use HasFactory;
 
+    /**
+     * Only the profile fields a provider writes. slug (unique), is_published (issue #37) and
+     * avatar_path (issue #36) are always set by explicit code, never by mass assignment.
+     *
+     * @var list<string>
+     */
     protected $fillable = [
-        'slug',
         'name',
-        'bio',
         'city',
+        'bio',
         'whatsapp',
         'instagram',
-        'avatar_path',
-        'is_published',
     ];
 
     /**

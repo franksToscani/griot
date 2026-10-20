@@ -118,7 +118,7 @@ test('a valid form creates a pending booking and goes to its private page with a
 
 test('an unpublished or missing provider gives a 404, even with wrong or missing fields', function () {
     $unpublished = pbProvider();
-    $unpublished->update(['is_published' => false]);
+    $unpublished->forceFill(['is_published' => false])->save();
     $service = pbService($unpublished);
 
     pbPost($unpublished, pbForm($service))->assertNotFound();

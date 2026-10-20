@@ -142,7 +142,7 @@ test('no notification for an invalid form, a taken time or an unpublished provid
     nbPost($taken)->assertSessionHasErrors('starts_at');
 
     $unpublished = nbProvider();
-    $unpublished->update(['is_published' => false]);
+    $unpublished->forceFill(['is_published' => false])->save();
     nbPost($unpublished)->assertNotFound();
 
     Notification::assertNothingSent();
