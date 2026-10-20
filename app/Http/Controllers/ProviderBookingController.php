@@ -9,6 +9,7 @@ use App\Http\Requests\StoreBookingRequest;
 use App\Models\Provider;
 use App\Notifications\NewBookingNotification;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Throwable;
@@ -25,6 +26,19 @@ class ProviderBookingController extends Controller
      */
     public function __invoke(StoreBookingRequest $request, Provider $publishedProvider, CreateBooking $createBooking): RedirectResponse
     {
+        // Honeypot, checked right after the validation: no booking, no notification, and a fake
+        // success. A bot with valid data sees a success, one with wrong data gets the normal
+        // validation errors, so neither finds out about the trap. The log line has a fixed message
+        // and the provider id only, nothing the customer wrote. Risk of false positives: a browser
+        // or password manager that fills the hidden field automatically would lose a real request
+        // without telling the customer.
+        if ($request->honeypotFilled()) {
+            Log::info('Booking request discarded: honeypot field filled.', ['provider_id' => $publishedProvider->id]);
+            Inertia::flash('toast', ['type' => 'success', 'message' => __('booking.create.created')]);
+
+            return to_route('providers.show', $publishedProvider->slug);
+        }
+
         // Only among this provider's services: a missing id and an id of another provider get the
         // same message, so the response does not tell whether that id exists elsewhere.
         $service = $publishedProvider->services()->find($request->serviceId());

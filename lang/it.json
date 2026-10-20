@@ -43,6 +43,7 @@
     "booking.confirmation.link_help": "Conserva questo link: è l'unico modo per ritrovare la prenotazione. Chiunque lo abbia può vederla.",
     "booking.confirmation.copy": "Copia link",
     "booking.confirmation.copied": "Link copiato",
+    "booking.throttle.too_many": "Hai fatto troppe richieste in poco tempo. Riprova tra qualche minuto.",
     "booking.cancel.button": "Annulla prenotazione",
     "booking.cancel.confirm_title": "Vuoi annullare la prenotazione?",
     "booking.cancel.confirm_description": "L'orario tornerà libero per altri clienti. L'operazione non si può annullare.",
