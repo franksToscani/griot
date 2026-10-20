@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/card';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
+import { edit } from '@/routes/provider';
 import { show } from '@/routes/providers';
 import type { ProviderArea } from '@/types';
 
@@ -60,16 +61,22 @@ export default function Dashboard({ provider }: Props) {
                             </Badge>
                         </CardDescription>
                     </CardHeader>
-                    {/* Only when published: an unpublished page gives a 404 (the owner's preview is issue #42). */}
-                    {provider.is_published && (
-                        <CardContent>
+                    <CardContent className="flex flex-wrap gap-2">
+                        {/* Always: published or not, the profile can be edited. */}
+                        <Button asChild>
+                            <Link href={edit()}>
+                                {t('provider.area.edit_profile')}
+                            </Link>
+                        </Button>
+                        {/* Only when published: an unpublished page gives a 404 (the owner's preview is issue #42). */}
+                        {provider.is_published && (
                             <Button asChild variant="outline">
                                 <Link href={show(provider.slug)}>
                                     {t('provider.area.public_page')}
                                 </Link>
                             </Button>
-                        </CardContent>
-                    )}
+                        )}
+                    </CardContent>
                 </Card>
             </div>
         </>

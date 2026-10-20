@@ -175,7 +175,7 @@ test('the body of the request is ignored', function () {
 
 test('the customer can cancel even if the provider is unpublished and the service deactivated', function () {
     $booking = bclBooking();
-    $booking->provider->update(['is_published' => false]);
+    $booking->provider->forceFill(['is_published' => false])->save();
     $booking->service->update(['is_active' => false]);
 
     bclCancel($booking)->assertRedirect(bclPage($booking));

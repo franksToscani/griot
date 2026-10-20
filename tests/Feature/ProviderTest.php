@@ -14,11 +14,13 @@ test('a provider can be created with the factory', function () {
 test('a provider is not published by default', function () {
     $user = User::factory()->create();
 
-    $provider = $user->provider()->create([
-        'slug' => 'beni-hair-design',
+    // slug is not fillable: assigned on its own, like the application code does.
+    $provider = $user->provider()->make([
         'name' => 'Beni Hair Design',
         'city' => 'Bologna',
     ]);
+    $provider->slug = 'beni-hair-design';
+    $provider->save();
 
     expect($provider->refresh()->is_published)->toBeFalse();
 });
