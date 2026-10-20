@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\BookingCancellationController;
 use App\Http\Controllers\BookingConfirmationController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProviderBookingController;
 use App\Http\Controllers\ProviderController;
+use App\Http\Controllers\ProviderSetupController;
 use App\Http\Controllers\ProviderSlotsController;
 use App\Http\Middleware\PrivateBookingPage;
 use Illuminate\Support\Facades\Route;
@@ -37,8 +39,11 @@ Route::post('bookings/{booking:public_token}/cancel', BookingCancellationControl
     ->middleware([PrivateBookingPage::class, 'throttle:booking-cancel'])
     ->name('bookings.cancel');
 
+// The provider's private area. No route has an id or a slug: the provider is always the
+// logged-in user's own ($request->user()->provider).
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
+    Route::get('provider/setup', ProviderSetupController::class)->name('provider.setup');
 });
 
 require __DIR__.'/settings.php';
