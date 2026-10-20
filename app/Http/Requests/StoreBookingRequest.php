@@ -73,6 +73,16 @@ class StoreBookingRequest extends FormRequest
     }
 
     /**
+     * Whether the hidden trap field (honeypot) was filled in: a person never sees it, a bot that
+     * fills every field does. It is not in rules() and is read from the raw input, not from
+     * validated(). Empty or only spaces is not filled; an array (confirm_reference[]=x) is.
+     */
+    public function honeypotFilled(): bool
+    {
+        return $this->filled('confirm_reference');
+    }
+
+    /**
      * The id of the chosen service; the request may send it as a string.
      */
     public function serviceId(): int

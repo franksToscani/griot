@@ -339,7 +339,20 @@ export function BookingSheet({ providerSlug, service, bookingWindow }: Props) {
                                 </div>
                             </div>
 
+                            {/* Trap field (honeypot): hidden from people and from screen readers,
+                                left empty by a person, filled in by many bots. */}
+                            <div className="hidden" aria-hidden="true">
+                                <input
+                                    type="text"
+                                    name="confirm_reference"
+                                    tabIndex={-1}
+                                    autoComplete="off"
+                                    defaultValue=""
+                                />
+                            </div>
+
                             <InputError message={errors.service} />
+                            <InputError message={errors.throttle} />
 
                             <Button
                                 type="submit"

@@ -15,9 +15,13 @@ Route::get('providers/{slug}', [ProviderController::class, 'show'])->name('provi
 // ":slug" is only for Wayfinder, so that it generates a type with the slug: Laravel uses the
 // Route::bind of "publishedProvider" (AppServiceProvider) and ignores it. The 404 tests on
 // unpublished and missing providers in ProviderSlotsTest protect this behaviour.
-Route::get('providers/{publishedProvider:slug}/slots', ProviderSlotsController::class)->name('providers.slots');
+Route::get('providers/{publishedProvider:slug}/slots', ProviderSlotsController::class)
+    ->middleware('throttle:booking-slots')
+    ->name('providers.slots');
 // Same binding and same ":slug" note as the slots route above.
-Route::post('providers/{publishedProvider:slug}/bookings', ProviderBookingController::class)->name('providers.bookings.store');
+Route::post('providers/{publishedProvider:slug}/bookings', ProviderBookingController::class)
+    ->middleware('throttle:booking-store')
+    ->name('providers.bookings.store');
 
 // Implicit binding by public_token. The pattern gives a 404 to a code of the wrong shape (an id
 // too) without querying the database; an unknown code gets the same 404 from the binding.
@@ -27,9 +31,10 @@ Route::get('bookings/{booking:public_token}', BookingConfirmationController::cla
     ->name('bookings.show');
 // POST only, in the web group with CSRF protection: a GET (a link, a prefetch) cannot cancel.
 // Same pattern, binding and headers as bookings.show.
+// Its "throttle:" limit, like the two above, is defined in AppServiceProvider::configureRateLimiting.
 Route::post('bookings/{booking:public_token}/cancel', BookingCancellationController::class)
     ->where('booking', '[A-Za-z0-9]{48}')
-    ->middleware(PrivateBookingPage::class)
+    ->middleware([PrivateBookingPage::class, 'throttle:booking-cancel'])
     ->name('bookings.cancel');
 
 Route::middleware(['auth', 'verified'])->group(function () {

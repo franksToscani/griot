@@ -64,4 +64,23 @@ return [
 
     'cancellation_notice_minutes' => 1440,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Rate Limits
+    |--------------------------------------------------------------------------
+    |
+    | How many requests one IP address can send to the public booking routes:
+    | the booking form (per minute and per hour), the customer's cancellation
+    | and the free slots. Every request counts, invalid ones included.
+    |
+    */
+
+    'rate_limit_store_per_minute' => 5,
+
+    'rate_limit_store_per_hour' => 20,
+
+    'rate_limit_cancel_per_minute' => 10,
+
+    'rate_limit_slots_per_minute' => 60,
+
 ];
