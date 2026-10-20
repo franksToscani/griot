@@ -7,6 +7,7 @@ use App\Http\Controllers\ProviderBookingController;
 use App\Http\Controllers\ProviderController;
 use App\Http\Controllers\ProviderSetupController;
 use App\Http\Controllers\ProviderSlotsController;
+use App\Http\Controllers\ProviderStoreController;
 use App\Http\Middleware\PrivateBookingPage;
 use Illuminate\Support\Facades\Route;
 
@@ -44,6 +45,7 @@ Route::post('bookings/{booking:public_token}/cancel', BookingCancellationControl
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('provider/setup', ProviderSetupController::class)->name('provider.setup');
+    Route::post('provider/setup', ProviderStoreController::class)->name('provider.store');
 });
 
 require __DIR__.'/settings.php';
