@@ -8,8 +8,13 @@ use App\Http\Controllers\ProviderBookingController;
 use App\Http\Controllers\ProviderController;
 use App\Http\Controllers\ProviderEditController;
 use App\Http\Controllers\ProviderPublishController;
+use App\Http\Controllers\ProviderServiceActivateController;
+use App\Http\Controllers\ProviderServiceDeactivateController;
+use App\Http\Controllers\ProviderServiceDestroyController;
+use App\Http\Controllers\ProviderServiceEditController;
 use App\Http\Controllers\ProviderServiceIndexController;
 use App\Http\Controllers\ProviderServiceStoreController;
+use App\Http\Controllers\ProviderServiceUpdateController;
 use App\Http\Controllers\ProviderSetupController;
 use App\Http\Controllers\ProviderSlotsController;
 use App\Http\Controllers\ProviderStoreController;
@@ -71,6 +76,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('provider/services', ProviderServiceStoreController::class)
         ->middleware('throttle:provider-services')
         ->name('provider.services.store');
+    // One service: searched in the controllers only among the user's own services, never with an
+    // implicit binding on the whole table, so an id of another provider gets a 404 like a missing one.
+    Route::get('provider/services/{service}/edit', ProviderServiceEditController::class)
+        ->whereNumber('service')
+        ->name('provider.services.edit');
+    Route::put('provider/services/{service}', ProviderServiceUpdateController::class)
+        ->whereNumber('service')
+        ->middleware('throttle:provider-services-manage')
+        ->name('provider.services.update');
+    Route::post('provider/services/{service}/deactivate', ProviderServiceDeactivateController::class)
+        ->whereNumber('service')
+        ->middleware('throttle:provider-services-manage')
+        ->name('provider.services.deactivate');
+    Route::post('provider/services/{service}/activate', ProviderServiceActivateController::class)
+        ->whereNumber('service')
+        ->middleware('throttle:provider-services-manage')
+        ->name('provider.services.activate');
+    Route::delete('provider/services/{service}', ProviderServiceDestroyController::class)
+        ->whereNumber('service')
+        ->middleware('throttle:provider-services-manage')
+        ->name('provider.services.destroy');
 });
 
 require __DIR__.'/settings.php';

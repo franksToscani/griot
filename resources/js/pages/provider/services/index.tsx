@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { formatDuration, formatPrice } from '@/lib/format';
 import { dashboard } from '@/routes';
 // The services' own "store", not the profile one of '@/routes/provider'.
-import { index, store as storeService } from '@/routes/provider/services';
+import { edit, index, store as storeService } from '@/routes/provider/services';
 import type { Category, ProviderService } from '@/types';
 
 type Props = {
@@ -99,6 +99,13 @@ function ServiceCard({ service }: { service: ProviderService }) {
                     </p>
                 </CardContent>
             )}
+            <CardContent>
+                <Button asChild variant="outline" size="sm">
+                    <Link href={edit(service.id)}>
+                        {t('provider.services.edit_button')}
+                    </Link>
+                </Button>
+            </CardContent>
         </Card>
     );
 }

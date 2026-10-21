@@ -58,3 +58,9 @@ export function formatOptionExtras(
 
     return extras;
 }
+
+// "25.50" from the server becomes "25,50" in an input, as an Italian provider would write it.
+// The server reads the comma back (ServiceRules::preparePrice).
+export function priceForInput(price: string): string {
+    return price.replace('.', ',');
+}
