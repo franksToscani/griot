@@ -389,7 +389,8 @@ test('the dashboard links to the edit page and still gets five provider fields',
     // The link is checked in the page source: there is no JavaScript test runner.
     $source = file_get_contents(resource_path('js/pages/dashboard.tsx'));
     expect($source)
-        ->toContain("import { edit } from '@/routes/provider';")
+        // "edit" as a whole word among the names imported from '@/routes/provider' (not "editor").
+        ->toMatch("/import \{[^}]*\bedit\b[^}]*\} from '@\/routes\/provider';/")
         ->toContain('<Link href={edit()}>')
         ->toContain("t('provider.area.edit_profile')");
 

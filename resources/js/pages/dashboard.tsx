@@ -1,4 +1,6 @@
-import { Head, Link } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
+import { useState } from 'react';
+import InputError from '@/components/input-error';
 import { ProviderAvatar } from '@/components/provider-avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,18 +11,43 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
-import { edit } from '@/routes/provider';
+import { edit, publish, unpublish } from '@/routes/provider';
 import { show } from '@/routes/providers';
-import type { ProviderArea } from '@/types';
+import type { ProviderArea, PublishingStatus } from '@/types';
 
 type Props = {
     provider: ProviderArea;
+    publishing: PublishingStatus;
 };
 
+// The codes PublishingRequirements can send, each with its text. An unknown code is skipped,
+// so a new requirement on the server never shows a raw key on the page.
+const MISSING_CODES = ['name', 'city', 'service', 'availability'] as const;
+type MissingCode = (typeof MISSING_CODES)[number];
+
+const isMissingCode = (code: string): code is MissingCode =>
+    (MISSING_CODES as readonly string[]).includes(code);
+
+// The kit's Button keeps its label on one line at a fixed height: long Italian labels would widen
+// the Card at 375 px. cn() uses tailwind-merge, so these classes replace the kit's ones.
+const wrappingLabel = 'h-auto max-w-full whitespace-normal py-2 text-center';
+
 // The provider's private area: a greeting and the status of the public profile.
-export default function Dashboard({ provider }: Props) {
+export default function Dashboard({ provider, publishing }: Props) {
     const { t } = useTranslation();
 
     return (
@@ -63,23 +90,147 @@ export default function Dashboard({ provider }: Props) {
                     </CardHeader>
                     <CardContent className="flex flex-wrap gap-2">
                         {/* Always: published or not, the profile can be edited. */}
-                        <Button asChild>
+                        <Button asChild className={wrappingLabel}>
                             <Link href={edit()}>
                                 {t('provider.area.edit_profile')}
                             </Link>
                         </Button>
                         {/* Only when published: an unpublished page gives a 404 (the owner's preview is issue #42). */}
                         {provider.is_published && (
-                            <Button asChild variant="outline">
+                            <Button
+                                asChild
+                                variant="outline"
+                                className={wrappingLabel}
+                            >
                                 <Link href={show(provider.slug)}>
                                     {t('provider.area.public_page')}
                                 </Link>
                             </Button>
                         )}
                     </CardContent>
+                    <Separator />
+                    <CardContent className="flex flex-col gap-3">
+                        <h2 className="font-semibold">
+                            {t('provider.publish.title')}
+                        </h2>
+                        {provider.is_published ? (
+                            <UnpublishButton />
+                        ) : (
+                            <PublishSection publishing={publishing} />
+                        )}
+                    </CardContent>
                 </Card>
             </div>
         </>
+    );
+}
+
+// What is still missing and the publish button. "publishing" comes from the server at every
+// load: after a refused publish the page is reloaded with the current list.
+function PublishSection({ publishing }: { publishing: PublishingStatus }) {
+    const { t } = useTranslation();
+    const missing = publishing.missing.filter(isMissingCode);
+
+    return (
+        <>
+            {publishing.can_publish ? (
+                <p className="text-sm">{t('provider.publish.ready')}</p>
+            ) : missing.length > 0 ? (
+                <div className="text-sm">
+                    <p>{t('provider.publish.missing_title')}</p>
+                    <ul className="list-disc pl-5">
+                        {missing.map((code) => (
+                            <li key={code}>
+                                {t(`provider.publish.missing_${code}`)}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            ) : (
+                // Only unknown codes: still not publishable, with the general message.
+                <p className="text-sm">{t('provider.publish.blocked')}</p>
+            )}
+            <Form
+                {...publish.form()}
+                options={{ preserveScroll: true }}
+                className="flex flex-col gap-2"
+            >
+                {({ processing, errors }) => (
+                    <>
+                        <InputError message={errors.publish} />
+                        <Button
+                            type="submit"
+                            className={`self-start ${wrappingLabel}`}
+                            disabled={!publishing.can_publish || processing}
+                        >
+                            {processing && <Spinner />}
+                            {t('provider.publish.submit')}
+                        </Button>
+                    </>
+                )}
+            </Form>
+        </>
+    );
+}
+
+// Taking the profile off asks for a confirmation first: the customers stop seeing it.
+function UnpublishButton() {
+    const { t } = useTranslation();
+    const [open, setOpen] = useState(false);
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button
+                    variant="outline"
+                    className={`self-start ${wrappingLabel}`}
+                >
+                    {t('provider.publish.unpublish')}
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>
+                        {t('provider.publish.unpublish_title')}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {t('provider.publish.unpublish_description')}
+                    </DialogDescription>
+                </DialogHeader>
+                <Form
+                    {...unpublish.form()}
+                    options={{ preserveScroll: true }}
+                    onSuccess={() => setOpen(false)}
+                >
+                    {({ processing, errors }) => (
+                        <div className="flex flex-col gap-4">
+                            {/* For example the request limit: the window stays open and shows it. */}
+                            <InputError message={errors.publish} />
+                            <DialogFooter className="gap-2">
+                                <DialogClose asChild>
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        className={wrappingLabel}
+                                    >
+                                        {t('provider.publish.unpublish_cancel')}
+                                    </Button>
+                                </DialogClose>
+                                <Button
+                                    type="submit"
+                                    variant="destructive"
+                                    className={wrappingLabel}
+                                    disabled={processing}
+                                >
+                                    {processing && <Spinner />}
+                                    {t('provider.publish.unpublish_confirm')}
+                                </Button>
+                            </DialogFooter>
+                        </div>
+                    )}
+                </Form>
+            </DialogContent>
+        </Dialog>
     );
 }
 

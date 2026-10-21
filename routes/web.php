@@ -7,9 +7,11 @@ use App\Http\Controllers\ProviderAvatarController;
 use App\Http\Controllers\ProviderBookingController;
 use App\Http\Controllers\ProviderController;
 use App\Http\Controllers\ProviderEditController;
+use App\Http\Controllers\ProviderPublishController;
 use App\Http\Controllers\ProviderSetupController;
 use App\Http\Controllers\ProviderSlotsController;
 use App\Http\Controllers\ProviderStoreController;
+use App\Http\Controllers\ProviderUnpublishController;
 use App\Http\Controllers\ProviderUpdateController;
 use App\Http\Middleware\PrivateBookingPage;
 use Illuminate\Support\Facades\Route;
@@ -55,6 +57,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('provider/avatar', ProviderAvatarController::class)
         ->middleware('throttle:provider-avatar')
         ->name('provider.avatar.store');
+    // No fields: whatever is sent in the body is ignored. One limiter for both, see AppServiceProvider.
+    Route::post('provider/publish', ProviderPublishController::class)
+        ->middleware('throttle:provider-publish')
+        ->name('provider.publish');
+    Route::post('provider/unpublish', ProviderUnpublishController::class)
+        ->middleware('throttle:provider-publish')
+        ->name('provider.unpublish');
 });
 
 require __DIR__.'/settings.php';

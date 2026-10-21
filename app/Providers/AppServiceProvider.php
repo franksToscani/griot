@@ -84,6 +84,11 @@ class AppServiceProvider extends ServiceProvider
                 $exception->redirectTo(route('provider.edit'));
             }
 
+            // The publish buttons live on the dashboard.
+            if ($field === 'publish') {
+                $exception->redirectTo(route('dashboard'));
+            }
+
             throw $exception;
         };
 
@@ -109,6 +114,12 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('provider-avatar', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_avatar_per_minute'))
             ->by('user:'.$request->user()?->id)
             ->response($tooMany('avatar')));
+
+        // Shared by provider.publish and provider.unpublish: same limiter name and same key, so the
+        // two routes count together (the counter key is the limiter name plus the user).
+        RateLimiter::for('provider-publish', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_publish_per_minute'))
+            ->by('user:'.$request->user()?->id)
+            ->response($tooMany('publish')));
     }
 
     /**
