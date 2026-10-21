@@ -26,6 +26,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
 import { edit, publish, unpublish } from '@/routes/provider';
+import { index as servicesIndex } from '@/routes/provider/services';
 import { show } from '@/routes/providers';
 import type { ProviderArea, PublishingStatus } from '@/types';
 
@@ -93,6 +94,15 @@ export default function Dashboard({ provider, publishing }: Props) {
                         <Button asChild className={wrappingLabel}>
                             <Link href={edit()}>
                                 {t('provider.area.edit_profile')}
+                            </Link>
+                        </Button>
+                        <Button
+                            asChild
+                            variant="outline"
+                            className={wrappingLabel}
+                        >
+                            <Link href={servicesIndex()}>
+                                {t('provider.area.services')}
                             </Link>
                         </Button>
                         {/* Only when published: an unpublished page gives a 404 (the owner's preview is issue #42). */}
