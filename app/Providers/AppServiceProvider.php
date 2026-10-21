@@ -130,6 +130,12 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('provider-services', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_services_per_minute'))
             ->by('user:'.$request->user()?->id)
             ->response($tooMany('services')));
+
+        // Edit, deactivate, activate and delete of a service share one counter per user. The
+        // existing "services" answer already goes back to the services page.
+        RateLimiter::for('provider-services-manage', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_services_manage_per_minute'))
+            ->by('user:'.$request->user()?->id)
+            ->response($tooMany('services')));
     }
 
     /**

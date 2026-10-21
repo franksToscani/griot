@@ -92,4 +92,7 @@ return [
     // New services of a logged-in provider, per user (not per IP).
     'rate_limit_services_per_minute' => 20,
 
+    // Edit, deactivate, activate and delete of a service together, per user (not per IP).
+    'rate_limit_services_manage_per_minute' => 30,
+
 ];

@@ -41,3 +41,8 @@ export type ProviderService = {
     duration_max: number;
     is_active: boolean;
 };
+
+// The "bookings" prop of the service edit page: whether something blocks the deletion.
+export type ServiceBookings = {
+    has_bookings: boolean;
+};
