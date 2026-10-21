@@ -20,4 +20,5 @@ export type ProviderProfileValues = {
 export type ProviderEdit = ProviderProfileValues & {
     slug: string;
     is_published: boolean;
+    avatar_url: string | null;
 };
