@@ -22,3 +22,9 @@ export type ProviderEdit = ProviderProfileValues & {
     is_published: boolean;
     avatar_url: string | null;
 };
+
+// The "publishing" prop of the dashboard: the codes of App\Profile\PublishingRequirements.
+export type PublishingStatus = {
+    can_publish: boolean;
+    missing: string[];
+};
