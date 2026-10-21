@@ -83,4 +83,7 @@ return [
 
     'rate_limit_slots_per_minute' => 60,
 
+    // Photo uploads of a logged-in provider, per user (not per IP).
+    'rate_limit_avatar_per_minute' => 10,
+
 ];

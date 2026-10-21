@@ -3,6 +3,7 @@
 use App\Http\Controllers\BookingCancellationController;
 use App\Http\Controllers\BookingConfirmationController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProviderAvatarController;
 use App\Http\Controllers\ProviderBookingController;
 use App\Http\Controllers\ProviderController;
 use App\Http\Controllers\ProviderEditController;
@@ -50,6 +51,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('provider/setup', ProviderStoreController::class)->name('provider.store');
     Route::get('provider/profile', ProviderEditController::class)->name('provider.edit');
     Route::put('provider/profile', ProviderUpdateController::class)->name('provider.update');
+    // A separate POST from the profile form. Its "throttle:" limit is in AppServiceProvider.
+    Route::post('provider/avatar', ProviderAvatarController::class)
+        ->middleware('throttle:provider-avatar')
+        ->name('provider.avatar.store');
 });
 
 require __DIR__.'/settings.php';

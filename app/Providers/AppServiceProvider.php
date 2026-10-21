@@ -79,6 +79,11 @@ class AppServiceProvider extends ServiceProvider
                 $exception->redirectTo(route('bookings.show', ['booking' => (string) $request->route('booking')]));
             }
 
+            // The photo form lives on the edit page: back there, whatever the "previous" address is.
+            if ($field === 'avatar') {
+                $exception->redirectTo(route('provider.edit'));
+            }
+
             throw $exception;
         };
 
@@ -98,6 +103,12 @@ class AppServiceProvider extends ServiceProvider
         // The free slots are read with fetch() and JSON: Laravel's default 429 with Retry-After.
         RateLimiter::for('booking-slots', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_slots_per_minute'))
             ->by($request->ip()));
+
+        // Per logged-in user, not per IP: the photo upload is behind the login, and decoding a big
+        // image costs memory (about 70 MB for 4000x4000).
+        RateLimiter::for('provider-avatar', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_avatar_per_minute'))
+            ->by('user:'.$request->user()?->id)
+            ->response($tooMany('avatar')));
     }
 
     /**

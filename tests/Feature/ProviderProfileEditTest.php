@@ -5,6 +5,7 @@ use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -106,7 +107,7 @@ test('a user without a provider goes to the setup page', function () {
     expect(Provider::query()->count())->toBe(0);
 });
 
-test('the edit page has exactly the seven fields of the provider', function () {
+test('the edit page has exactly the eight fields of the provider', function () {
     $provider = ppeProvider(['is_published' => true, 'avatar_path' => 'avatars/awa.jpg']);
     ppeProvider(['name' => 'Barberia Kofi', 'slug' => 'barberia-kofi']);
 
@@ -123,6 +124,7 @@ test('the edit page has exactly the seven fields of the provider', function () {
                 'instagram' => 'salone.awa',
                 'slug' => 'salone-awa',
                 'is_published' => true,
+                'avatar_url' => Storage::disk('public')->url('avatars/awa.jpg'),
             ]))
         ->assertDontSee('Barberia Kofi');
 });

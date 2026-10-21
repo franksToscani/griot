@@ -1,5 +1,7 @@
 import { Form, Head } from '@inertiajs/react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
+import { ProviderAvatar } from '@/components/provider-avatar';
 import { ProviderProfileFields } from '@/components/provider-profile-fields';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,6 +16,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
 import { edit, update } from '@/routes/provider';
+// The photo's own "store", not the profile one of '@/routes/provider'.
+import { store as storeAvatar } from '@/routes/provider/avatar';
 import type { ProviderEdit } from '@/types';
 
 type Props = {
@@ -27,7 +31,7 @@ export default function ProviderEditPage({ provider }: Props) {
     return (
         <>
             <Head title={t('provider.edit.title')} />
-            <div className="p-4">
+            <div className="flex flex-col gap-6 p-4">
                 <Card className="max-w-2xl">
                     <CardHeader>
                         <h1 className="text-2xl leading-none font-semibold">
@@ -85,8 +89,92 @@ export default function ProviderEditPage({ provider }: Props) {
                         </Form>
                     </CardContent>
                 </Card>
+
+                <AvatarForm
+                    name={provider.name}
+                    avatarUrl={provider.avatar_url}
+                />
             </div>
         </>
+    );
+}
+
+// The photo, in a form of its own: a separate request from the profile, so pressing Enter in a
+// profile field never sends it, and its ids ("avatar") are not used by the profile form.
+function AvatarForm({
+    name,
+    avatarUrl,
+}: {
+    name: string;
+    avatarUrl: string | null;
+}) {
+    const { t } = useTranslation();
+    // Whether a file is chosen: the input is not controlled, so React needs to be told.
+    const [hasFile, setHasFile] = useState(false);
+
+    return (
+        <Card className="max-w-2xl">
+            <CardHeader>
+                <h2 className="text-xl leading-none font-semibold">
+                    {t('provider.avatar.title')}
+                </h2>
+            </CardHeader>
+            <CardContent>
+                {/* resetOnSuccess empties the file input after a successful upload, and onSuccess
+                    turns the button off again: no "chosen" state left with an empty input. */}
+                <Form
+                    {...storeAvatar.form()}
+                    options={{ preserveScroll: true }}
+                    encType="multipart/form-data"
+                    resetOnSuccess
+                    onSuccess={() => setHasFile(false)}
+                    className="flex flex-col gap-4"
+                >
+                    {({ processing, errors }) => (
+                        <>
+                            <ProviderAvatar
+                                name={name}
+                                avatarUrl={avatarUrl}
+                                className="size-24 text-2xl"
+                            />
+                            <div className="grid gap-2">
+                                <Label htmlFor="avatar">
+                                    {t('provider.avatar.label')}
+                                </Label>
+                                <Input
+                                    id="avatar"
+                                    name="avatar"
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    aria-describedby="avatar-help"
+                                    onChange={(event) =>
+                                        setHasFile(
+                                            (event.target.files?.length ?? 0) >
+                                                0,
+                                        )
+                                    }
+                                />
+                                <p
+                                    id="avatar-help"
+                                    className="text-sm text-muted-foreground"
+                                >
+                                    {t('provider.avatar.help')}
+                                </p>
+                                <InputError message={errors.avatar} />
+                            </div>
+                            <Button
+                                type="submit"
+                                className="self-start"
+                                disabled={!hasFile || processing}
+                            >
+                                {processing && <Spinner />}
+                                {t('provider.avatar.submit')}
+                            </Button>
+                        </>
+                    )}
+                </Form>
+            </CardContent>
+        </Card>
     );
 }
 
