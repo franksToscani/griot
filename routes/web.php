@@ -8,6 +8,8 @@ use App\Http\Controllers\ProviderBookingController;
 use App\Http\Controllers\ProviderController;
 use App\Http\Controllers\ProviderEditController;
 use App\Http\Controllers\ProviderPublishController;
+use App\Http\Controllers\ProviderServiceIndexController;
+use App\Http\Controllers\ProviderServiceStoreController;
 use App\Http\Controllers\ProviderSetupController;
 use App\Http\Controllers\ProviderSlotsController;
 use App\Http\Controllers\ProviderStoreController;
@@ -64,6 +66,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('provider/unpublish', ProviderUnpublishController::class)
         ->middleware('throttle:provider-publish')
         ->name('provider.unpublish');
+    // The provider's services: no identifier in the address, the provider is the user's own.
+    Route::get('provider/services', ProviderServiceIndexController::class)->name('provider.services.index');
+    Route::post('provider/services', ProviderServiceStoreController::class)
+        ->middleware('throttle:provider-services')
+        ->name('provider.services.store');
 });
 
 require __DIR__.'/settings.php';

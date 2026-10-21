@@ -28,3 +28,16 @@ export type PublishingStatus = {
     can_publish: boolean;
     missing: string[];
 };
+
+// Shape of App\Http\Resources\ProviderServiceResource: a service in the provider's own area.
+export type ProviderService = {
+    id: number;
+    name: string;
+    description: string | null;
+    category: { id: number; name: string };
+    // Decimal string such as "25.50".
+    price: string;
+    duration_min: number;
+    duration_max: number;
+    is_active: boolean;
+};

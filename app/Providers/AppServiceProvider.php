@@ -89,6 +89,11 @@ class AppServiceProvider extends ServiceProvider
                 $exception->redirectTo(route('dashboard'));
             }
 
+            // The service form lives on the services page.
+            if ($field === 'services') {
+                $exception->redirectTo(route('provider.services.index'));
+            }
+
             throw $exception;
         };
 
@@ -120,6 +125,11 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('provider-publish', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_publish_per_minute'))
             ->by('user:'.$request->user()?->id)
             ->response($tooMany('publish')));
+
+        // New services of a logged-in provider, per user (not per IP).
+        RateLimiter::for('provider-services', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_services_per_minute'))
+            ->by('user:'.$request->user()?->id)
+            ->response($tooMany('services')));
     }
 
     /**
