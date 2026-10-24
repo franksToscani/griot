@@ -7,6 +7,8 @@ use App\Http\Controllers\ProviderAvatarController;
 use App\Http\Controllers\ProviderBookingController;
 use App\Http\Controllers\ProviderController;
 use App\Http\Controllers\ProviderEditController;
+use App\Http\Controllers\ProviderOptionActivateController;
+use App\Http\Controllers\ProviderOptionDeactivateController;
 use App\Http\Controllers\ProviderOptionDestroyController;
 use App\Http\Controllers\ProviderOptionIndexController;
 use App\Http\Controllers\ProviderOptionStoreController;
@@ -118,6 +120,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->whereNumber(['service', 'option'])
         ->middleware('throttle:provider-services-manage')
         ->name('provider.services.options.destroy');
+    // Hide an option from new customers, and show it again: no fields, same search and limit.
+    Route::post('provider/services/{service}/options/{option}/deactivate', ProviderOptionDeactivateController::class)
+        ->whereNumber(['service', 'option'])
+        ->middleware('throttle:provider-services-manage')
+        ->name('provider.services.options.deactivate');
+    Route::post('provider/services/{service}/options/{option}/activate', ProviderOptionActivateController::class)
+        ->whereNumber(['service', 'option'])
+        ->middleware('throttle:provider-services-manage')
+        ->name('provider.services.options.activate');
 });
 
 require __DIR__.'/settings.php';

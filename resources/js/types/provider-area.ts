@@ -56,4 +56,6 @@ export type ProviderOption = {
     extra_duration: number;
     // Chosen in at least one booking: it cannot be deleted.
     used: boolean;
+    // False when hidden from new customers; the bookings that chose it keep it.
+    is_active: boolean;
 };

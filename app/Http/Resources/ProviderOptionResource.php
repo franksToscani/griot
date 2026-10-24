@@ -33,6 +33,8 @@ class ProviderOptionResource extends JsonResource
             'extra_price' => $this->extra_price,
             'extra_duration' => $this->extra_duration,
             'used' => $this->used,
+            // Hidden options stay in the list of the provider, who can show them again.
+            'is_active' => $this->is_active,
         ];
     }
 }
