@@ -24,6 +24,17 @@ class ServiceOptionFactory extends Factory
             'extra_price' => fake()->randomFloat(2, 0, 50),
             // Extra minutes, in 15-minute steps like the service durations.
             'extra_duration' => fake()->numberBetween(0, 4) * 15,
+            'is_active' => true,
         ];
+    }
+
+    /**
+     * Indicate that the option is hidden from new customers.
+     */
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_active' => false,
+        ]);
     }
 }

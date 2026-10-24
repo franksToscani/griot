@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Database\Factories\ServiceOptionFactory;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,7 +27,20 @@ class ServiceOption extends Model
         return [
             'extra_price' => 'decimal:2',
             'extra_duration' => 'integer',
+            'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * Only options offered to new customers. A hidden option stays in the bookings that already
+     * chose it. is_active is not fillable: it changes only through ManageOption.
+     *
+     * @param  Builder<ServiceOption>  $query
+     */
+    #[Scope]
+    protected function active(Builder $query): void
+    {
+        $query->where('is_active', true);
     }
 
     /**

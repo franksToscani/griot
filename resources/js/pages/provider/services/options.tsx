@@ -1,6 +1,7 @@
 import { Form, Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -28,6 +29,8 @@ import { dashboard } from '@/routes';
 import { edit } from '@/routes/provider/services';
 // Explicit names: "store", "update" and "destroy" also exist for the services themselves.
 import {
+    activate as activateOption,
+    deactivate as deactivateOption,
     destroy as destroyOption,
     index as optionsIndex,
     store as storeOption,
@@ -108,8 +111,13 @@ function OptionRow({
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="min-w-0 break-words">
-                    {option.name}
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                    <span className="min-w-0 break-words">{option.name}</span>
+                    {!option.is_active && (
+                        <Badge variant="outline">
+                            {t('provider.options.hidden_badge')}
+                        </Badge>
+                    )}
                 </CardTitle>
                 {extras.length > 0 && (
                     <CardDescription>{extras.join(' · ')}</CardDescription>
@@ -118,6 +126,17 @@ function OptionRow({
             <CardContent className="flex flex-col gap-3">
                 <div className="flex flex-wrap gap-2">
                     <EditOptionDialog serviceId={serviceId} option={option} />
+                    {option.is_active ? (
+                        <HideOptionDialog
+                            serviceId={serviceId}
+                            optionId={option.id}
+                        />
+                    ) : (
+                        <ShowOptionButton
+                            serviceId={serviceId}
+                            optionId={option.id}
+                        />
+                    )}
                     {!option.used && (
                         <DeleteOptionDialog
                             serviceId={serviceId}
@@ -278,6 +297,100 @@ function EditOptionDialog({
                 </Form>
             </DialogContent>
         </Dialog>
+    );
+}
+
+// Hiding asks for a confirmation: new customers stop seeing the option. The window closes after
+// every submit (onFinish), so that an error, shown at the top of the page, is not behind it.
+function HideOptionDialog({
+    serviceId,
+    optionId,
+}: {
+    serviceId: number;
+    optionId: number;
+}) {
+    const { t } = useTranslation();
+    const [open, setOpen] = useState(false);
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                    {t('provider.options.hide_button')}
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>
+                        {t('provider.options.hide_confirm_title')}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {t('provider.options.hide_confirm_description')}
+                    </DialogDescription>
+                </DialogHeader>
+                <Form
+                    {...deactivateOption.form({
+                        service: serviceId,
+                        option: optionId,
+                    })}
+                    options={{ preserveScroll: true }}
+                    onFinish={() => setOpen(false)}
+                >
+                    {({ processing }) => (
+                        <DialogFooter className="gap-2">
+                            <DialogClose asChild>
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    className={wrappingLabel}
+                                >
+                                    {t('provider.options.hide_confirm_no')}
+                                </Button>
+                            </DialogClose>
+                            <Button
+                                type="submit"
+                                variant="destructive"
+                                className={wrappingLabel}
+                                disabled={processing}
+                            >
+                                {processing && <Spinner />}
+                                {t('provider.options.hide_confirm_yes')}
+                            </Button>
+                        </DialogFooter>
+                    )}
+                </Form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+// Showing a hidden option again needs no confirmation.
+function ShowOptionButton({
+    serviceId,
+    optionId,
+}: {
+    serviceId: number;
+    optionId: number;
+}) {
+    const { t } = useTranslation();
+
+    return (
+        <Form
+            {...activateOption.form({ service: serviceId, option: optionId })}
+            options={{ preserveScroll: true }}
+        >
+            {({ processing }) => (
+                <Button
+                    type="submit"
+                    variant="outline"
+                    size="sm"
+                    disabled={processing}
+                >
+                    {processing && <Spinner />}
+                    {t('provider.options.show_button')}
+                </Button>
+            )}
+        </Form>
     );
 }
 

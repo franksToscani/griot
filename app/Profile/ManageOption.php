@@ -8,9 +8,9 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Deletes an option of a service, only if no booking chose it. This is the only place that knows
- * what blocks the deletion of an option (blockedBy()). It never touches the service or the
- * bookings.
+ * Deletes, hides and shows again an option of a service. Deleting is allowed only if no booking
+ * chose it: this is the only place that knows what blocks it (blockedBy()). It never touches the
+ * service or the bookings.
  */
 final class ManageOption
 {
@@ -77,6 +77,36 @@ final class ManageOption
 
             throw $exception;
         }
+    }
+
+    /**
+     * Hide the option from new customers: the public page and the booking form stop offering it.
+     * The bookings that already chose it keep it, and it still blocks its own deletion.
+     */
+    public function deactivate(ServiceOption $option): void
+    {
+        $this->setActive($option, false);
+    }
+
+    public function activate(ServiceOption $option): void
+    {
+        $this->setActive($option, true);
+    }
+
+    private function setActive(ServiceOption $option, bool $active): void
+    {
+        DB::transaction(function () use ($option, $active): void {
+            // This MUST be the first statement: the decision is taken on the row as it is now.
+            $locked = ServiceOption::query()->whereKey($option->id)->lockForUpdate()->firstOrFail();
+
+            if ($locked->is_active === $active) {
+                return;
+            }
+
+            // Not fillable: assigned on its own.
+            $locked->is_active = $active;
+            $locked->save();
+        });
     }
 
     /**

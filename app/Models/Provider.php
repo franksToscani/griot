@@ -89,7 +89,8 @@ class Provider extends Model
         $query->with([
             'services' => fn ($services) => $services->active()->orderBy('name'),
             'services.category',
-            'services.options' => fn ($options) => $options->orderBy('id'),
+            // Only the options offered to new customers; the bookings keep the hidden ones.
+            'services.options' => fn ($options) => $options->active()->orderBy('id'),
             'availabilities' => fn ($availabilities) => $availabilities->orderBy('weekday')->orderBy('start_time'),
         ]);
     }

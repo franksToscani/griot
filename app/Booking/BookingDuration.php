@@ -64,10 +64,12 @@ final class BookingDuration
             return new Collection;
         }
 
-        // An option of another service or provider is not found here, exactly like a missing id.
+        // An option of another service or provider, or a hidden one, is not found here, exactly
+        // like a missing id. Both ways filter the hidden options: the relation may have been
+        // loaded whole, without the filter.
         $options = $service->relationLoaded('options')
-            ? $service->options->whereIn('id', $optionIds)
-            : $service->options()->whereKey($optionIds)->get();
+            ? $service->options->where('is_active', true)->whereIn('id', $optionIds)
+            : $service->options()->active()->whereKey($optionIds)->get();
 
         $invalidIds = array_values(array_diff($optionIds, $options->modelKeys()));
 

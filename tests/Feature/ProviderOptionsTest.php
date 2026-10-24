@@ -184,7 +184,7 @@ test('the same 404 for any id that is not the user\'s, and nothing changes', fun
     expect(ServiceOption::query()->count())->toBe(2);
 })->with('pop routes');
 
-test('the page lists the options of the service with exactly five keys and used', function () {
+test('the page lists the options of the service with exactly six keys, used and is_active', function () {
     $provider = popProvider();
     $service = popService($provider);
     $first = popOption($service, ['name' => 'Perline']);
@@ -200,8 +200,8 @@ test('the page lists the options of the service with exactly five keys and used'
             ->has('service', 8)
             ->where('service.id', $service->id)
             ->where('options', [
-                ['id' => $first->id, 'name' => 'Perline', 'extra_price' => '5.00', 'extra_duration' => 15, 'used' => false],
-                ['id' => $second->id, 'name' => 'Extension', 'extra_price' => '0.00', 'extra_duration' => 0, 'used' => true],
+                ['id' => $first->id, 'name' => 'Perline', 'extra_price' => '5.00', 'extra_duration' => 15, 'used' => false, 'is_active' => true],
+                ['id' => $second->id, 'name' => 'Extension', 'extra_price' => '0.00', 'extra_duration' => 0, 'used' => true, 'is_active' => true],
             ]))
         ->assertDontSee('Opzione Di Un Altro Servizio');
 });
@@ -565,7 +565,7 @@ test('the Italian texts are exactly the expected ones', function () {
         'provider.options.delete_confirm_description' => "L'opzione verrà cancellata. L'operazione non si può annullare.",
         'provider.options.delete_confirm_yes' => 'Sì, eliminala',
         'provider.options.delete_confirm_no' => 'No, tienila',
-        'provider.options.delete_blocked' => POP_CANNOT_DELETE,
+        'provider.options.delete_blocked' => 'Questa opzione è già stata scelta in alcune prenotazioni e non si può eliminare: puoi nasconderla.',
         'provider.options.link_title' => 'Opzioni ed extra',
         'provider.options.link_button' => 'Gestisci le opzioni',
     ];
