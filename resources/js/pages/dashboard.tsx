@@ -25,7 +25,7 @@ import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
-import { edit, publish, unpublish } from '@/routes/provider';
+import { edit, preview, publish, unpublish } from '@/routes/provider';
 import { index as availabilityIndex } from '@/routes/provider/availability';
 import { index as servicesIndex } from '@/routes/provider/services';
 import { show } from '@/routes/providers';
@@ -115,7 +115,17 @@ export default function Dashboard({ provider, publishing }: Props) {
                                 {t('provider.area.availability')}
                             </Link>
                         </Button>
-                        {/* Only when published: an unpublished page gives a 404 (the owner's preview is issue #42). */}
+                        {/* Always: the owner sees the page as the customers do, published or not. */}
+                        <Button
+                            asChild
+                            variant="outline"
+                            className={wrappingLabel}
+                        >
+                            <Link href={preview()}>
+                                {t('provider.area.preview')}
+                            </Link>
+                        </Button>
+                        {/* Only when published: an unpublished page gives a 404 to everyone. */}
                         {provider.is_published && (
                             <Button
                                 asChild

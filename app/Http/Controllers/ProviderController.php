@@ -64,6 +64,8 @@ class ProviderController extends Controller
             'provider' => (new ProviderProfileResource($provider))->resolve($request),
             // The days the booking form offers: the same rule the server applies.
             'bookingWindow' => $freeSlots->bookingWindow(),
+            // The real page: the owner's preview is ProviderPreviewController.
+            'preview' => false,
         ]);
     }
 }
