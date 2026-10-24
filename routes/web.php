@@ -17,6 +17,7 @@ use App\Http\Controllers\ProviderOptionDestroyController;
 use App\Http\Controllers\ProviderOptionIndexController;
 use App\Http\Controllers\ProviderOptionStoreController;
 use App\Http\Controllers\ProviderOptionUpdateController;
+use App\Http\Controllers\ProviderPreviewController;
 use App\Http\Controllers\ProviderPublishController;
 use App\Http\Controllers\ProviderServiceActivateController;
 use App\Http\Controllers\ProviderServiceDeactivateController;
@@ -31,6 +32,7 @@ use App\Http\Controllers\ProviderStoreController;
 use App\Http\Controllers\ProviderUnpublishController;
 use App\Http\Controllers\ProviderUpdateController;
 use App\Http\Middleware\PrivateBookingPage;
+use App\Http\Middleware\PrivateProviderPage;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
@@ -75,6 +77,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('throttle:provider-avatar')
         ->name('provider.avatar.store');
     // No fields: whatever is sent in the body is ignored. One limiter for both, see AppServiceProvider.
+    // The provider's own public page, published or not: no slug, always the user's provider.
+    Route::get('provider/preview', ProviderPreviewController::class)
+        ->middleware(PrivateProviderPage::class)
+        ->name('provider.preview');
     Route::post('provider/publish', ProviderPublishController::class)
         ->middleware('throttle:provider-publish')
         ->name('provider.publish');

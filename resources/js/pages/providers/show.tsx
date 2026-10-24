@@ -6,12 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatDuration, formatOptionExtras, formatPrice } from '@/lib/format';
+import { dashboard } from '@/routes';
 import { index } from '@/routes/providers';
 import type { BookingWindow, ProviderProfile, Service } from '@/types';
 
 type Props = {
     provider: ProviderProfile;
     bookingWindow: BookingWindow;
+    // True on the owner's preview (provider.preview): a notice, the way back to the dashboard and
+    // no booking. False on the real public page.
+    preview: boolean;
 };
 
 // External links open in a new tab without giving the new page access to this one.
@@ -21,19 +25,38 @@ const externalLink = {
     className: 'underline underline-offset-4',
 } as const;
 
-export default function ProvidersShow({ provider, bookingWindow }: Props) {
+export default function ProvidersShow({
+    provider,
+    bookingWindow,
+    preview,
+}: Props) {
     const { t } = useTranslation();
     const { whatsapp, instagram } = provider.contacts;
 
     return (
         <>
-            <Head title={provider.name} />
+            <Head title={provider.name}>
+                {/* Inertia visits do not get the noindex header: the meta tag covers them. */}
+                {preview && <meta name="robots" content="noindex, nofollow" />}
+            </Head>
             <div className="flex flex-col gap-6">
+                {preview && (
+                    <Card>
+                        <CardContent>
+                            <p className="font-medium">
+                                {t('provider.preview.banner')}
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
+
                 <Link
-                    href={index()}
+                    href={preview ? dashboard() : index()}
                     className="text-sm text-muted-foreground underline underline-offset-4"
                 >
-                    {t('providers.show.back')}
+                    {preview
+                        ? t('provider.preview.back')
+                        : t('providers.show.back')}
                 </Link>
 
                 <header className="flex items-center gap-4">
@@ -93,6 +116,7 @@ export default function ProvidersShow({ provider, bookingWindow }: Props) {
                                                             bookingWindow={
                                                                 bookingWindow
                                                             }
+                                                            preview={preview}
                                                         />
                                                     </li>
                                                 ),
@@ -215,10 +239,12 @@ function ServiceItem({
     service,
     providerSlug,
     bookingWindow,
+    preview,
 }: {
     service: Service;
     providerSlug: string;
     bookingWindow: BookingWindow;
+    preview: boolean;
 }) {
     const { t, locale } = useTranslation();
 
@@ -265,11 +291,18 @@ function ServiceItem({
                 </div>
             )}
             <div>
-                <BookingSheet
-                    providerSlug={providerSlug}
-                    service={service}
-                    bookingWindow={bookingWindow}
-                />
+                {/* In the preview the booking form is not mounted at all: nothing can be sent. */}
+                {preview ? (
+                    <p className="text-sm text-muted-foreground">
+                        {t('provider.preview.no_booking')}
+                    </p>
+                ) : (
+                    <BookingSheet
+                        providerSlug={providerSlug}
+                        service={service}
+                        bookingWindow={bookingWindow}
+                    />
+                )}
             </div>
         </div>
     );
