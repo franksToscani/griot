@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * A recurring weekly time slot of a provider. Times are local (Europe/Rome) wall-clock times.
+ *
+ * @property Weekday $weekday
  */
 class Availability extends Model
 {

@@ -3,6 +3,10 @@
 use App\Http\Controllers\BookingCancellationController;
 use App\Http\Controllers\BookingConfirmationController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProviderAvailabilityDestroyController;
+use App\Http\Controllers\ProviderAvailabilityIndexController;
+use App\Http\Controllers\ProviderAvailabilityStoreController;
+use App\Http\Controllers\ProviderAvailabilityUpdateController;
 use App\Http\Controllers\ProviderAvatarController;
 use App\Http\Controllers\ProviderBookingController;
 use App\Http\Controllers\ProviderController;
@@ -129,6 +133,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->whereNumber(['service', 'option'])
         ->middleware('throttle:provider-services-manage')
         ->name('provider.services.options.activate');
+    // The weekly time slots of the provider: a slot only among the provider's own. Same limiters
+    // as the services; the answer over the limit goes back to this page.
+    Route::get('provider/availability', ProviderAvailabilityIndexController::class)->name('provider.availability.index');
+    Route::post('provider/availability', ProviderAvailabilityStoreController::class)
+        ->middleware('throttle:provider-services')
+        ->name('provider.availability.store');
+    Route::put('provider/availability/{availability}', ProviderAvailabilityUpdateController::class)
+        ->whereNumber('availability')
+        ->middleware('throttle:provider-services-manage')
+        ->name('provider.availability.update');
+    Route::delete('provider/availability/{availability}', ProviderAvailabilityDestroyController::class)
+        ->whereNumber('availability')
+        ->middleware('throttle:provider-services-manage')
+        ->name('provider.availability.destroy');
 });
 
 require __DIR__.'/settings.php';
