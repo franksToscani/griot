@@ -46,3 +46,14 @@ export type ProviderService = {
 export type ServiceBookings = {
     has_bookings: boolean;
 };
+
+// Shape of App\Http\Resources\ProviderOptionResource: an option in the provider's own area.
+export type ProviderOption = {
+    id: number;
+    name: string;
+    // Decimal string such as "7.50".
+    extra_price: string;
+    extra_duration: number;
+    // Chosen in at least one booking: it cannot be deleted.
+    used: boolean;
+};

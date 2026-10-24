@@ -88,7 +88,7 @@ final class ManageService
             // still arrive between the check and the delete, and bookings.service_id is
             // restrictOnDelete. Only that error is translated; anything else, unique violations
             // included, goes on.
-            if ($this->isForeignKeyViolation($exception)) {
+            if (ForeignKeyViolation::from($exception)) {
                 throw CannotDeleteService::because($service, 'bookings');
             }
 
@@ -110,22 +110,5 @@ final class ManageService
             $locked->is_active = $active;
             $locked->save();
         });
-    }
-
-    /**
-     * A row still referenced by a foreign key. SQLSTATE 23000 is shared by every integrity
-     * violation, so the driver tells them apart: MySQL code 1451 ("Cannot delete or update a
-     * parent row"); SQLite has one code (19) for all of them, so its message is read.
-     */
-    private function isForeignKeyViolation(QueryException $exception): bool
-    {
-        $errorInfo = $exception->errorInfo ?? [];
-
-        if (($errorInfo[0] ?? null) !== '23000') {
-            return false;
-        }
-
-        return ($errorInfo[1] ?? null) === 1451
-            || str_contains($exception->getMessage(), 'FOREIGN KEY constraint failed');
     }
 }

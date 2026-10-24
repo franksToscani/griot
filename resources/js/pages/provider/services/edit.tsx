@@ -1,4 +1,4 @@
-import { Form, Head, usePage } from '@inertiajs/react';
+import { Form, Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,7 @@ import {
     index,
     update,
 } from '@/routes/provider/services';
+import { index as optionsIndex } from '@/routes/provider/services/options';
 import type { Category, ProviderService, ServiceBookings } from '@/types';
 
 type Props = {
@@ -75,6 +76,24 @@ export default function ProviderServiceEdit({
                     </CardContent>
                 </Card>
 
+                <Card className="max-w-2xl">
+                    <CardHeader>
+                        <h2 className="text-xl leading-none font-semibold">
+                            {t('provider.options.link_title')}
+                        </h2>
+                    </CardHeader>
+                    <CardContent>
+                        <Button
+                            asChild
+                            variant="outline"
+                            className={wrappingLabel}
+                        >
+                            <Link href={optionsIndex(service.id)}>
+                                {t('provider.options.link_button')}
+                            </Link>
+                        </Button>
+                    </CardContent>
+                </Card>
                 <Card className="max-w-2xl">
                     <CardHeader>
                         <h2 className="text-xl leading-none font-semibold">

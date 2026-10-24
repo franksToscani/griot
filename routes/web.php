@@ -7,6 +7,10 @@ use App\Http\Controllers\ProviderAvatarController;
 use App\Http\Controllers\ProviderBookingController;
 use App\Http\Controllers\ProviderController;
 use App\Http\Controllers\ProviderEditController;
+use App\Http\Controllers\ProviderOptionDestroyController;
+use App\Http\Controllers\ProviderOptionIndexController;
+use App\Http\Controllers\ProviderOptionStoreController;
+use App\Http\Controllers\ProviderOptionUpdateController;
 use App\Http\Controllers\ProviderPublishController;
 use App\Http\Controllers\ProviderServiceActivateController;
 use App\Http\Controllers\ProviderServiceDeactivateController;
@@ -97,6 +101,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->whereNumber('service')
         ->middleware('throttle:provider-services-manage')
         ->name('provider.services.destroy');
+    // The options of one service: the service only among the user's own, the option only among
+    // the options of that service.
+    Route::get('provider/services/{service}/options', ProviderOptionIndexController::class)
+        ->whereNumber('service')
+        ->name('provider.services.options.index');
+    Route::post('provider/services/{service}/options', ProviderOptionStoreController::class)
+        ->whereNumber('service')
+        ->middleware('throttle:provider-services')
+        ->name('provider.services.options.store');
+    Route::put('provider/services/{service}/options/{option}', ProviderOptionUpdateController::class)
+        ->whereNumber(['service', 'option'])
+        ->middleware('throttle:provider-services-manage')
+        ->name('provider.services.options.update');
+    Route::delete('provider/services/{service}/options/{option}', ProviderOptionDestroyController::class)
+        ->whereNumber(['service', 'option'])
+        ->middleware('throttle:provider-services-manage')
+        ->name('provider.services.options.destroy');
 });
 
 require __DIR__.'/settings.php';
