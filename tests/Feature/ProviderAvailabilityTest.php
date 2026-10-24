@@ -3,7 +3,6 @@
 use App\Booking\FreeSlots;
 use App\Booking\TimeWindow;
 use App\Enums\Weekday;
-use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Availability;
 use App\Models\Booking;
 use App\Models\Provider;
@@ -14,6 +13,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Testing\TestResponse;
+use Inertia\Testing\AssertableInertia as Assert;
 
 // "Now" is Sunday 18 October 2026, 08:00 UTC. Monday 19 October is still summer time in Italy
 // (UTC+2): 09:00 local is 07:00 UTC.
@@ -72,19 +72,6 @@ function pvaSend(?User $user, string $route, int|string|null $availabilityId = n
         'provider.availability.update' => $test->put($url, $data === [] ? pvaForm() : $data),
         default => $test->delete($url),
     };
-}
-
-/**
- * The page as an Inertia visit, which answers with the page as JSON. The page component is part
- * of phase B: a normal visit would ask Vite for a file that does not exist yet, and
- * assertInertia() reads only the HTML answer.
- */
-function pvaPage(User $user): TestResponse
-{
-    return test()->actingAs($user)->get(route('provider.availability.index'), [
-        'X-Inertia' => 'true',
-        'X-Inertia-Version' => (string) app(HandleInertiaRequests::class)->version(request()),
-    ]);
 }
 
 /**
@@ -173,31 +160,33 @@ test('the page lists the own slots by day and start, with exactly four keys, and
     $sunday = pvaSlot($provider, Weekday::Sunday, '10:00', '12:00');
     pvaSlot(pvaProvider('Barberia Kofi'), Weekday::Monday, '06:00', '07:00');
 
-    $response = pvaPage($provider->user)
+    $this->actingAs($provider->user)
+        ->get(route('provider.availability.index'))
         ->assertOk()
-        ->assertJsonPath('component', 'provider/availability/index');
-
-    expect($response->json('props.availabilities'))->toBe([
-        ['id' => $mondayEarly->id, 'weekday' => 1, 'start_time' => '08:05', 'end_time' => '12:00'],
-        ['id' => $mondayLate->id, 'weekday' => 1, 'start_time' => '15:00', 'end_time' => '19:30'],
-        ['id' => $tuesday->id, 'weekday' => 2, 'start_time' => '09:00', 'end_time' => '13:00'],
-        ['id' => $sunday->id, 'weekday' => 7, 'start_time' => '10:00', 'end_time' => '12:00'],
-    ]);
-    expect($response->json('props.weekdays'))->toBe([
-        ['weekday' => 1, 'day' => 'monday'],
-        ['weekday' => 2, 'day' => 'tuesday'],
-        ['weekday' => 3, 'day' => 'wednesday'],
-        ['weekday' => 4, 'day' => 'thursday'],
-        ['weekday' => 5, 'day' => 'friday'],
-        ['weekday' => 6, 'day' => 'saturday'],
-        ['weekday' => 7, 'day' => 'sunday'],
-    ]);
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('provider/availability/index')
+            ->where('availabilities', [
+                ['id' => $mondayEarly->id, 'weekday' => 1, 'start_time' => '08:05', 'end_time' => '12:00'],
+                ['id' => $mondayLate->id, 'weekday' => 1, 'start_time' => '15:00', 'end_time' => '19:30'],
+                ['id' => $tuesday->id, 'weekday' => 2, 'start_time' => '09:00', 'end_time' => '13:00'],
+                ['id' => $sunday->id, 'weekday' => 7, 'start_time' => '10:00', 'end_time' => '12:00'],
+            ])
+            ->where('weekdays', [
+                ['weekday' => 1, 'day' => 'monday'],
+                ['weekday' => 2, 'day' => 'tuesday'],
+                ['weekday' => 3, 'day' => 'wednesday'],
+                ['weekday' => 4, 'day' => 'thursday'],
+                ['weekday' => 5, 'day' => 'friday'],
+                ['weekday' => 6, 'day' => 'saturday'],
+                ['weekday' => 7, 'day' => 'sunday'],
+            ]));
 });
 
 test('a provider without slots gets an empty list', function () {
-    $response = pvaPage(pvaProvider()->user)->assertOk()->assertJsonPath('component', 'provider/availability/index');
-
-    expect($response->json('props.availabilities'))->toBe([]);
+    $this->actingAs(pvaProvider()->user)
+        ->get(route('provider.availability.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('provider/availability/index')->where('availabilities', []));
 });
 
 test('a valid form adds the slot with normalized times, the body cannot move it', function () {
@@ -549,6 +538,36 @@ test('the Italian texts are exactly the expected ones', function () {
         'provider.availability.created' => 'Fascia aggiunta.',
         'provider.availability.updated' => 'Fascia aggiornata.',
         'provider.availability.deleted' => 'Fascia eliminata.',
+    ];
+
+    foreach ($texts as $key => $text) {
+        expect(__($key))->toBe($text);
+    }
+});
+
+test('the texts of the hours page are exactly the expected ones', function () {
+    $texts = [
+        'provider.availability.title' => 'I tuoi orari',
+        'provider.availability.description' => 'Quando lavori ogni settimana. I clienti possono prenotare solo dentro queste fasce.',
+        'provider.availability.help_touch' => 'Due fasce che si toccano (per esempio 09:00-13:00 e 13:00-17:00) non permettono una prenotazione a cavallo delle 13:00.',
+        'provider.availability.help_midnight' => 'Le fasce a cavallo di mezzanotte non sono supportate: usa due giorni separati.',
+        'provider.availability.help_timezone' => 'Gli orari sono quelli italiani.',
+        'provider.availability.closed' => 'Chiuso',
+        'provider.availability.add_title' => 'Aggiungi una fascia',
+        'provider.availability.form.weekday' => 'Giorno',
+        'provider.availability.form.weekday_placeholder' => 'Scegli un giorno',
+        'provider.availability.form.start' => 'Inizio',
+        'provider.availability.form.end' => 'Fine',
+        'provider.availability.form.submit' => 'Aggiungi la fascia',
+        'provider.availability.form.save' => 'Salva le modifiche',
+        'provider.availability.edit_button' => 'Modifica',
+        'provider.availability.edit_title' => 'Modifica la fascia',
+        'provider.availability.delete_button' => 'Elimina',
+        'provider.availability.delete_confirm_title' => 'Vuoi eliminare la fascia?',
+        'provider.availability.delete_confirm_description' => 'La fascia verrà cancellata. Le prenotazioni già fatte non cambiano.',
+        'provider.availability.delete_confirm_yes' => 'Sì, eliminala',
+        'provider.availability.delete_confirm_no' => 'No, tienila',
+        'provider.area.availability' => 'I tuoi orari',
     ];
 
     foreach ($texts as $key => $text) {

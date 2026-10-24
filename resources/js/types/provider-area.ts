@@ -59,3 +59,19 @@ export type ProviderOption = {
     // False when hidden from new customers; the bookings that chose it keep it.
     is_active: boolean;
 };
+
+// Shape of App\Http\Resources\ProviderAvailabilityResource: a weekly time slot of the provider.
+export type ProviderAvailability = {
+    id: number;
+    // ISO number: 1 = Monday ... 7 = Sunday.
+    weekday: number;
+    // Local Italian times, "HH:MM".
+    start_time: string;
+    end_time: string;
+};
+
+// One of the "weekdays" of the hours page: day is the key of its name in common.weekdays.*.
+export type AvailabilityWeekday = {
+    weekday: number;
+    day: string;
+};
