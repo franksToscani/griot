@@ -13,6 +13,8 @@ use Illuminate\Validation\Rule;
  */
 trait ServiceRules
 {
+    use DecimalPrice;
+
     /**
      * Shortest and longest duration, in minutes, and the step between two durations.
      */
@@ -23,22 +25,11 @@ trait ServiceRules
     private const DURATION_STEP = 5;
 
     /**
-     * "25,50" is read as "25.50". The comma becomes a dot only when the whole price has the
-     * accepted shape, so "1.000,50" or "25,5,0" stay as they are and are refused by the rule.
+     * "25,50" is read as "25.50", for a price of up to four digits (see DecimalPrice).
      */
     protected function preparePrice(): void
     {
-        $price = $this->input('price');
-
-        if (is_string($price)) {
-            $price = trim($price);
-
-            if (preg_match('/^\d{1,4},\d{1,2}$/', $price) === 1) {
-                $price = str_replace(',', '.', $price);
-            }
-
-            $this->merge(['price' => $price]);
-        }
+        $this->commaToDot('price', 4);
     }
 
     /**
@@ -144,16 +135,5 @@ trait ServiceRules
             && $minutes >= self::DURATION_MIN
             && $minutes <= self::DURATION_MAX
             && $minutes % self::DURATION_STEP === 0;
-    }
-
-    /**
-     * "25" becomes "25.00", "25.5" becomes "25.50", "0025" becomes "25.00", "0.01" stays.
-     */
-    private function normalizedPrice(string $price): string
-    {
-        [$units, $cents] = array_pad(explode('.', $price, 2), 2, '');
-        $units = ltrim($units, '0');
-
-        return ($units === '' ? '0' : $units).'.'.str_pad($cents, 2, '0');
     }
 }
