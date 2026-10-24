@@ -92,6 +92,11 @@ class AppServiceProvider extends ServiceProvider
             // The service form lives on the services page.
             if ($field === 'services') {
                 $exception->redirectTo(route('provider.services.index'));
+
+                // The weekly time slots use the same limiters, but their forms live on their own page.
+                if ($request->routeIs('provider.availability.*')) {
+                    $exception->redirectTo(route('provider.availability.index'));
+                }
             }
 
             throw $exception;
