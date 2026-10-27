@@ -74,6 +74,16 @@ test('there is an unpublished provider', function () {
     expect(Provider::query()->where('is_published', false)->exists())->toBeTrue();
 });
 
+test('the example bookings keep the statuses of the seeder', function () {
+    $this->seed();
+
+    // status is not fillable: the seeder sets it on its own. Without that line all five would be
+    // pending, the default.
+    $statuses = Booking::query()->get()->countBy(fn (Booking $booking) => $booking->status->value)->sortKeys()->all();
+
+    expect($statuses)->toBe(['cancelled' => 1, 'confirmed' => 2, 'pending' => 2]);
+});
+
 test('active bookings of the same provider do not overlap', function () {
     $this->seed();
 

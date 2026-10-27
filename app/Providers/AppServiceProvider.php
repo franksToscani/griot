@@ -97,6 +97,11 @@ class AppServiceProvider extends ServiceProvider
                 if ($request->routeIs('provider.availability.*')) {
                     $exception->redirectTo(route('provider.availability.index'));
                 }
+
+                // The answers to the bookings, too: their buttons live on the bookings page.
+                if ($request->routeIs('provider.bookings.*')) {
+                    $exception->redirectTo(route('provider.bookings.index'));
+                }
             }
 
             throw $exception;

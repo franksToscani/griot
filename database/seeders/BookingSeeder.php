@@ -44,9 +44,10 @@ class BookingSeeder extends Seeder
                 'customer_email' => $data['customer_email'],
                 'starts_at' => $startsAt,
                 'ends_at' => $endsAt,
-                'status' => $data['status'],
                 'notes' => $data['notes'],
             ]);
+            // Not fillable, so set directly, like the token below.
+            $booking->status = $data['status'];
             // Not fillable, so set directly; only on the first run, so the private link stays the same.
             $booking->public_token ??= Str::random(48);
             $booking->save();

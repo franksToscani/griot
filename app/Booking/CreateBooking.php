@@ -64,8 +64,9 @@ final class CreateBooking
                 'starts_at' => $slot->start,
                 // The slot already ends after the minutes computed by BookingDuration.
                 'ends_at' => $slot->end,
-                'status' => BookingStatus::Pending,
             ]);
+            // Not fillable: only the code decides the status (BookingTransitions for the changes).
+            $booking->status = BookingStatus::Pending;
             $booking->public_token = Str::random(48);
             $booking->save();
 
