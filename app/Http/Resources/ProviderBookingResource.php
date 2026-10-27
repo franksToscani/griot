@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Booking\BookingTransitions;
 use App\Booking\LocalTime;
 use App\Models\Booking;
 use App\Models\ServiceOption;
@@ -27,6 +28,7 @@ class ProviderBookingResource extends JsonResource
         $start = LocalTime::fromUtc($this->starts_at);
         $end = LocalTime::fromUtc($this->ends_at);
         $options = $this->options->sortBy('id')->values();
+        $transitions = app(BookingTransitions::class);
 
         return [
             'id' => $this->id,
@@ -54,6 +56,10 @@ class ProviderBookingResource extends JsonResource
                 fn (int $total, ServiceOption $option) => $total + self::cents($option->extra_price),
                 self::cents($this->service->price),
             ),
+            // Which buttons the page shows, from the same rules the actions check again. No query.
+            'can_confirm' => $transitions->canConfirm($this->resource),
+            'can_reject' => $transitions->canReject($this->resource),
+            'can_cancel' => $transitions->canCancelAsProvider($this->resource),
         ];
     }
 

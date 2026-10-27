@@ -79,6 +79,7 @@ test('a valid link shows the booking', function () {
                 'local_date' => '2026-10-29',
                 'local_start' => '09:00',
                 'local_end' => '11:45',
+                'cancellation_reason' => null,
             ]));
 });
 

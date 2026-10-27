@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\ServiceOption;
 use Illuminate\Http\Request;
@@ -50,6 +51,8 @@ class BookingConfirmationResource extends JsonResource
             'local_date' => $start->format('Y-m-d'),
             'local_start' => $start->format('H:i'),
             'local_end' => $end->format('H:i'),
+            // The provider's message, only on a cancelled booking. Plain text: the page shows it as text.
+            'cancellation_reason' => $this->status === BookingStatus::Cancelled ? $this->cancellation_reason : null,
         ];
     }
 }

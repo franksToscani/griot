@@ -155,6 +155,10 @@ test('each booking has exactly the expected keys, and the private token is nowhe
         'service' => ['name' => 'Box braids'],
         'options' => [['name' => 'Perline', 'extra_price' => '7.50']],
         'price_cents' => 3250,
+        // Confirmed, in the future: only the provider's cancellation is allowed.
+        'can_confirm' => false,
+        'can_reject' => false,
+        'can_cancel' => true,
     ]]);
     expect($props['filters'])->toBe(['status' => null, 'from' => null, 'to' => null]);
     expect($response->getContent())->not->toContain($booking->public_token)->not->toContain('public_token');

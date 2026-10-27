@@ -23,9 +23,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * a log by mistake; $booking->public_token and the route binding bookings/{booking:public_token}
  * still read it.
  *
+ * status is not fillable either: CreateBooking sets it, and only BookingTransitions decides how it
+ * changes (CancelBooking for the customer, ManageBooking for the provider). cancellation_reason is
+ * set by ManageBooking only.
+ *
  * @property CarbonImmutable $starts_at
  * @property CarbonImmutable $ends_at
  * @property BookingStatus $status
+ * @property string|null $cancellation_reason
  */
 class Booking extends Model
 {
@@ -48,7 +53,6 @@ class Booking extends Model
         'customer_email',
         'starts_at',
         'ends_at',
-        'status',
         'notes',
     ];
 
