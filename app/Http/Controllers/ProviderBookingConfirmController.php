@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Booking\BookingOutcome;
 use App\Booking\ManageBooking;
 use App\Booking\TransitionNotAllowed;
+use App\Notifications\BookingStatusNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -32,12 +34,16 @@ class ProviderBookingConfirmController extends Controller
         Gate::authorize('manage', $booking);
 
         try {
-            $manageBooking->confirm($booking);
+            $booking = $manageBooking->confirm($booking);
         } catch (TransitionNotAllowed $exception) {
             // redirectTo(): the Referer is not reliable.
             throw ValidationException::withMessages(['booking' => __('provider.bookings.transition.'.$exception->reason())])
                 ->redirectTo(route('provider.bookings.index'));
         }
+
+        // After the transaction, which is committed: the queued email never runs for a change that was
+        // rolled back. A failure while queueing it is reported, and the action stays done.
+        BookingStatusNotification::sendFor($booking, BookingOutcome::Confirmed);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('provider.bookings.confirmed')]);
 

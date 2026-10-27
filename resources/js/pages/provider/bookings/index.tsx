@@ -86,9 +86,6 @@ export default function ProviderBookingsIndex({ bookings, filters }: Props) {
                             ? t('provider.bookings.filters_active')
                             : t('provider.bookings.help')}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                        {t('provider.bookings.no_notice')}
-                    </p>
                 </header>
 
                 {/* Read from the page, outside the forms: a refused change, or the request limit. */}

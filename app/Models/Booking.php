@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Booking\CancelledBy;
 use App\Enums\BookingStatus;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -25,12 +26,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  *
  * status is not fillable either: CreateBooking sets it, and only BookingTransitions decides how it
  * changes (CancelBooking for the customer, ManageBooking for the provider). cancellation_reason is
- * set by ManageBooking only.
+ * set by ManageBooking only; cancelled_by (who cancelled, and how) by the one that cancels.
  *
  * @property CarbonImmutable $starts_at
  * @property CarbonImmutable $ends_at
  * @property BookingStatus $status
  * @property string|null $cancellation_reason
+ * @property CancelledBy|null $cancelled_by
  */
 class Booking extends Model
 {
@@ -76,6 +78,7 @@ class Booking extends Model
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'status' => BookingStatus::class,
+            'cancelled_by' => CancelledBy::class,
         ];
     }
 

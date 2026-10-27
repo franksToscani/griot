@@ -109,7 +109,8 @@ test('a valid form creates a pending booking and goes to its private page with a
     // 60 minutes of the service plus 30 of the option.
     expect($booking->ends_at->toIso8601String())->toBe('2026-10-19T08:30:00+00:00');
     expect($booking->customer_name)->toBe('Awa Diop');
-    expect($booking->customer_phone)->toBe('+39 333 123 4567');
+    // Saved in international format, without spaces.
+    expect($booking->customer_phone)->toBe('+393331234567');
     expect($booking->customer_email)->toBe('awa@example.com');
     expect($booking->notes)->toBe('Porto io le extension.');
     expect($booking->public_token)->toHaveLength(48);
@@ -175,7 +176,7 @@ test('the customer messages for formats are the Italian ones', function () {
         'notes' => str_repeat('x', 1001),
     ]))->assertSessionHasErrors([
         'customer_name' => 'Il nome può avere al massimo 150 caratteri.',
-        'customer_phone' => 'Il numero di telefono non sembra valido: controlla le cifre.',
+        'customer_phone' => 'Scrivi il numero con il prefisso (per esempio +39 333 123 4567 oppure +237 6 77 12 34 56). Per i numeri italiani e camerunesi va bene anche senza prefisso.',
         'customer_email' => "L'indirizzo email non sembra valido.",
         'notes' => 'Le note possono avere al massimo 1000 caratteri.',
     ]);
@@ -306,7 +307,8 @@ test('email and notes can be missing, name and phone are trimmed', function () {
 
     $booking = Booking::query()->sole();
     expect($booking->customer_name)->toBe('Awa Diop');
-    expect($booking->customer_phone)->toBe('+39 333 123 4567');
+    // Saved in international format, without spaces.
+    expect($booking->customer_phone)->toBe('+393331234567');
     expect($booking->customer_email)->toBeNull();
     expect($booking->notes)->toBeNull();
 });
@@ -328,7 +330,7 @@ test('the server messages are the expected Italian texts', function () {
     expect(__('booking.validation.name_required'))->toBe('Scrivi il tuo nome.');
     expect(__('booking.validation.name_max'))->toBe('Il nome può avere al massimo :max caratteri.');
     expect(__('booking.validation.phone_required'))->toBe('Scrivi un numero di telefono.');
-    expect(__('booking.validation.phone_invalid'))->toBe('Il numero di telefono non sembra valido: controlla le cifre.');
+    expect(__('booking.phone.invalid'))->toBe('Scrivi il numero con il prefisso (per esempio +39 333 123 4567 oppure +237 6 77 12 34 56). Per i numeri italiani e camerunesi va bene anche senza prefisso.');
     expect(__('booking.validation.email_invalid'))->toBe("L'indirizzo email non sembra valido.");
     expect(__('booking.validation.notes_max'))->toBe('Le note possono avere al massimo :max caratteri.');
     expect(__('booking.create.slot_taken'))->toBe('Questo orario è appena stato prenotato da qualcun altro. Scegli un altro orario.');

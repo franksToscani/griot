@@ -125,7 +125,7 @@ test('the query string and the body cannot choose another provider', function ()
     expect(pblIds($mine->user, ['provider_id' => $theirs->id, 'user_id' => $theirs->user_id]))->toBe([$own->id]);
 });
 
-test('each booking has exactly the expected keys, and the private token is nowhere', function () {
+test('each booking has exactly the expected keys, and the private token is only in whatsapp_url', function () {
     $provider = pblProvider();
     $service = pblService($provider, '25.00', 'Box braids');
     $option = ServiceOption::factory()->for($service)->create(['name' => 'Perline', 'extra_price' => '7.50']);
@@ -159,9 +159,20 @@ test('each booking has exactly the expected keys, and the private token is nowhe
         'can_confirm' => false,
         'can_reject' => false,
         'can_cancel' => true,
+        // Confirmed, with a number that can be read: the answer for the customer, with the private
+        // address. The number saved with spaces is read in international format.
+        'whatsapp_url' => 'https://wa.me/393331234567?text='.rawurlencode(
+            'Ciao Awa Diop, Salone Awa ha confermato la tua prenotazione di Box braids per mercoledì 21 ottobre 2026, 09:00–10:15.'
+            ."\n\nDettagli: ".route('bookings.show', ['booking' => $booking->public_token])
+        ),
     ]]);
     expect($props['filters'])->toBe(['status' => null, 'from' => null, 'to' => null]);
-    expect($response->getContent())->not->toContain($booking->public_token)->not->toContain('public_token');
+    // The token is in the whole response once, inside whatsapp_url; the props without that key
+    // do not have it. The name of the column is nowhere.
+    expect(substr_count($response->getContent(), $booking->public_token))->toBe(1);
+    $props['bookings']['data'][0]['whatsapp_url'] = null;
+    expect(json_encode($props))->not->toContain($booking->public_token);
+    expect($response->getContent())->not->toContain('public_token');
 });
 
 test('the pending ones come first, then the others; each group by start, then by id', function () {
