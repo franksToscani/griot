@@ -23,4 +23,6 @@ export type BookingConfirmation = {
     local_date: string;
     local_start: string;
     local_end: string;
+    // The provider's message, only on a cancelled booking; plain text.
+    cancellation_reason: string | null;
 };

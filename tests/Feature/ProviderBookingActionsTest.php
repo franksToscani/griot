@@ -269,7 +269,10 @@ test('the list has the three buttons from the rules, and never the reason', func
         ->where('bookings.data.2.can_reject', false)
         ->where('bookings.data.2.can_cancel', false));
 
-    expect($response->getContent())->not->toContain('MOTIVO SEGRETO DEL PROVIDER')->not->toContain('cancellation_reason');
+    expect($response->getContent())->not->toContain('MOTIVO SEGRETO DEL PROVIDER');
+    // The key in the bookings only: the shared translations of every page hold the customer page's
+    // "booking.confirmation.cancellation_reason" text.
+    expect(json_encode($response->viewData('page')['props']['bookings']))->not->toContain('cancellation_reason');
 });
 
 test('the private page shows the reason only on a cancelled booking', function () {
@@ -346,4 +349,51 @@ test('the Italian texts are exactly the expected ones', function () {
     foreach ($texts as $key => $text) {
         expect(__($key))->toBe($text);
     }
+});
+
+test('the texts of the buttons, the windows and the customer page are exactly the expected ones', function () {
+    $texts = [
+        'provider.bookings.actions.confirm' => 'Conferma',
+        'provider.bookings.actions.reject' => 'Rifiuta',
+        'provider.bookings.actions.cancel' => 'Annulla la prenotazione',
+        'provider.bookings.actions.reject_title' => 'Vuoi rifiutare la richiesta?',
+        'provider.bookings.actions.cancel_title' => 'Vuoi annullare la prenotazione?',
+        'provider.bookings.actions.reason_label' => 'Motivo (facoltativo)',
+        'provider.bookings.actions.reason_help' => 'Il cliente lo vedrà nella sua pagina. Scrivi solo quello che vuoi che legga.',
+        'provider.bookings.actions.reject_description' => "L'orario tornerà libero subito.",
+        'provider.bookings.actions.cancel_description' => "L'orario tornerà libero subito. L'operazione non si può annullare.",
+        'provider.bookings.actions.confirm_yes_reject' => 'Sì, rifiuta',
+        'provider.bookings.actions.confirm_yes_cancel' => 'Sì, annulla',
+        'provider.bookings.actions.back' => 'No, torna indietro',
+        'provider.bookings.no_notice' => 'Il cliente non riceve ancora un avviso automatico: contattalo tu.',
+        'booking.confirmation.cancellation_reason' => "Motivo dell'annullamento",
+    ];
+
+    foreach ($texts as $key => $text) {
+        expect(__($key))->toBe($text);
+    }
+});
+
+test('the buttons of the bookings page follow the three flags of the server', function () {
+    // Read in the page source: there is no JavaScript test runner.
+    $source = file_get_contents(resource_path('js/pages/provider/bookings/index.tsx'));
+
+    // Each button only under its own flag, sent by the server: the page computes no rule.
+    expect($source)
+        ->toMatch('/\{booking\.can_confirm && \(\s*<ConfirmBookingButton\b/')
+        ->toMatch('/\{booking\.can_reject && \(\s*<ReasonDialog\s+action=\{rejectBooking\.form\(/')
+        ->toMatch('/\{booking\.can_cancel && \(\s*<ReasonDialog\s+action=\{cancelBooking\.form\(/');
+});
+
+test('the customer page shows the reason as plain text, only on a cancelled booking that has one', function () {
+    // Read in the page source: there is no JavaScript test runner.
+    $source = file_get_contents(resource_path('js/pages/bookings/show.tsx'));
+
+    expect($source)->not->toContain('dangerouslySetInnerHTML');
+    // Printed once, as a JSX expression (escaped by React), and only inside both conditions.
+    expect(substr_count($source, '{booking.cancellation_reason}'))->toBe(1);
+    expect($source)->toMatch(
+        // Inside the fragment <>...</> that follows the two conditions.
+        "/\\{booking\\.status === 'cancelled' &&\\s*booking\\.cancellation_reason !== null && \\(\\s*<>(?:(?!<\\/>).)*\\{booking\\.cancellation_reason\\}/s",
+    );
 });

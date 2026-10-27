@@ -94,6 +94,10 @@ export type ProviderBooking = {
     options: { name: string; extra_price: string }[];
     // Current price of the service plus the options chosen, in whole cents.
     price_cents: number;
+    // Which actions the provider can take now, from the server's rules: the page never computes them.
+    can_confirm: boolean;
+    can_reject: boolean;
+    can_cancel: boolean;
 };
 
 // The "filters" prop of the bookings page: the active ones, null when missing.
