@@ -9,6 +9,7 @@ use App\Http\Controllers\ProviderAvailabilityStoreController;
 use App\Http\Controllers\ProviderAvailabilityUpdateController;
 use App\Http\Controllers\ProviderAvatarController;
 use App\Http\Controllers\ProviderBookingController;
+use App\Http\Controllers\ProviderBookingIndexController;
 use App\Http\Controllers\ProviderController;
 use App\Http\Controllers\ProviderEditController;
 use App\Http\Controllers\ProviderOptionActivateController;
@@ -77,6 +78,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('throttle:provider-avatar')
         ->name('provider.avatar.store');
     // No fields: whatever is sent in the body is ignored. One limiter for both, see AppServiceProvider.
+    // The provider's own bookings, read only: no identifier in the address, always the user's provider.
+    Route::get('provider/bookings', ProviderBookingIndexController::class)->name('provider.bookings.index');
     // The provider's own public page, published or not: no slug, always the user's provider.
     Route::get('provider/preview', ProviderPreviewController::class)
         ->middleware(PrivateProviderPage::class)
