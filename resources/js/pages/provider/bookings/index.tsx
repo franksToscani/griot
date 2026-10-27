@@ -340,6 +340,46 @@ function BookingCard({ booking }: { booking: ProviderBooking }) {
                         )}
                     </div>
                 )}
+
+                {/* How the customer hears of the answer. The Resource does not expose the outcome
+                    (BookingOutcome): a confirmed booking is always the provider's answer, a
+                    cancelled one only when whatsapp_url is there (the customer's own cancellation
+                    sends no email). Known debt: a rejection or a cancellation by the provider with
+                    a number that cannot be read shows no line, even if the email was sent. */}
+                {booking.whatsapp_url !== null && (
+                    <div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            className={wrappingLabel}
+                        >
+                            <a
+                                href={booking.whatsapp_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {t('provider.bookings.whatsapp_button')}
+                            </a>
+                        </Button>
+                    </div>
+                )}
+                {booking.customer_email !== null &&
+                    (booking.status === 'confirmed' ||
+                        booking.whatsapp_url !== null) && (
+                        <p className="break-all text-muted-foreground">
+                            {t('provider.bookings.email_notice', {
+                                email: booking.customer_email,
+                            })}
+                        </p>
+                    )}
+                {booking.status === 'confirmed' &&
+                    booking.whatsapp_url === null &&
+                    booking.customer_email === null && (
+                        <p className="text-muted-foreground">
+                            {t('provider.bookings.no_contact')}
+                        </p>
+                    )}
             </CardContent>
         </Card>
     );

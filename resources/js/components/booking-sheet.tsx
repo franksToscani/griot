@@ -305,7 +305,14 @@ export function BookingSheet({ providerSlug, service, bookingWindow }: Props) {
                                         required
                                         maxLength={30}
                                         autoComplete="tel"
+                                        aria-describedby="customer_phone-help"
                                     />
+                                    <p
+                                        id="customer_phone-help"
+                                        className="text-sm text-muted-foreground"
+                                    >
+                                        {t('booking.phone.help')}
+                                    </p>
                                     <InputError
                                         message={errors.customer_phone}
                                     />
