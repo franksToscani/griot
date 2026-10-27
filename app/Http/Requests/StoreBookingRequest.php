@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Booking\CustomerDetails;
+use App\Booking\PhoneNumber;
 use Carbon\CarbonImmutable;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -33,6 +34,21 @@ class StoreBookingRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation: a phone number that can be read is replaced by its
+     * international format (+393331234567), which is what is validated and saved. One that
+     * cannot be read is left as it is, and the rule below refuses it.
+     */
+    protected function prepareForValidation(): void
+    {
+        $phone = $this->input('customer_phone');
+        $normalized = is_string($phone) ? PhoneNumber::normalize($phone) : null;
+
+        if ($normalized !== null) {
+            $this->merge(['customer_phone' => $normalized]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
@@ -46,7 +62,7 @@ class StoreBookingRequest extends FormRequest
             'starts_at' => ['required', 'date_format:'.self::STARTS_AT_FORMAT],
             'customer_name' => ['required', 'string', 'max:150'],
             // bail: one message for a wrong number, even when several rules fail.
-            'customer_phone' => ['bail', 'required', 'string', 'max:30', 'regex:/^[0-9 +().\-]+$/', $this->phoneDigits(...)],
+            'customer_phone' => ['bail', 'required', 'string', $this->internationalPhone(...)],
             'customer_email' => ['nullable', 'email', 'max:255'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ];
@@ -64,8 +80,7 @@ class StoreBookingRequest extends FormRequest
             'customer_name.required' => __('booking.validation.name_required'),
             'customer_name.max' => __('booking.validation.name_max'),
             'customer_phone.required' => __('booking.validation.phone_required'),
-            'customer_phone.max' => __('booking.validation.phone_invalid'),
-            'customer_phone.regex' => __('booking.validation.phone_invalid'),
+            'customer_phone.string' => __('booking.phone.invalid'),
             'customer_email.email' => __('booking.validation.email_invalid'),
             'customer_email.max' => __('booking.validation.email_invalid'),
             'notes.max' => __('booking.validation.notes_max'),
@@ -112,7 +127,7 @@ class StoreBookingRequest extends FormRequest
     }
 
     /**
-     * The customer's details: name and phone trimmed and saved as written, empty email and notes as null.
+     * The customer's details: name trimmed, phone in international format, empty email and notes as null.
      */
     public function customer(): CustomerDetails
     {
@@ -128,14 +143,13 @@ class StoreBookingRequest extends FormRequest
     }
 
     /**
-     * A phone number has from 6 to 15 digits, whatever spaces and symbols surround them.
+     * The number is valid when prepareForValidation() could put it in international format: the
+     * rule is PhoneNumber's only, and a normalized number comes back the same.
      */
-    private function phoneDigits(string $attribute, mixed $value, Closure $fail): void
+    private function internationalPhone(string $attribute, mixed $value, Closure $fail): void
     {
-        $digits = is_string($value) ? preg_match_all('/\d/', $value) : 0;
-
-        if ($digits < 6 || $digits > 15) {
-            $fail(__('booking.validation.phone_invalid'));
+        if (! is_string($value) || PhoneNumber::normalize($value) !== $value) {
+            $fail(__('booking.phone.invalid'));
         }
     }
 }

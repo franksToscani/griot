@@ -6,6 +6,7 @@ use App\Booking\LocalTime;
 use App\Enums\BookingStatus;
 use App\Http\Requests\ProviderBookingIndexRequest;
 use App\Http\Resources\ProviderBookingResource;
+use App\Models\Booking;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
@@ -56,6 +57,10 @@ class ProviderBookingIndexController extends Controller
             ->paginate(20)
             // Page links keep the active filters.
             ->appends(array_filter($filters));
+
+        // Every booking is the provider's own: they share the model already loaded, with no query
+        // (the WhatsApp message names the provider).
+        $bookings->getCollection()->each(fn (Booking $booking) => $booking->setRelation('provider', $provider));
 
         return Inertia::render('provider/bookings/index', [
             'bookings' => ProviderBookingResource::collection($bookings),

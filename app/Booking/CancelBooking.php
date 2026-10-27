@@ -48,6 +48,7 @@ final class CancelBooking
             }
 
             $locked->status = BookingStatus::Cancelled;
+            $locked->cancelled_by = CancelledBy::Customer;
             $locked->save();
 
             return true;

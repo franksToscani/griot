@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\DB;
  * one). The rules are BookingTransitions'; this class reads the row again under a lock and writes.
  * Nothing is idempotent: asking again for a change already made is refused with its reason, and
  * nothing is written. A cancelled booking frees its slot at once: FreeSlots and CreateBooking only
- * count pending and confirmed bookings.
+ * count pending and confirmed bookings. A rejection and a cancellation write the same status; they
+ * differ in cancelled_by, which tells the customer's notice which of the two happened.
  */
 final class ManageBooking
 {
@@ -41,6 +42,7 @@ final class ManageBooking
     {
         return $this->change($booking, 'reject', $this->transitions->rejectRefusal(...), function (Booking $locked) use ($reason): void {
             $locked->status = BookingStatus::Cancelled;
+            $locked->cancelled_by = CancelledBy::ProviderReject;
             $locked->cancellation_reason = $this->cleanReason($reason);
         });
     }
@@ -54,6 +56,7 @@ final class ManageBooking
     {
         return $this->change($booking, 'cancel', $this->transitions->providerCancelRefusal(...), function (Booking $locked) use ($reason): void {
             $locked->status = BookingStatus::Cancelled;
+            $locked->cancelled_by = CancelledBy::ProviderCancel;
             $locked->cancellation_reason = $this->cleanReason($reason);
         });
     }

@@ -2,17 +2,22 @@
 
 namespace App\Http\Resources;
 
+use App\Booking\BookingOutcome;
 use App\Booking\BookingTransitions;
 use App\Booking\LocalTime;
+use App\Booking\PhoneNumber;
 use App\Models\Booking;
 use App\Models\ServiceOption;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * A booking in the provider's own list. It expects service and options to be already loaded. It
- * leaves out on purpose the public_token and every internal id but the booking's. The customer's
- * fields are data written by the customer: the page shows them as plain text.
+ * A booking in the provider's own list. It expects provider, service and options to be already
+ * loaded. It leaves out on purpose every internal id but the booking's. The public_token appears in
+ * one place only: inside whatsapp_url, the private address the provider sends to the customer,
+ * and only for a booking the provider has answered. The customer's fields are data written by
+ * the customer: the page shows them as plain text.
  *
  * @mixin Booking
  */
@@ -60,7 +65,43 @@ class ProviderBookingResource extends JsonResource
             'can_confirm' => $transitions->canConfirm($this->resource),
             'can_reject' => $transitions->canReject($this->resource),
             'can_cancel' => $transitions->canCancelAsProvider($this->resource),
+            'whatsapp_url' => $this->whatsappUrl($start, $end),
         ];
+    }
+
+    /**
+     * The WhatsApp chat with the customer, with the provider's answer already written: the
+     * provider opens it and sends it by hand. Null for a booking without an answer (pending, or
+     * cancelled by the customer or before cancelled_by existed) and for a number that cannot be
+     * put in international format. The message holds the private address of the booking.
+     */
+    private function whatsappUrl(CarbonImmutable $start, CarbonImmutable $end): ?string
+    {
+        $outcome = BookingOutcome::of($this->resource);
+        // The numbers saved before the form normalized them are read with the same rule.
+        $phone = PhoneNumber::normalize($this->customer_phone);
+
+        if ($outcome === null || $phone === null) {
+            return null;
+        }
+
+        $lines = [__('provider.bookings.whatsapp_text_'.$outcome->value, [
+            'name' => $this->customer_name,
+            'provider' => $this->provider->name,
+            'service' => $this->service->name,
+            // As in the emails: "giovedì 29 ottobre 2026, 09:00–11:45".
+            'when' => $start->isoFormat('dddd D MMMM YYYY').', '.$start->format('H:i').'–'.$end->format('H:i'),
+        ])];
+
+        if ($outcome !== BookingOutcome::Confirmed && $this->cancellation_reason !== null) {
+            $lines[] = __('provider.bookings.whatsapp_reason', ['reason' => $this->cancellation_reason]);
+        }
+
+        $lines[] = __('provider.bookings.whatsapp_link', ['url' => route('bookings.show', ['booking' => $this->public_token])]);
+
+        // wa.me wants the digits without "+". rawurlencode() writes a space as %20, which every
+        // WhatsApp app reads as a space ("+" from urlencode() can stay a "+").
+        return 'https://wa.me/'.substr($phone, 1).'?text='.rawurlencode(implode("\n\n", $lines));
     }
 
     /**

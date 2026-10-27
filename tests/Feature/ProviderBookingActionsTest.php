@@ -365,7 +365,6 @@ test('the texts of the buttons, the windows and the customer page are exactly th
         'provider.bookings.actions.confirm_yes_reject' => 'Sì, rifiuta',
         'provider.bookings.actions.confirm_yes_cancel' => 'Sì, annulla',
         'provider.bookings.actions.back' => 'No, torna indietro',
-        'provider.bookings.no_notice' => 'Il cliente non riceve ancora un avviso automatico: contattalo tu.',
         'booking.confirmation.cancellation_reason' => "Motivo dell'annullamento",
     ];
 
