@@ -1,0 +1,287 @@
+import { Form, Head, Link, usePage } from '@inertiajs/react';
+import InputError from '@/components/input-error';
+import { Pagination } from '@/components/pagination';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useTranslation } from '@/hooks/use-translation';
+import { centsToPrice, formatPrice, priceToCents } from '@/lib/format';
+import { cn } from '@/lib/utils';
+import { dashboard } from '@/routes';
+import { index as bookingsIndex } from '@/routes/provider/bookings';
+import type {
+    Paginated,
+    ProviderBooking,
+    ProviderBookingFilters,
+} from '@/types';
+
+type Props = {
+    bookings: Paginated<ProviderBooking>;
+    filters: ProviderBookingFilters;
+};
+
+const STATUSES = ['pending', 'confirmed', 'cancelled'] as const;
+
+// Each status with its Badge: the pending ones stand out, they wait for an answer.
+const statusBadge = {
+    pending: 'default',
+    confirmed: 'secondary',
+    cancelled: 'outline',
+} as const;
+
+// Copied from dashboard.tsx, like the other pages: the kit's Button keeps its label on one line at
+// a fixed height, and long Italian labels would widen the page at 375 px. cn() uses tailwind-merge.
+const wrappingLabel = 'h-auto max-w-full whitespace-normal py-2 text-center';
+
+// Copied from services/index.tsx: a native select with the same look as the kit's Input.
+const selectClass =
+    'border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm';
+
+const hasActiveFilters = (filters: ProviderBookingFilters): boolean =>
+    filters.status !== null || filters.from !== null || filters.to !== null;
+
+// The provider's bookings, read only, in the order the server sends: the pending ones first.
+export default function ProviderBookingsIndex({ bookings, filters }: Props) {
+    const { t } = useTranslation();
+    const filtered = hasActiveFilters(filters);
+
+    return (
+        <>
+            <Head title={t('provider.bookings.title')} />
+            <div className="flex flex-col gap-6 p-4">
+                <header className="flex max-w-2xl flex-col gap-1">
+                    <h1 className="text-2xl font-semibold">
+                        {t('provider.bookings.title')}
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                        {filtered
+                            ? t('provider.bookings.filters_active')
+                            : t('provider.bookings.help')}
+                    </p>
+                </header>
+
+                <BookingFilters filters={filters} filtered={filtered} />
+
+                {bookings.data.length === 0 ? (
+                    <p className="text-muted-foreground">
+                        {filtered
+                            ? t('provider.bookings.empty_filtered')
+                            : t('provider.bookings.empty')}
+                    </p>
+                ) : (
+                    <ul className="flex max-w-2xl flex-col gap-4">
+                        {bookings.data.map((booking) => (
+                            <li key={booking.id}>
+                                <BookingCard booking={booking} />
+                            </li>
+                        ))}
+                    </ul>
+                )}
+
+                <Pagination links={bookings.links} meta={bookings.meta} />
+            </div>
+        </>
+    );
+}
+
+// A GET form: the fields go in the query string. Empty fields are left out of the address. A GET
+// visit does not keep the page state, so the fields start again from "filters" after each visit,
+// and the errors are read from the page: an invalid filter comes back to the list without filters.
+function BookingFilters({
+    filters,
+    filtered,
+}: {
+    filters: ProviderBookingFilters;
+    filtered: boolean;
+}) {
+    const { t } = useTranslation();
+    const { errors } = usePage().props;
+
+    return (
+        <Card className="max-w-2xl">
+            <CardContent>
+                <Form
+                    {...bookingsIndex.form()}
+                    transform={(data) =>
+                        Object.fromEntries(
+                            Object.entries(data).filter(
+                                ([, value]) => value !== '',
+                            ),
+                        )
+                    }
+                    options={{ preserveScroll: true }}
+                    className="flex flex-col gap-4"
+                >
+                    <div className="grid gap-4 sm:grid-cols-3">
+                        <div className="grid gap-2">
+                            <Label htmlFor="filter-status">
+                                {t('provider.bookings.filter.status')}
+                            </Label>
+                            <select
+                                id="filter-status"
+                                name="status"
+                                defaultValue={filters.status ?? ''}
+                                className={selectClass}
+                            >
+                                <option value="">
+                                    {t('provider.bookings.filter.status_all')}
+                                </option>
+                                {STATUSES.map((status) => (
+                                    <option key={status} value={status}>
+                                        {t(
+                                            `provider.bookings.status.${status}`,
+                                        )}
+                                    </option>
+                                ))}
+                            </select>
+                            <InputError message={errors.status} />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="filter-from">
+                                {t('provider.bookings.filter.from')}
+                            </Label>
+                            <Input
+                                id="filter-from"
+                                name="from"
+                                type="date"
+                                defaultValue={filters.from ?? ''}
+                            />
+                            <InputError message={errors.from} />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="filter-to">
+                                {t('provider.bookings.filter.to')}
+                            </Label>
+                            <Input
+                                id="filter-to"
+                                name="to"
+                                type="date"
+                                defaultValue={filters.to ?? ''}
+                            />
+                            <InputError message={errors.to} />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                        <Button type="submit" className={wrappingLabel}>
+                            {t('provider.bookings.filter.submit')}
+                        </Button>
+                        {filtered && (
+                            <Button
+                                variant="outline"
+                                asChild
+                                className={wrappingLabel}
+                            >
+                                <Link href={bookingsIndex()} preserveScroll>
+                                    {t('provider.bookings.filter.reset')}
+                                </Link>
+                            </Button>
+                        )}
+                    </div>
+                </Form>
+            </CardContent>
+        </Card>
+    );
+}
+
+// One booking. Everything the customer wrote is shown as plain text: no links, no HTML.
+function BookingCard({ booking }: { booking: ProviderBooking }) {
+    const { t, locale } = useTranslation();
+    const pending = booking.status === 'pending';
+    // The date is already the provider's local day: read and written in UTC, so it never moves.
+    const date = new Intl.DateTimeFormat(locale, {
+        dateStyle: 'full',
+        timeZone: 'UTC',
+    }).format(new Date(`${booking.local_date}T00:00:00Z`));
+
+    return (
+        <Card className={cn(pending && 'border-2 border-primary')}>
+            <CardHeader>
+                <CardTitle className="flex flex-wrap items-center gap-2">
+                    <span className="min-w-0 break-words">{date}</span>
+                    <Badge variant={statusBadge[booking.status]}>
+                        {t(`provider.bookings.status.${booking.status}`)}
+                    </Badge>
+                </CardTitle>
+                <CardDescription className="tabular-nums">
+                    {booking.local_start} – {booking.local_end}
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3 text-sm">
+                <div className="flex flex-col gap-1">
+                    <p className="font-medium break-words">
+                        {booking.customer_name}
+                    </p>
+                    <p className="break-words">
+                        {t('provider.bookings.phone')}: {booking.customer_phone}
+                    </p>
+                    {booking.customer_email !== null && (
+                        <p className="break-all">
+                            {t('provider.bookings.email')}:{' '}
+                            {booking.customer_email}
+                        </p>
+                    )}
+                    {booking.notes !== null && (
+                        <div>
+                            <p className="font-medium">
+                                {t('provider.bookings.notes')}
+                            </p>
+                            <p className="break-words whitespace-pre-line">
+                                {booking.notes}
+                            </p>
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex flex-col gap-1">
+                    <p className="font-medium break-words">
+                        {booking.service.name}
+                    </p>
+                    {booking.options.length > 0 && (
+                        <ul className="list-disc pl-5">
+                            {booking.options.map((option, position) => (
+                                <li key={position} className="break-words">
+                                    {option.name}
+                                    {/* Only an extra that actually adds something. */}
+                                    {priceToCents(option.extra_price) !== 0 &&
+                                        ` (${t('providers.show.option_extra_price', { price: formatPrice(locale, option.extra_price) })})`}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+
+                <p>
+                    {t('provider.bookings.price_note')}:{' '}
+                    <span className="font-medium">
+                        {formatPrice(locale, centsToPrice(booking.price_cents))}
+                    </span>
+                </p>
+            </CardContent>
+        </Card>
+    );
+}
+
+// Kit texts in English, like the other breadcrumbs, until the kit is translated (issue #54).
+ProviderBookingsIndex.layout = {
+    breadcrumbs: [
+        {
+            title: 'Dashboard',
+            href: dashboard(),
+        },
+        {
+            title: 'Bookings',
+            href: bookingsIndex(),
+        },
+    ],
+};
