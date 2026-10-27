@@ -1,4 +1,5 @@
 import { Form, Head, Link, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { Pagination } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
@@ -10,13 +11,31 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from '@/hooks/use-translation';
 import { centsToPrice, formatPrice, priceToCents } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
-import { index as bookingsIndex } from '@/routes/provider/bookings';
+// Explicit names: '@/routes/bookings' has the customer's own "cancel".
+import {
+    cancel as cancelBooking,
+    confirm as confirmBooking,
+    index as bookingsIndex,
+    reject as rejectBooking,
+} from '@/routes/provider/bookings';
 import type {
     Paginated,
     ProviderBooking,
@@ -52,6 +71,7 @@ const hasActiveFilters = (filters: ProviderBookingFilters): boolean =>
 export default function ProviderBookingsIndex({ bookings, filters }: Props) {
     const { t } = useTranslation();
     const filtered = hasActiveFilters(filters);
+    const { errors } = usePage().props;
 
     return (
         <>
@@ -66,7 +86,16 @@ export default function ProviderBookingsIndex({ bookings, filters }: Props) {
                             ? t('provider.bookings.filters_active')
                             : t('provider.bookings.help')}
                     </p>
+                    <p className="text-sm text-muted-foreground">
+                        {t('provider.bookings.no_notice')}
+                    </p>
                 </header>
+
+                {/* Read from the page, outside the forms: a refused change, or the request limit. */}
+                <div className="max-w-2xl">
+                    <InputError message={errors.booking} />
+                    <InputError message={errors.services} />
+                </div>
 
                 <BookingFilters filters={filters} filtered={filtered} />
 
@@ -267,8 +296,179 @@ function BookingCard({ booking }: { booking: ProviderBooking }) {
                         {formatPrice(locale, centsToPrice(booking.price_cents))}
                     </span>
                 </p>
+
+                {/* Only the actions the server allows now: after an answer the flags come back false. */}
+                {(booking.can_confirm ||
+                    booking.can_reject ||
+                    booking.can_cancel) && (
+                    <div className="flex flex-wrap gap-2">
+                        {booking.can_confirm && (
+                            <ConfirmBookingButton bookingId={booking.id} />
+                        )}
+                        {booking.can_reject && (
+                            <ReasonDialog
+                                action={rejectBooking.form({
+                                    booking: booking.id,
+                                })}
+                                idPrefix={`reject-${booking.id}`}
+                                trigger={t('provider.bookings.actions.reject')}
+                                title={t(
+                                    'provider.bookings.actions.reject_title',
+                                )}
+                                description={t(
+                                    'provider.bookings.actions.reject_description',
+                                )}
+                                yes={t(
+                                    'provider.bookings.actions.confirm_yes_reject',
+                                )}
+                            />
+                        )}
+                        {booking.can_cancel && (
+                            <ReasonDialog
+                                action={cancelBooking.form({
+                                    booking: booking.id,
+                                })}
+                                idPrefix={`cancel-${booking.id}`}
+                                trigger={t('provider.bookings.actions.cancel')}
+                                title={t(
+                                    'provider.bookings.actions.cancel_title',
+                                )}
+                                description={t(
+                                    'provider.bookings.actions.cancel_description',
+                                )}
+                                yes={t(
+                                    'provider.bookings.actions.confirm_yes_cancel',
+                                )}
+                            />
+                        )}
+                    </div>
+                )}
             </CardContent>
         </Card>
+    );
+}
+
+// Confirming needs no window: a refusal (for example the customer cancelled in the meantime) is
+// shown at the top of the page.
+function ConfirmBookingButton({ bookingId }: { bookingId: number }) {
+    const { t } = useTranslation();
+
+    return (
+        <Form
+            {...confirmBooking.form({ booking: bookingId })}
+            options={{ preserveScroll: true }}
+        >
+            {({ processing }) => (
+                <Button
+                    type="submit"
+                    size="sm"
+                    className={wrappingLabel}
+                    disabled={processing}
+                >
+                    {processing && <Spinner />}
+                    {t('provider.bookings.actions.confirm')}
+                </Button>
+            )}
+        </Form>
+    );
+}
+
+// Reject or cancel, with an optional message the customer will read on the private page. A
+// success closes the window. An error on the message keeps it open, with the error and the text
+// written; any other error (a refused change, the request limit) closes it, and is shown at the
+// top of the page.
+function ReasonDialog({
+    action,
+    idPrefix,
+    trigger,
+    title,
+    description,
+    yes,
+}: {
+    action: ReturnType<typeof rejectBooking.form>;
+    idPrefix: string;
+    trigger: string;
+    title: string;
+    description: string;
+    yes: string;
+}) {
+    const { t } = useTranslation();
+    const [open, setOpen] = useState(false);
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button
+                    variant="destructive"
+                    size="sm"
+                    className={wrappingLabel}
+                >
+                    {trigger}
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{title}</DialogTitle>
+                    <DialogDescription>{description}</DialogDescription>
+                </DialogHeader>
+                <Form
+                    {...action}
+                    options={{ preserveScroll: true }}
+                    onSuccess={() => setOpen(false)}
+                    onError={(errors) => {
+                        if (!errors.reason) {
+                            setOpen(false);
+                        }
+                    }}
+                    className="flex flex-col gap-4"
+                >
+                    {({ processing, errors }) => (
+                        <>
+                            <div className="grid gap-2">
+                                <Label htmlFor={`${idPrefix}-reason`}>
+                                    {t(
+                                        'provider.bookings.actions.reason_label',
+                                    )}
+                                </Label>
+                                <Textarea
+                                    id={`${idPrefix}-reason`}
+                                    name="reason"
+                                    maxLength={500}
+                                    aria-describedby={`${idPrefix}-reason-help`}
+                                />
+                                <p
+                                    id={`${idPrefix}-reason-help`}
+                                    className="text-sm text-muted-foreground"
+                                >
+                                    {t('provider.bookings.actions.reason_help')}
+                                </p>
+                                <InputError message={errors.reason} />
+                            </div>
+                            <DialogFooter className="gap-2">
+                                <DialogClose asChild>
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        className={wrappingLabel}
+                                    >
+                                        {t('provider.bookings.actions.back')}
+                                    </Button>
+                                </DialogClose>
+                                <Button
+                                    type="submit"
+                                    variant="destructive"
+                                    className={wrappingLabel}
+                                    disabled={processing}
+                                >
+                                    {processing && <Spinner />}
+                                    {yes}
+                                </Button>
+                            </DialogFooter>
+                        </>
+                    )}
+                </Form>
+            </DialogContent>
+        </Dialog>
     );
 }
 

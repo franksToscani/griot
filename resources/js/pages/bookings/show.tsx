@@ -91,6 +91,21 @@ export default function BookingsShow({
                                 )}
                             </dd>
 
+                            {/* The provider's message, as plain text: never read as HTML or links. */}
+                            {booking.status === 'cancelled' &&
+                                booking.cancellation_reason !== null && (
+                                    <>
+                                        <dt className="font-medium">
+                                            {t(
+                                                'booking.confirmation.cancellation_reason',
+                                            )}
+                                        </dt>
+                                        <dd className="break-words whitespace-pre-line">
+                                            {booking.cancellation_reason}
+                                        </dd>
+                                    </>
+                                )}
+
                             <dt className="font-medium">
                                 {t('booking.confirmation.provider')}
                             </dt>
