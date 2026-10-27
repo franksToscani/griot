@@ -98,6 +98,9 @@ export type ProviderBooking = {
     can_confirm: boolean;
     can_reject: boolean;
     can_cancel: boolean;
+    // WhatsApp chat with the provider's answer already written, built by the server; null without
+    // an answer from the provider or with a number that cannot be read. It holds the private link.
+    whatsapp_url: string | null;
 };
 
 // The "filters" prop of the bookings page: the active ones, null when missing.
