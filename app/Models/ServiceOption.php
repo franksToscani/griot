@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * @property string $extra_price decimal string such as "7.50" (cast decimal:2)
+ */
 class ServiceOption extends Model
 {
     /** @use HasFactory<ServiceOptionFactory> */

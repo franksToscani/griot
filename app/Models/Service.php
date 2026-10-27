@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property string $price decimal string such as "25.50" (cast decimal:2)
+ */
 class Service extends Model
 {
     /** @use HasFactory<ServiceFactory> */
