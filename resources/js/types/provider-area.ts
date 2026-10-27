@@ -75,3 +75,30 @@ export type AvailabilityWeekday = {
     weekday: number;
     day: string;
 };
+
+// Shape of App\Http\Resources\ProviderBookingResource: a booking in the provider's own list.
+export type ProviderBooking = {
+    id: number;
+    status: 'pending' | 'confirmed' | 'cancelled';
+    // The provider's local day and times, already converted by the server.
+    local_date: string;
+    local_start: string;
+    local_end: string;
+    // Written by the customer: shown as plain text only.
+    customer_name: string;
+    customer_phone: string;
+    customer_email: string | null;
+    notes: string | null;
+    service: { name: string };
+    // Decimal strings such as "7.50".
+    options: { name: string; extra_price: string }[];
+    // Current price of the service plus the options chosen, in whole cents.
+    price_cents: number;
+};
+
+// The "filters" prop of the bookings page: the active ones, null when missing.
+export type ProviderBookingFilters = {
+    status: string | null;
+    from: string | null;
+    to: string | null;
+};

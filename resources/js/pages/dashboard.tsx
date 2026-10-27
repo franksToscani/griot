@@ -27,6 +27,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
 import { edit, preview, publish, unpublish } from '@/routes/provider';
 import { index as availabilityIndex } from '@/routes/provider/availability';
+import { index as bookingsIndex } from '@/routes/provider/bookings';
 import { index as servicesIndex } from '@/routes/provider/services';
 import { show } from '@/routes/providers';
 import type { ProviderArea, PublishingStatus } from '@/types';
@@ -113,6 +114,15 @@ export default function Dashboard({ provider, publishing }: Props) {
                         >
                             <Link href={availabilityIndex()}>
                                 {t('provider.area.availability')}
+                            </Link>
+                        </Button>
+                        <Button
+                            asChild
+                            variant="outline"
+                            className={wrappingLabel}
+                        >
+                            <Link href={bookingsIndex()}>
+                                {t('provider.area.bookings')}
                             </Link>
                         </Button>
                         {/* Always: the owner sees the page as the customers do, published or not. */}

@@ -2,7 +2,6 @@
 
 use App\Booking\LocalTime;
 use App\Enums\BookingStatus;
-use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Booking;
 use App\Models\Provider;
 use App\Models\Service;
@@ -11,6 +10,7 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
+use Inertia\Testing\AssertableInertia as Assert;
 
 // "Now" is Tuesday 20 October 2026, 10:00 UTC (12:00 in Italy, summer time until 25 October).
 beforeEach(function () {
@@ -51,18 +51,36 @@ function pblBooking(Provider $provider, string $startsAtUtc, BookingStatus $stat
 }
 
 /**
- * The page as an Inertia visit, which answers with the page as JSON. The page component is part
- * of phase B: a normal visit would ask Vite for a file that does not exist yet, and
- * assertInertia() reads only the HTML answer.
- *
  * @param  array<string, mixed>  $query
  */
-function pblPage(User $user, array $query = []): TestResponse
+function pblGet(User $user, array $query = []): TestResponse
 {
-    return test()->actingAs($user)->get(route('provider.bookings.index', $query), [
-        'X-Inertia' => 'true',
-        'X-Inertia-Version' => (string) app(HandleInertiaRequests::class)->version(request()),
-    ]);
+    return test()->actingAs($user)->get(route('provider.bookings.index', $query));
+}
+
+/**
+ * The props of the bookings page, read with assertInertia().
+ *
+ * @return array<string, mixed>
+ */
+function pblPropsOf(TestResponse $response): array
+{
+    $props = [];
+    $response->assertOk()->assertInertia(function (Assert $page) use (&$props) {
+        $page->component('provider/bookings/index');
+        $props = $page->toArray()['props'];
+    });
+
+    return $props;
+}
+
+/**
+ * @param  array<string, mixed>  $query
+ * @return array<string, mixed>
+ */
+function pblProps(User $user, array $query = []): array
+{
+    return pblPropsOf(pblGet($user, $query));
 }
 
 /**
@@ -73,9 +91,7 @@ function pblPage(User $user, array $query = []): TestResponse
  */
 function pblIds(User $user, array $query = []): array
 {
-    $response = pblPage($user, $query)->assertOk()->assertJsonPath('component', 'provider/bookings/index');
-
-    return array_column($response->json('props.bookings.data'), 'id');
+    return array_column(pblProps($user, $query)['bookings']['data'], 'id');
 }
 
 test('guests, unverified users and users without a provider are sent away', function () {
@@ -94,9 +110,9 @@ test('a provider sees only its own bookings', function () {
     $own = pblBooking($mine, '2026-10-21 08:00', override: ['customer_name' => 'Awa Diop']);
     pblBooking($theirs, '2026-10-21 08:00', override: ['customer_name' => 'Cliente Di Kofi']);
 
-    $response = pblPage($mine->user)->assertOk();
+    $response = pblGet($mine->user);
 
-    expect(array_column($response->json('props.bookings.data'), 'id'))->toBe([$own->id]);
+    expect(array_column(pblPropsOf($response)['bookings']['data'], 'id'))->toBe([$own->id]);
     $response->assertSee('Awa Diop')->assertDontSee('Cliente Di Kofi');
 });
 
@@ -123,9 +139,10 @@ test('each booking has exactly the expected keys, and the private token is nowhe
     ]);
     $booking->options()->attach($option->id);
 
-    $response = pblPage($provider->user)->assertOk();
+    $response = pblGet($provider->user);
+    $props = pblPropsOf($response);
 
-    expect($response->json('props.bookings.data'))->toBe([[
+    expect($props['bookings']['data'])->toBe([[
         'id' => $booking->id,
         'status' => 'confirmed',
         'local_date' => '2026-10-21',
@@ -139,7 +156,7 @@ test('each booking has exactly the expected keys, and the private token is nowhe
         'options' => [['name' => 'Perline', 'extra_price' => '7.50']],
         'price_cents' => 3250,
     ]]);
-    expect($response->json('props.filters'))->toBe(['status' => null, 'from' => null, 'to' => null]);
+    expect($props['filters'])->toBe(['status' => null, 'from' => null, 'to' => null]);
     expect($response->getContent())->not->toContain($booking->public_token)->not->toContain('public_token');
 });
 
@@ -179,7 +196,7 @@ test('a status filter shows that status only, past and future', function () {
     expect(pblIds($provider->user, ['status' => 'confirmed']))->toBe([$pastConfirmed->id, $futureConfirmed->id]);
     expect(pblIds($provider->user, ['status' => 'cancelled']))->toBe([$cancelled->id]);
 
-    pblPage($provider->user, ['status' => 'confirmed'])->assertJsonPath('props.filters', ['status' => 'confirmed', 'from' => null, 'to' => null]);
+    expect(pblProps($provider->user, ['status' => 'confirmed'])['filters'])->toBe(['status' => 'confirmed', 'from' => null, 'to' => null]);
 });
 
 test('dates are local days, both ends included, each one on its own too', function () {
@@ -230,7 +247,7 @@ test('the local time of a booking in winter and in summer', function (string $st
     $provider = pblProvider();
     pblBooking($provider, $startsAtUtc, BookingStatus::Confirmed, 90);
 
-    $row = pblPage($provider->user, ['status' => 'confirmed'])->json('props.bookings.data.0');
+    $row = pblProps($provider->user, ['status' => 'confirmed'])['bookings']['data'][0];
 
     expect([$row['local_date'], $row['local_start'], $row['local_end']])->toBe([$date, $start, $end]);
 })->with([
@@ -242,7 +259,7 @@ test('the local time of a booking in winter and in summer', function (string $st
 test('invalid filters go back to the list without filters, with the message on their field', function (array $query, string $field, string $message) {
     $provider = pblProvider();
 
-    pblPage($provider->user, $query)
+    pblGet($provider->user, $query)
         ->assertRedirect(route('provider.bookings.index'))
         ->assertSessionHasErrors([$field => $message]);
 })->with([
@@ -271,7 +288,7 @@ test('a JSON client gets a 422 with the same messages', function () {
 test('accepted ranges: one day, 366 days of a leap year, a single far end', function (array $query) {
     $provider = pblProvider();
 
-    pblPage($provider->user, $query)->assertOk()->assertSessionHasNoErrors();
+    pblGet($provider->user, $query)->assertOk()->assertSessionHasNoErrors();
 })->with([
     'one day' => [['from' => '2026-10-20', 'to' => '2026-10-20']],
     '366 days, both ends included' => [['from' => '2028-01-01', 'to' => '2028-12-31']],
@@ -283,7 +300,7 @@ test('accepted ranges: one day, 366 days of a leap year, a single far end', func
 test('an invalid "from" gets its own error, not a range one', function () {
     $provider = pblProvider();
 
-    pblPage($provider->user, ['from' => 'ieri', 'to' => '2026-10-19'])
+    pblGet($provider->user, ['from' => 'ieri', 'to' => '2026-10-19'])
         ->assertSessionHasErrors(['from' => PBL_DATE_INVALID])
         ->assertSessionDoesntHaveErrors(['to']);
 });
@@ -296,18 +313,18 @@ test('20 per page, and the page links keep the filters', function () {
         pblBooking($provider, CarbonImmutable::parse('2026-10-21 08:00', 'UTC')->addDays($i)->format('Y-m-d H:i'), BookingStatus::Confirmed, override: ['service' => $service]);
     }
 
-    $first = pblPage($provider->user, ['status' => 'confirmed'])->assertOk();
-    expect($first->json('props.bookings.data'))->toHaveCount(20);
-    expect($first->json('props.bookings.meta.current_page'))->toBe(1);
-    expect($first->json('props.bookings.meta.last_page'))->toBe(2);
-    expect($first->json('props.bookings.links.next'))->toContain('status=confirmed')->toContain('page=2');
+    $first = pblProps($provider->user, ['status' => 'confirmed'])['bookings'];
+    expect($first['data'])->toHaveCount(20);
+    expect($first['meta']['current_page'])->toBe(1);
+    expect($first['meta']['last_page'])->toBe(2);
+    expect($first['links']['next'])->toContain('status=confirmed')->toContain('page=2');
 
-    $second = pblPage($provider->user, ['status' => 'confirmed', 'page' => 2])->assertOk();
-    expect($second->json('props.bookings.data'))->toHaveCount(5);
-    expect($second->json('props.bookings.links.prev'))->toContain('status=confirmed');
+    $second = pblProps($provider->user, ['status' => 'confirmed', 'page' => 2])['bookings'];
+    expect($second['data'])->toHaveCount(5);
+    expect($second['links']['prev'])->toContain('status=confirmed');
 
     // No filter, no filter in the links.
-    expect(pblPage($provider->user)->json('props.bookings.links.next'))->not->toContain('status=');
+    expect(pblProps($provider->user)['bookings']['links']['next'])->not->toContain('status=');
 });
 
 test('the price in cents: the current price of the service plus the options chosen, with integers only', function (string $price, array $extras, int $cents) {
@@ -319,7 +336,7 @@ test('the price in cents: the current price of the service plus the options chos
         $booking->options()->attach(ServiceOption::factory()->for($service)->create(['name' => "Opzione {$i}", 'extra_price' => $extra])->id);
     }
 
-    expect(pblPage($provider->user)->json('props.bookings.data.0.price_cents'))->toBe($cents);
+    expect(pblProps($provider->user)['bookings']['data'][0]['price_cents'])->toBe($cents);
 })->with([
     'no options' => ['90.00', [], 9000],
     'with one option' => ['25.00', ['7.50'], 3250],
@@ -332,7 +349,7 @@ test('a customer without email and notes gets null for both', function () {
     $provider = pblProvider();
     pblBooking($provider, '2026-10-21 08:00', override: ['customer_email' => null, 'notes' => null]);
 
-    $row = pblPage($provider->user)->json('props.bookings.data.0');
+    $row = pblProps($provider->user)['bookings']['data'][0];
 
     expect($row['customer_email'])->toBeNull();
     expect($row['notes'])->toBeNull();
@@ -346,7 +363,7 @@ test('HTML and Markdown in the customer fields stay plain strings', function () 
         'notes' => "**grassetto** [link](https://example.com)\n# titolo",
     ]);
 
-    $row = pblPage($provider->user)->json('props.bookings.data.0');
+    $row = pblProps($provider->user)['bookings']['data'][0];
 
     expect($row['customer_name'])->toBe('<script>alert(1)</script>');
     expect($row['notes'])->toBe("**grassetto** [link](https://example.com)\n# titolo");
@@ -367,7 +384,7 @@ test('the number of queries does not grow with bookings and options', function (
         DB::listen(function () use (&$queries) {
             $queries++;
         });
-        pblPage($provider->user)->assertOk();
+        pblGet($provider->user)->assertOk();
 
         return $queries;
     };
@@ -404,4 +421,46 @@ test('the Italian texts are exactly the expected ones', function () {
     expect(PBL_DATE_INVALID)->toBe('Scrivi la data come giorno, mese e anno.');
     expect(PBL_RANGE_ORDER)->toBe('La data di fine non può essere prima di quella di inizio.');
     expect(PBL_RANGE_TOO_LONG)->toBe("L'intervallo può essere al massimo di 366 giorni.");
+});
+
+test('the texts of the bookings page are exactly the expected ones', function () {
+    $texts = [
+        'provider.bookings.title' => 'Le tue prenotazioni',
+        'provider.bookings.help' => 'Senza filtri vedi le prenotazioni in arrivo e le richieste ancora in attesa, anche passate.',
+        'provider.bookings.filters_active' => 'Con i filtri attivi vedi anche le prenotazioni passate.',
+        'provider.bookings.empty' => 'Non hai prenotazioni in arrivo.',
+        'provider.bookings.empty_filtered' => 'Nessuna prenotazione corrisponde ai filtri.',
+        'provider.bookings.filter.status' => 'Stato',
+        'provider.bookings.filter.status_all' => 'Tutti',
+        'provider.bookings.filter.from' => 'Dal',
+        'provider.bookings.filter.to' => 'Al',
+        'provider.bookings.filter.submit' => 'Filtra',
+        'provider.bookings.filter.reset' => 'Azzera',
+        'provider.bookings.status.pending' => 'In attesa',
+        'provider.bookings.status.confirmed' => 'Confermata',
+        'provider.bookings.status.cancelled' => 'Annullata',
+        'provider.bookings.phone' => 'Telefono',
+        'provider.bookings.email' => 'Email',
+        'provider.bookings.notes' => 'Note',
+        'provider.bookings.price_note' => 'Prezzo indicativo',
+        'provider.area.bookings' => 'Le tue prenotazioni',
+    ];
+
+    foreach ($texts as $key => $text) {
+        expect(__($key))->toBe($text);
+    }
+});
+
+test('the page shows the customer fields as plain text: no phone or mail links, no raw HTML', function () {
+    // Read in the page source: there is no JavaScript test runner.
+    $source = file_get_contents(resource_path('js/pages/provider/bookings/index.tsx'));
+
+    expect($source)
+        ->not->toContain('tel:')
+        ->not->toContain('mailto:')
+        ->not->toContain('dangerouslySetInnerHTML')
+        // The fields are printed as JSX expressions, which React escapes.
+        ->toContain('{booking.customer_name}')
+        ->toContain('{booking.customer_phone}')
+        ->toContain('{booking.notes}');
 });
