@@ -88,8 +88,6 @@ class BookingStatusNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $booking = $this->booking->loadMissing(['provider', 'service']);
-        $start = LocalTime::fromUtc($booking->starts_at);
-        $end = LocalTime::fromUtc($booking->ends_at);
 
         // Only the service name, written by the provider, and the outcome: nothing the customer
         // wrote, and never the private address, goes in a header.
@@ -100,8 +98,8 @@ class BookingStatusNotification extends Notification implements ShouldQueue
                 'outcomeText' => __('booking.notice.'.$this->outcome->value, ['provider' => $booking->provider->name]),
                 'service' => $booking->service->name,
                 // For example "giovedì 29 ottobre 2026" and "09:00–11:45", as in the provider's email.
-                'date' => $start->isoFormat('dddd D MMMM YYYY'),
-                'time' => $start->format('H:i').'–'.$end->format('H:i'),
+                'date' => LocalTime::longDate($booking->starts_at),
+                'time' => LocalTime::timeRange($booking->starts_at, $booking->ends_at),
                 // The provider's message, only for a rejection or a cancellation.
                 'reason' => $this->outcome === BookingOutcome::Confirmed ? null : $booking->cancellation_reason,
                 'url' => route('bookings.show', ['booking' => $booking->public_token]),

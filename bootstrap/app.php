@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\LocaleFromRequest;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetLocale;
@@ -30,4 +31,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // The error pages in the chosen language. A 419 or a 404 without a route is rendered before
+        // SetLocale runs; without a route the cookies are not decrypted either. Only for HTTP
+        // requests: commands and jobs report their exceptions, they never render them. Returning
+        // null leaves the rendering to Laravel; LocaleFromRequest never throws.
+        $exceptions->render(function (Throwable $exception, Request $request) {
+            $chosen = LocaleFromRequest::resolve($request, encrypted: $request->route() === null);
+
+            if ($chosen !== null) {
+                app()->setLocale($chosen);
+            }
+
+            return null;
+        });
     })->create();

@@ -97,7 +97,7 @@ class ProviderBookingResource extends JsonResource
             'provider' => $this->provider->name,
             'service' => $this->service->name,
             // As in the emails: "giovedì 29 ottobre 2026, 09:00–11:45".
-            'when' => $start->isoFormat('dddd D MMMM YYYY').', '.$start->format('H:i').'–'.$end->format('H:i'),
+            'when' => LocalTime::longDate($start).', '.LocalTime::timeRange($start, $end),
         ])];
 
         if ($outcome !== BookingOutcome::Confirmed && $this->cancellation_reason !== null) {

@@ -74,8 +74,6 @@ class PendingReminderNotification extends Notification implements ShouldQueue
     {
         // One query per relation, however many options were chosen.
         $booking = $this->booking->loadMissing(['provider', 'service', 'options']);
-        $start = LocalTime::fromUtc($booking->starts_at);
-        $end = LocalTime::fromUtc($booking->ends_at);
 
         $options = $booking->options
             ->sortBy('id')
@@ -92,8 +90,8 @@ class PendingReminderNotification extends Notification implements ShouldQueue
                 'service' => $booking->service->name,
                 'options' => $options === '' ? null : $options,
                 // For example "giovedì 29 ottobre 2026" and "09:00–11:45", as in the other emails.
-                'date' => $start->isoFormat('dddd D MMMM YYYY'),
-                'time' => $start->format('H:i').'–'.$end->format('H:i'),
+                'date' => LocalTime::longDate($booking->starts_at),
+                'time' => LocalTime::timeRange($booking->starts_at, $booking->ends_at),
                 'customerName' => $booking->customer_name,
                 'customerPhone' => $booking->customer_phone,
                 // The provider's own list, behind the login: never the customer's private address.
