@@ -21,7 +21,8 @@ class CategoryResource extends JsonResource
         return [
             'id' => $this->id,
             'slug' => $this->slug,
-            'name' => $this->name,
+            // Translated: the saved name is the Italian one (see Category::displayName()).
+            'name' => $this->displayName(),
         ];
     }
 }

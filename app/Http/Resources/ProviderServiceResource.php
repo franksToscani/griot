@@ -27,7 +27,7 @@ class ProviderServiceResource extends JsonResource
             'description' => $this->description,
             'category' => [
                 'id' => $this->category->id,
-                'name' => $this->category->name,
+                'name' => $this->category->displayName(),
             ],
             // Decimal string such as "25.50": the page formats it as euros.
             'price' => $this->price,

@@ -314,7 +314,8 @@ test('the Italian texts are exactly the expected ones', function () {
         'provider.bookings.create.submit' => 'Aggiungi la prenotazione',
         'provider.bookings.create.back' => 'Torna alle prenotazioni',
         'provider.bookings.create.unpublished' => 'Pubblica il profilo per aggiungere prenotazioni: finché non è pubblicato non ci sono orari prenotabili.',
-        'provider.bookings.create.unpublished_link' => 'Vai alla dashboard',
+        // "Il mio pannello", as the menu calls the dashboard (issue #54).
+        'provider.bookings.create.unpublished_link' => 'Vai al mio pannello',
         'provider.bookings.create.no_services' => 'Non hai servizi attivi: aggiungine uno per poter inserire prenotazioni.',
         'provider.bookings.create.no_services_link' => 'Vai ai tuoi servizi',
         'provider.bookings.validation.name_required' => 'Scrivi il nome del cliente.',

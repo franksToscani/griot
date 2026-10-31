@@ -90,15 +90,30 @@ return [
     |--------------------------------------------------------------------------
     |
     | The languages a visitor can choose with the language selector, each with
-    | its own name, written in that language. A language is added here only
-    | when its lang/{code}.json is complete. The selector is hidden while
-    | there is only one. The site always starts in the "locale" above.
+    | its own name, written in that language. Italian always; the others only
+    | when they are ready for everyone. The selector is hidden while there is
+    | only one. The site always starts in the "locale" above.
+    |
+    | APP_PREVIEW_LOCALES (for example "fr") adds languages that are written
+    | but not open to everyone yet, to review them: only the known ones, and
+    | only if their lang/{code}.json exists.
     |
     */
 
-    'available_locales' => [
-        'it' => 'Italiano',
-    ],
+    'available_locales' => (function (): array {
+        $names = ['it' => 'Italiano', 'fr' => 'Français'];
+        $locales = ['it' => $names['it']];
+
+        foreach (explode(',', (string) env('APP_PREVIEW_LOCALES', '')) as $code) {
+            $code = trim($code);
+
+            if (isset($names[$code]) && is_file(base_path("lang/{$code}.json"))) {
+                $locales[$code] = $names[$code];
+            }
+        }
+
+        return $locales;
+    })(),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
