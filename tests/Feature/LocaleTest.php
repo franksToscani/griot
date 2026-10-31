@@ -6,14 +6,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 // The pages are read on the providers' list: "/" only redirects there since issue #54 (phase 1b).
 
-/**
- * Two languages available, as with APP_PREVIEW_LOCALES=fr: the selector and the cookie only matter
- * then. French is written (lang/fr.json) but not open to everyone by default.
- */
-function locTwoLanguages(): void
-{
-    config()->set('app.available_locales', ['it' => 'Italiano', 'fr' => 'Français']);
-}
+// Italian and French are open to everyone (config/app.php): the tests use the configuration as it is.
 
 /**
  * The shared props of a page, read with assertInertia().
@@ -42,8 +35,6 @@ test('without a choice the site is in Italian, with the Italian translations', f
 });
 
 test('the browser language is never read: the site starts in Italian', function () {
-    locTwoLanguages();
-
     $response = $this->withHeader('Accept-Language', 'fr-FR,fr;q=0.9')->get(route('providers.index'));
 
     expect(locProps($response)['locale'])->toBe('it');
@@ -51,8 +42,6 @@ test('the browser language is never read: the site starts in Italian', function 
 });
 
 test('the language of the cookie is used when it is available', function () {
-    locTwoLanguages();
-
     $response = $this->withCookie('locale', 'fr')->get(route('providers.index'));
 
     expect(locProps($response)['locale'])->toBe('fr');
@@ -61,7 +50,7 @@ test('the language of the cookie is used when it is available', function () {
 });
 
 test('a cookie with a language that is not available, or not readable, gives Italian', function (string $value, bool $encrypted) {
-    // Only Italian is available by default: French is written, but not open without APP_PREVIEW_LOCALES.
+    // Italian and French are open: English is known but not open, nor written yet.
     $test = $encrypted ? $this->withCookie('locale', $value) : $this->withUnencryptedCookie('locale', $value);
 
     $response = $test->get(route('providers.index'));
@@ -70,7 +59,6 @@ test('a cookie with a language that is not available, or not readable, gives Ita
     $response->assertSee('<html lang="it"', false);
 })->with([
     'a language that does not exist' => ['de', true],
-    'French, written but not open by default' => ['fr', true],
     'English, not written yet' => ['en', true],
     'an invalid value' => ['../../etc', true],
     // Written by hand in the browser: the server only trusts the cookies it encrypted.
@@ -94,9 +82,6 @@ test('Italian is the fallback language in the config and in the example environm
 // ---------------------------------------------------------------------------------------------
 
 test('the pages get the available languages, each with its own name', function () {
-    expect(locProps($this->get(route('providers.index')))['locales'])->toBe([['code' => 'it', 'name' => 'Italiano']]);
-
-    locTwoLanguages();
     expect(locProps($this->get(route('providers.index')))['locales'])->toBe([
         ['code' => 'it', 'name' => 'Italiano'],
         ['code' => 'fr', 'name' => 'Français'],
@@ -106,7 +91,10 @@ test('the pages get the available languages, each with its own name', function (
 test('the private area gets them too', function () {
     $user = User::factory()->create();
 
-    expect(locProps($this->actingAs($user)->get(route('provider.setup')))['locales'])->toBe([['code' => 'it', 'name' => 'Italiano']]);
+    expect(locProps($this->actingAs($user)->get(route('provider.setup')))['locales'])->toBe([
+        ['code' => 'it', 'name' => 'Italiano'],
+        ['code' => 'fr', 'name' => 'Français'],
+    ]);
 });
 
 // ---------------------------------------------------------------------------------------------
@@ -114,7 +102,6 @@ test('the private area gets them too', function () {
 // ---------------------------------------------------------------------------------------------
 
 test('choosing a language writes an encrypted cookie for a year and goes back', function () {
-    locTwoLanguages();
     $this->travelTo(now());
 
     $response = $this->from('/providers')->post(route('locale.update'), ['locale' => 'fr']);
@@ -129,22 +116,16 @@ test('choosing a language writes an encrypted cookie for a year and goes back', 
 });
 
 test('the next page is in the chosen language', function () {
-    locTwoLanguages();
-
     $cookie = $this->post(route('locale.update'), ['locale' => 'fr'])->getCookie('locale', decrypt: true);
 
     expect(locProps($this->withCookie('locale', (string) $cookie?->getValue())->get(route('providers.index')))['locale'])->toBe('fr');
 });
 
 test('without a previous page the choice goes back to the home page', function () {
-    locTwoLanguages();
-
     $this->post(route('locale.update'), ['locale' => 'fr'])->assertRedirect(route('home'));
 });
 
 test('a logged-in provider can choose the language too', function () {
-    locTwoLanguages();
-
     $this->actingAs(User::factory()->create())
         ->from(route('dashboard'))
         ->post(route('locale.update'), ['locale' => 'fr'])
@@ -160,8 +141,7 @@ test('a language that is not available is refused with an Italian message, and n
         ->assertCookieMissing('locale');
 })->with([
     'a language that does not exist' => [['locale' => 'de'], 'Il valore scelto per lingua non è valido.'],
-    'French, written but not open by default' => [['locale' => 'fr'], 'Il valore scelto per lingua non è valido.'],
-    'unknown' => [['locale' => 'de'], 'Il valore scelto per lingua non è valido.'],
+    'English, not open yet' => [['locale' => 'en'], 'Il valore scelto per lingua non è valido.'],
     'an array' => [['locale' => ['it']], 'Il campo lingua deve essere un testo.'],
     'missing' => [[], 'Il campo lingua è obbligatorio.'],
 ]);

@@ -90,19 +90,20 @@ return [
     |--------------------------------------------------------------------------
     |
     | The languages a visitor can choose with the language selector, each with
-    | its own name, written in that language. Italian always; the others only
-    | when they are ready for everyone. The selector is hidden while there is
-    | only one. The site always starts in the "locale" above.
+    | its own name, written in that language: Italian and French, open to
+    | everyone. The selector is hidden while there is only one. The site
+    | always starts in the "locale" above.
     |
-    | APP_PREVIEW_LOCALES (for example "fr") adds languages that are written
-    | but not open to everyone yet, to review them: only the known ones, and
-    | only if their lang/{code}.json exists.
+    | APP_PREVIEW_LOCALES (for example "en") adds languages that are known
+    | but not open to everyone yet, to review them: only if their
+    | lang/{code}.json exists.
     |
     */
 
     'available_locales' => (function (): array {
-        $names = ['it' => 'Italiano', 'fr' => 'Français'];
-        $locales = ['it' => $names['it']];
+        // Every known language, open or not: only these can be previewed.
+        $names = ['it' => 'Italiano', 'fr' => 'Français', 'en' => 'English'];
+        $locales = ['it' => $names['it'], 'fr' => $names['fr']];
 
         foreach (explode(',', (string) env('APP_PREVIEW_LOCALES', '')) as $code) {
             $code = trim($code);

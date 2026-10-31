@@ -1,6 +1,9 @@
 <?php
 
 use App\Booking\LocalTime;
+use App\Enums\Weekday;
+use App\Models\Availability;
+use App\Models\Booking;
 use App\Models\Category;
 use App\Models\Provider;
 use App\Models\Service;
@@ -11,17 +14,20 @@ use Illuminate\Support\Arr;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
 
-// French (issue #54, phase 2): written, but open to everyone only with phase 3. APP_PREVIEW_LOCALES
-// lets it be reviewed before.
+// French (issue #54): written in phase 2, open to everyone since phase 3a-3. APP_PREVIEW_LOCALES is
+// kept for the languages that are known but not open yet: English.
 
 /**
  * The available locales of config/app.php, read again with APP_PREVIEW_LOCALES set to $preview, or
- * unset when null. The variable is put back as it was.
+ * unset when null. With $base, the lang/ files are looked for there instead of in the project (a
+ * temporary folder with a written English). The variable and the base path are put back as they were.
  *
  * @return array<string, string>
  */
-function frtLocales(?string $preview): array
+function frtLocales(?string $preview, ?string $base = null): array
 {
+    $config = config_path('app.php');
+    $basePath = base_path();
     $before = [$_SERVER['APP_PREVIEW_LOCALES'] ?? null, $_ENV['APP_PREVIEW_LOCALES'] ?? null, getenv('APP_PREVIEW_LOCALES')];
 
     $set = function (string|false|null $value): void {
@@ -39,18 +45,35 @@ function frtLocales(?string $preview): array
     try {
         $set($preview);
 
-        return (require config_path('app.php'))['available_locales'];
+        if ($base !== null) {
+            app()->setBasePath($base);
+        }
+
+        return (require $config)['available_locales'];
     } finally {
+        app()->setBasePath($basePath);
         $set($before[0] ?? $before[1] ?? $before[2]);
     }
 }
 
 /**
- * French open, as with APP_PREVIEW_LOCALES=fr, and the next requests in French.
+ * A temporary folder that looks like a project with a written English (lang/en.json), outside the
+ * real project, so no file appears in lang/.
+ */
+function frtBaseWithEnglish(): string
+{
+    $base = sys_get_temp_dir().'/griot-lang-'.bin2hex(random_bytes(6));
+    mkdir("{$base}/lang", recursive: true);
+    file_put_contents("{$base}/lang/en.json", '{}');
+
+    return $base;
+}
+
+/**
+ * The next requests in French, chosen with the cookie: French is open to everyone.
  */
 function frtFrench(): void
 {
-    config()->set('app.available_locales', frtLocales('fr'));
     test()->withCookie('locale', 'fr');
 }
 
@@ -94,23 +117,43 @@ function frtTexts(): array
 // Preview
 // ---------------------------------------------------------------------------------------------
 
-test('without APP_PREVIEW_LOCALES only Italian is available', function () {
-    expect(frtLocales(null))->toBe(['it' => 'Italiano'])
-        ->and(frtLocales(''))->toBe(['it' => 'Italiano']);
+test('without APP_PREVIEW_LOCALES Italian and French are available', function () {
+    expect(frtLocales(null))->toBe(['it' => 'Italiano', 'fr' => 'Français'])
+        ->and(frtLocales(''))->toBe(['it' => 'Italiano', 'fr' => 'Français']);
     // The tests themselves start from there (phpunit.xml).
-    expect(config()->array('app.available_locales'))->toBe(['it' => 'Italiano']);
+    expect(config()->array('app.available_locales'))->toBe(['it' => 'Italiano', 'fr' => 'Français']);
 });
 
-test('APP_PREVIEW_LOCALES adds French, and only the known languages', function (string $preview) {
+test('APP_PREVIEW_LOCALES does not add English while lang/en.json does not exist', function (string $preview) {
+    expect(is_file(lang_path('en.json')))->toBeFalse();
     expect(frtLocales($preview))->toBe(['it' => 'Italiano', 'fr' => 'Français']);
 })->with([
-    'fr' => 'fr',
-    'with spaces and an unknown language' => ' fr , de ',
-    'Italian repeated' => 'it,fr',
+    'en' => 'en',
+    'with spaces and an unknown language' => ' en , de ',
+    'the open ones repeated' => 'it,fr,en',
 ]);
 
-test('APP_PREVIEW_LOCALES with an unknown language only adds nothing', function () {
-    expect(frtLocales('de,en'))->toBe(['it' => 'Italiano']);
+test('APP_PREVIEW_LOCALES adds a known language once it is written, and only the known ones', function (string $preview) {
+    $base = frtBaseWithEnglish();
+
+    try {
+        expect(frtLocales($preview, $base))->toBe(['it' => 'Italiano', 'fr' => 'Français', 'en' => 'English']);
+        // Without the variable, a written English stays closed.
+        expect(frtLocales(null, $base))->toBe(['it' => 'Italiano', 'fr' => 'Français']);
+    } finally {
+        unlink("{$base}/lang/en.json");
+        rmdir("{$base}/lang");
+        rmdir($base);
+    }
+
+    expect(base_path())->toBe(dirname(__DIR__, 2));
+})->with([
+    'en' => 'en',
+    'with spaces and an unknown language' => ' en , de ',
+]);
+
+test('APP_PREVIEW_LOCALES with only unknown languages adds nothing', function () {
+    expect(frtLocales('de,es'))->toBe(['it' => 'Italiano', 'fr' => 'Français']);
 });
 
 test('the example environment documents the variable, commented and empty', function () {
@@ -121,7 +164,7 @@ test('the example environment documents the variable, commented and empty', func
 // The site in French
 // ---------------------------------------------------------------------------------------------
 
-test('with the preview a page is in French, with the French translations', function () {
+test('with the cookie a page is in French, with the French translations', function () {
     frtFrench();
 
     $response = $this->get(route('providers.index'));
@@ -266,4 +309,75 @@ test('the Italian texts changed in this phase are exactly the expected ones', fu
     expect(__('provider.bookings.create.unpublished_link', [], 'it'))->toBe('Vai al mio pannello')
         ->and(__('categories.treccine', [], 'it'))->toBe('Treccine')
         ->and(__('categories.ristorazione', [], 'it'))->toBe('Ristorazione');
+});
+
+// ---------------------------------------------------------------------------------------------
+// Open to everyone (phase 3a-3), without any variable
+// ---------------------------------------------------------------------------------------------
+
+test('without any variable the selector offers Italian and French, on public and login pages', function (string $route) {
+    $props = frtProps($this->get(route($route)));
+
+    expect($props['locales'])->toBe([['code' => 'it', 'name' => 'Italiano'], ['code' => 'fr', 'name' => 'Français']])
+        // Still Italian until someone chooses.
+        ->and($props['locale'])->toBe('it');
+})->with(['providers.index', 'login']);
+
+test('a logged-in user who chooses French keeps it', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('locale.update'), ['locale' => 'fr'])
+        ->assertSessionHasNoErrors()
+        ->assertCookie('locale', 'fr');
+
+    expect($user->fresh()->locale)->toBe('fr');
+});
+
+test('a booking sent with the cookie fr keeps French as the customer\'s language', function () {
+    $this->travelTo(CarbonImmutable::parse('2026-10-27 08:00', 'UTC'));
+    $provider = Provider::factory()->published()->create();
+    Availability::factory()->for($provider)->create(['weekday' => Weekday::Monday, 'start_time' => '09:00:00', 'end_time' => '13:00:00']);
+    $service = Service::factory()->for($provider)->create(['duration_min' => 60, 'duration_max' => 60]);
+
+    $this->withCookie('locale', 'fr')
+        ->post(route('providers.bookings.store', $provider->slug), [
+            'service' => $service->id,
+            'starts_at' => '2026-11-02T09:00:00Z',
+            'customer_name' => 'Awa Diop',
+            'customer_phone' => '+33612345678',
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect(Booking::query()->sole()->locale)->toBe('fr');
+});
+
+test('English is not accepted while it is not open: cookie, selector and provider form', function () {
+    // The cookie: Italian.
+    expect(frtProps($this->withCookie('locale', 'en')->get(route('providers.index')))['locale'])->toBe('it');
+
+    // The selector: refused.
+    $this->from('/providers')->post(route('locale.update'), ['locale' => 'en'])
+        ->assertSessionHasErrors(['locale' => 'Il valore scelto per lingua non è valido.'])
+        ->assertCookieMissing('locale');
+
+    // The provider form: refused.
+    $this->travelTo(CarbonImmutable::parse('2026-10-27 08:00', 'UTC'));
+    $provider = Provider::factory()->published()->create();
+    Availability::factory()->for($provider)->create(['weekday' => Weekday::Monday, 'start_time' => '09:00:00', 'end_time' => '13:00:00']);
+    $service = Service::factory()->for($provider)->create(['duration_min' => 60, 'duration_max' => 60]);
+
+    $this->actingAs($provider->user)->post(route('provider.bookings.store'), [
+        'service' => $service->id,
+        'starts_at' => '2026-11-02T09:00:00Z',
+        'customer_name' => 'Awa Diop',
+        'customer_phone' => '+33612345678',
+        'customer_locale' => 'en',
+    ])->assertSessionHasErrors(['customer_locale' => 'Scegli una lingua tra quelle disponibili.']);
+
+    expect(Booking::query()->count())->toBe(0);
+});
+
+test('the two French texts corrected before the opening are exactly the expected ones', function () {
+    expect(__('common.email_placeholder', [], 'fr'))->toBe('nom@exemple.com')
+        ->and(__('booking.phone.invalid', [], 'fr'))->toBe("Indiquez le numéro avec l'indicatif du pays (par exemple +39 333 123 4567 ou +237 6 77 12 34 56). Pour les numéros italiens et camerounais, l'indicatif du pays n'est pas obligatoire.");
 });

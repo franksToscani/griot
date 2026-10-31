@@ -8,13 +8,8 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 
-// The language in every page, the error pages included (issue #54, phase 3a-1). French is opened
-// here as APP_PREVIEW_LOCALES=fr would do.
-
-function levFrench(): void
-{
-    config()->set('app.available_locales', ['it' => 'Italiano', 'fr' => 'Français']);
-}
+// The language in every page, the error pages included (issue #54, phase 3a-1). Italian and French
+// are open to everyone (config/app.php).
 
 /**
  * The CSRF check as in production (PreventRequestForgery, in the web group): Laravel skips it while
@@ -52,8 +47,6 @@ function levRequest(?string $cookie, bool $encrypt): Request
 // ---------------------------------------------------------------------------------------------
 
 test('a 404 without a route is in the chosen language, with its lang', function () {
-    levFrench();
-
     $this->withCookie('locale', 'fr')->get('/indirizzo-che-non-esiste')
         ->assertNotFound()
         ->assertSee('<html lang="fr">', false)
@@ -62,8 +55,6 @@ test('a 404 without a route is in the chosen language, with its lang', function 
 });
 
 test('a 404 without a route and without a choice is in Italian', function () {
-    levFrench();
-
     $this->get('/indirizzo-che-non-esiste')
         ->assertNotFound()
         ->assertSee('<html lang="it">', false)
@@ -71,7 +62,6 @@ test('a 404 without a route and without a choice is in Italian', function () {
 });
 
 test('a 419 is in the chosen language, though SetLocale has not run yet', function () {
-    levFrench();
     levRealCsrf();
 
     $this->withCookie('locale', 'fr')->post(route('locale.update'), ['locale' => 'it'])
@@ -81,7 +71,6 @@ test('a 419 is in the chosen language, though SetLocale has not run yet', functi
 });
 
 test('a 419 without a choice is in Italian', function () {
-    levFrench();
     levRealCsrf();
 
     $this->post(route('locale.update'), ['locale' => 'fr'])
@@ -91,8 +80,6 @@ test('a 419 without a choice is in Italian', function () {
 });
 
 test('a 404 inside a route is in the chosen language too', function () {
-    levFrench();
-
     $this->withCookie('locale', 'fr')->get('/providers/non-esiste')
         ->assertNotFound()
         ->assertSee('<html lang="fr">', false)
@@ -100,8 +87,6 @@ test('a 404 inside a route is in the chosen language too', function () {
 });
 
 test('a cookie that is not valid or not readable gives Italian, without errors', function (Closure $send) {
-    levFrench();
-
     $send($this)->assertNotFound()
         ->assertSee('<html lang="it">', false)
         ->assertSee('Pagina non trovata');
@@ -128,8 +113,6 @@ test('the error layout is Laravel\'s, with the language of the page only', funct
 // ---------------------------------------------------------------------------------------------
 
 test('the cookie is read plain after EncryptCookies, and decrypted before it', function () {
-    levFrench();
-
     expect(LocaleFromRequest::resolve(levRequest('fr', encrypt: false)))->toBe('fr')
         ->and(LocaleFromRequest::resolve(levRequest('fr', encrypt: true), encrypted: true))->toBe('fr')
         // Before EncryptCookies a plain value is not trusted.
@@ -138,7 +121,6 @@ test('the cookie is read plain after EncryptCookies, and decrypted before it', f
 });
 
 test('a cookie encrypted for another name, a language not available or garbage give null', function () {
-    levFrench();
     $otherName = levRequest(null, encrypt: false);
     $otherName->cookies->set('locale', Crypt::encryptString(CookieValuePrefix::create('appearance', Crypt::getKey()).'fr'));
     $array = levRequest(null, encrypt: false);

@@ -22,11 +22,10 @@ use Symfony\Component\Mime\Email;
 
 // Each email and each WhatsApp text in the language of who reads it (issue #54, phase 3a-2).
 // "Now" is Tuesday 27 October 2026, 08:00 UTC; the provider works on Mondays 09:00-13:00 local,
-// which on Monday 2 November (winter time) is 08:00-12:00 UTC. French is open as with
-// APP_PREVIEW_LOCALES=fr, unless a test says otherwise.
+// which on Monday 2 November (winter time) is 08:00-12:00 UTC. Italian and French are open to
+// everyone; a test that needs French closed says so.
 beforeEach(function () {
     $this->travelTo(CarbonImmutable::parse('2026-10-27 08:00', 'UTC'));
-    config()->set('app.available_locales', ['it' => 'Italiano', 'fr' => 'Français']);
     config()->set('booking.reminder_after_minutes', 720);
 });
 
