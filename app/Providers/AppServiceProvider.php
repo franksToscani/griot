@@ -104,6 +104,11 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
 
+            // The provider's own bookings: the form will live on the bookings page.
+            if ($field === 'booking') {
+                $exception->redirectTo(route('provider.bookings.index'));
+            }
+
             throw $exception;
         };
 
@@ -146,6 +151,13 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('provider-services-manage', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_services_manage_per_minute'))
             ->by('user:'.$request->user()?->id)
             ->response($tooMany('services')));
+
+        // The free slots and the new bookings of a logged-in provider share one counter per user,
+        // apart from the services and the answers to the bookings. The slots are read with fetch()
+        // and JSON: the usual 429 with Retry-After; the booking form goes back to the bookings page.
+        RateLimiter::for('provider-bookings', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_provider_bookings_per_minute'))
+            ->by('user:'.$request->user()?->id)
+            ->response($tooMany('booking')));
     }
 
     /**

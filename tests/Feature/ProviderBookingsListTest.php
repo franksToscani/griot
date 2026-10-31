@@ -166,6 +166,8 @@ test('each booking has exactly the expected keys, and the private token is only 
             'Ciao Awa Diop, Salone Awa ha confermato la tua prenotazione di Box braids per mercoledì 21 ottobre 2026, 09:00–10:15.'
             ."\n\nDettagli: ".route('bookings.show', ['booking' => $booking->public_token])
         ),
+        // Sent by a customer from the public page.
+        'created_by_provider' => false,
     ]]);
     expect($props['filters'])->toBe(['status' => null, 'from' => null, 'to' => null]);
     // The token is in the whole response once, inside whatsapp_url; the props without that key
@@ -415,7 +417,7 @@ test('the number of queries does not grow with bookings and options', function (
 test('the list only reads: other methods are not allowed', function () {
     $provider = pblProvider();
 
-    $this->actingAs($provider->user)->post('/provider/bookings')->assertMethodNotAllowed();
+    // POST on the same address is the provider's new booking (issue #49), tested in its own file.
     $this->actingAs($provider->user)->put('/provider/bookings')->assertMethodNotAllowed();
     $this->actingAs($provider->user)->delete('/provider/bookings')->assertMethodNotAllowed();
     expect(route('provider.bookings.index'))->toBe(url('/provider/bookings'));
