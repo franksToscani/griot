@@ -1,15 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from '@/hooks/use-translation';
-import { slots as slotsRoute } from '@/routes/providers';
 import type { FreeSlot } from '@/types';
-
-type Params = {
-    providerSlug: string;
-    serviceId: number;
-    optionIds: number[];
-    // "YYYY-MM-DD", or empty when no day is chosen yet.
-    day: string;
-};
 
 type Failure = { kind: 'invalid'; message: string } | { kind: 'network' };
 
@@ -20,13 +11,10 @@ export type UseFreeSlotsReturn = {
     reload: () => void;
 };
 
-// The free slots of a day, read from the slots endpoint.
-export function useFreeSlots({
-    providerSlug,
-    serviceId,
-    optionIds,
-    day,
-}: Params): UseFreeSlotsReturn {
+// The free slots of a day, read from a slots endpoint: the full address, query included, built by
+// the caller with Wayfinder (the public route or the provider's own); null when no day is chosen
+// yet. A string, so that a new address with the same text does not start a new request.
+export function useFreeSlots(url: string | null): UseFreeSlotsReturn {
     const { t } = useTranslation();
     const [slots, setSlots] = useState<FreeSlot[]>([]);
     const [loading, setLoading] = useState(false);
@@ -34,27 +22,19 @@ export function useFreeSlots({
     // Changing this number asks for the same slots again (after a time was taken).
     const [reloadCount, setReloadCount] = useState(0);
 
-    // A string, so that a new array with the same ids does not start a new request.
-    const optionsKey = optionIds.join(',');
-
     useEffect(() => {
         setSlots([]);
         setFailure(null);
 
-        if (day === '') {
+        if (url === null) {
             setLoading(false);
 
             return;
         }
 
-        // When day or options change, React runs the cleanup below first: the old request is
+        // When the address changes, React runs the cleanup below first: the old request is
         // aborted, and the checks on "aborted" stop its answer from overwriting the new one.
         const controller = new AbortController();
-        const ids = optionsKey === '' ? [] : optionsKey.split(',').map(Number);
-        // Wayfinder writes the array as options[]=1&options[]=2.
-        const url = slotsRoute.url(providerSlug, {
-            query: { service: serviceId, date: day, options: ids },
-        });
 
         setLoading(true);
 
@@ -96,7 +76,7 @@ export function useFreeSlots({
             });
 
         return () => controller.abort();
-    }, [providerSlug, serviceId, optionsKey, day, reloadCount]);
+    }, [url, reloadCount]);
 
     const reload = useCallback(() => setReloadCount((count) => count + 1), []);
 

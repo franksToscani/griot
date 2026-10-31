@@ -171,7 +171,8 @@ test('name and phone are the only required fields: empty email and notes are sav
 
     pbsPost($provider->user, pbsData($service, ['customer_name' => '', 'customer_phone' => '', 'starts_at' => '']))
         ->assertSessionHasErrors([
-            'customer_name' => 'Scrivi il tuo nome.',
+            // The provider's own message, about the customer (phase B of issue #49).
+            'customer_name' => 'Scrivi il nome del cliente.',
             'customer_phone' => 'Scrivi un numero di telefono.',
             'starts_at' => 'Scegli un orario.',
         ]);

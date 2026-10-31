@@ -104,6 +104,8 @@ export type ProviderBooking = {
     // The provider's answer, from the server; null without one (pending, cancelled by the
     // customer, or cancelled before the outcome was saved).
     outcome: 'confirmed' | 'rejected' | 'cancelled' | null;
+    // Written by the provider in the own agenda, born confirmed with no email to the customer.
+    created_by_provider: boolean;
 };
 
 // The "filters" prop of the bookings page: the active ones, null when missing.

@@ -11,6 +11,7 @@ use App\Http\Controllers\ProviderAvatarController;
 use App\Http\Controllers\ProviderBookingCancelController;
 use App\Http\Controllers\ProviderBookingConfirmController;
 use App\Http\Controllers\ProviderBookingController;
+use App\Http\Controllers\ProviderBookingCreateController;
 use App\Http\Controllers\ProviderBookingIndexController;
 use App\Http\Controllers\ProviderBookingRejectController;
 use App\Http\Controllers\ProviderBookingSlotsController;
@@ -85,9 +86,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // No fields: whatever is sent in the body is ignored. One limiter for both, see AppServiceProvider.
     // The provider's own bookings, read only: no identifier in the address, always the user's provider.
     Route::get('provider/bookings', ProviderBookingIndexController::class)->name('provider.bookings.index');
-    // A booking the provider writes in the own agenda, and the free slots to choose its time. Not
-    // to be confused with providers.bookings.store and providers.slots, the public ones. One
-    // limiter for both, with its own counter (see AppServiceProvider).
+    // A booking the provider writes in the own agenda: its page, the free slots to choose its time
+    // and the form. Not to be confused with providers.bookings.store and providers.slots, the public
+    // ones. The page has no limiter, like the other pages; slots and form share one, with its own
+    // counter (see AppServiceProvider).
+    Route::get('provider/bookings/create', ProviderBookingCreateController::class)->name('provider.bookings.create');
     Route::get('provider/bookings/slots', ProviderBookingSlotsController::class)
         ->middleware('throttle:provider-bookings')
         ->name('provider.bookings.slots');
