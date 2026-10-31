@@ -12,10 +12,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * Creates a pending booking, only if the chosen start is still a free slot.
+ * Creates a booking, only if the chosen start is still a free slot.
  *
  * What can be booked is decided in one place, FreeSlots: this class asks it again, inside a
- * transaction, and accepts only a start that is exactly one of the slots it returns.
+ * transaction and with the same rules it received, and accepts only a start that is exactly one of
+ * the slots it returns. By default it is a customer's request: pending, with the customer's rules.
+ * The provider writing a booking in the own agenda passes Confirmed, SlotRules::forProvider() and
+ * createdByProvider: true.
  */
 final class CreateBooking
 {
@@ -30,14 +33,23 @@ final class CreateBooking
      * @throws ServiceNotOfProvider when the service belongs to another provider
      * @throws InvalidBookingOptions when an option is not an option of the service
      */
-    public function create(Provider $provider, Service $service, array $optionIds, CarbonInterface $startsAt, CustomerDetails $customer): Booking
-    {
+    public function create(
+        Provider $provider,
+        Service $service,
+        array $optionIds,
+        CarbonInterface $startsAt,
+        CustomerDetails $customer,
+        BookingStatus $status = BookingStatus::Pending,
+        ?SlotRules $rules = null,
+        bool $createdByProvider = false,
+    ): Booking {
         $start = CarbonImmutable::instance($startsAt)->utc();
         // FreeSlots works on the provider's local calendar day.
         $day = $start->setTimezone(config()->string('booking.timezone'));
+        $rules ??= SlotRules::forCustomer();
 
         // Any exception inside the closure rolls the transaction back: nothing is saved.
-        return DB::transaction(function () use ($provider, $service, $optionIds, $start, $day, $customer): Booking {
+        return DB::transaction(function () use ($provider, $service, $optionIds, $start, $day, $customer, $status, $rules, $createdByProvider): Booking {
             // This lock MUST be the first statement of the transaction. Two bookings for the same
             // provider wait for each other here. On MySQL (REPEATABLE READ) a transaction reads
             // from a snapshot taken at its first plain read: if the bookings were read before the
@@ -47,7 +59,7 @@ final class CreateBooking
             $lockedProvider = Provider::query()->whereKey($provider->id)->lockForUpdate()->firstOrFail();
 
             $slot = $this->freeSlots
-                ->slotsFor($lockedProvider, $service, $optionIds, $day)
+                ->slotsFor($lockedProvider, $service, $optionIds, $day, $rules)
                 ->first(fn (TimeWindow $slot) => $slot->start->getTimestamp() === $start->getTimestamp());
 
             if ($slot === null) {
@@ -65,8 +77,10 @@ final class CreateBooking
                 // The slot already ends after the minutes computed by BookingDuration.
                 'ends_at' => $slot->end,
             ]);
-            // Not fillable: only the code decides the status (BookingTransitions for the changes).
-            $booking->status = BookingStatus::Pending;
+            // Not fillable: only the code decides the status (BookingTransitions for the changes) and
+            // who wrote the booking.
+            $booking->status = $status;
+            $booking->created_by_provider = $createdByProvider;
             $booking->public_token = Str::random(48);
             $booking->save();
 

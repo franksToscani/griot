@@ -8,9 +8,10 @@ use Illuminate\Foundation\Http\FormRequest;
 use LogicException;
 
 /**
- * The parameters of the free slots endpoint. It checks only the shape of the data: the business
- * rules (booking window, service of the provider, options of the service) are checked afterwards.
- * Format errors keep the framework's default messages: they come from a wrong client, not a customer.
+ * The parameters of the free slots endpoints, the public one and the provider's own. It checks only
+ * the shape of the data: the business rules (booking window, service of the provider, options of the
+ * service) are checked afterwards. Format errors keep the framework's default messages: they come
+ * from a wrong client, not a person.
  */
 class ProviderSlotsRequest extends FormRequest
 {
@@ -19,7 +20,7 @@ class ProviderSlotsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // The free slots are public.
+        // The public free slots are open to everyone; the provider's own route is behind the login.
         return true;
     }
 

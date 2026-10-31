@@ -27,7 +27,8 @@ final class FreeSlots
      *
      * Wrong input always throws, even on a day without slots. A provider that is not
      * published, an inactive service or a day outside the booking window give no slots.
-     * One query reads the bookings of the whole day, whatever the number of slots.
+     * One query reads the bookings of the whole day, whatever the number of slots. Without rules,
+     * those of a customer apply.
      *
      * @param  list<int>  $optionIds
      * @return Collection<int, TimeWindow>
@@ -35,8 +36,10 @@ final class FreeSlots
      * @throws ServiceNotOfProvider when the service belongs to another provider
      * @throws InvalidBookingOptions when an option is not an option of the service
      */
-    public function slotsFor(Provider $provider, Service $service, array $optionIds, CarbonInterface $date): Collection
+    public function slotsFor(Provider $provider, Service $service, array $optionIds, CarbonInterface $date, ?SlotRules $rules = null): Collection
     {
+        $rules ??= SlotRules::forCustomer();
+
         if ($service->provider_id !== $provider->id) {
             throw ServiceNotOfProvider::forProvider($service, $provider);
         }
@@ -54,7 +57,7 @@ final class FreeSlots
         }
 
         $busy = $this->busyTimes($provider, $windows);
-        $earliestStart = CarbonImmutable::now()->addMinutes(config()->integer('booking.minimum_notice_minutes'));
+        $earliestStart = CarbonImmutable::now()->addMinutes($rules->minimumNoticeMinutes);
 
         return $windows
             ->flatMap(fn (TimeWindow $window) => $this->slotsInside($window, $minutes))

@@ -95,4 +95,8 @@ return [
     // Edit, deactivate, activate and delete of a service together, per user (not per IP).
     'rate_limit_services_manage_per_minute' => 30,
 
+    // Free slots and new bookings of a logged-in provider together, per user (not per IP). The
+    // slots are read again at every change of day or options, so the number is generous.
+    'rate_limit_provider_bookings_per_minute' => 60,
+
 ];

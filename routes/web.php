@@ -13,6 +13,8 @@ use App\Http\Controllers\ProviderBookingConfirmController;
 use App\Http\Controllers\ProviderBookingController;
 use App\Http\Controllers\ProviderBookingIndexController;
 use App\Http\Controllers\ProviderBookingRejectController;
+use App\Http\Controllers\ProviderBookingSlotsController;
+use App\Http\Controllers\ProviderBookingStoreController;
 use App\Http\Controllers\ProviderController;
 use App\Http\Controllers\ProviderEditController;
 use App\Http\Controllers\ProviderOptionActivateController;
@@ -83,6 +85,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // No fields: whatever is sent in the body is ignored. One limiter for both, see AppServiceProvider.
     // The provider's own bookings, read only: no identifier in the address, always the user's provider.
     Route::get('provider/bookings', ProviderBookingIndexController::class)->name('provider.bookings.index');
+    // A booking the provider writes in the own agenda, and the free slots to choose its time. Not
+    // to be confused with providers.bookings.store and providers.slots, the public ones. One
+    // limiter for both, with its own counter (see AppServiceProvider).
+    Route::get('provider/bookings/slots', ProviderBookingSlotsController::class)
+        ->middleware('throttle:provider-bookings')
+        ->name('provider.bookings.slots');
+    Route::post('provider/bookings', ProviderBookingStoreController::class)
+        ->middleware('throttle:provider-bookings')
+        ->name('provider.bookings.store');
     // The provider's answers: a booking only among the provider's own. Same limiter as the edits of
     // services, options and hours; the answer over the limit goes back to the bookings page.
     Route::post('provider/bookings/{booking}/confirm', ProviderBookingConfirmController::class)

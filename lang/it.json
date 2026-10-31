@@ -267,6 +267,8 @@
     "provider.bookings.confirmed": "Prenotazione confermata.",
     "provider.bookings.rejected": "Richiesta rifiutata: l'orario è di nuovo libero.",
     "provider.bookings.cancelled_by_provider": "Prenotazione annullata: l'orario è di nuovo libero.",
+    "provider.bookings.create.created": "Prenotazione aggiunta e già confermata.",
+    "provider.bookings.create.slot_unavailable": "Questo orario non è disponibile. Scegli un altro orario.",
     "provider.bookings.transition.not_pending": "Questa prenotazione non è più in attesa.",
     "provider.bookings.transition.not_confirmed": "Questa prenotazione non è confermata.",
     "provider.bookings.transition.already_started": "L'orario è già iniziato: non si può più confermare. Puoi solo rifiutarla.",

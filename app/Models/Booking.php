@@ -27,12 +27,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * status is not fillable either: CreateBooking sets it, and only BookingTransitions decides how it
  * changes (CancelBooking for the customer, ManageBooking for the provider). cancellation_reason is
  * set by ManageBooking only; cancelled_by (who cancelled, and how) by the one that cancels.
+ * created_by_provider (the provider wrote it, no customer sent it) is not fillable: CreateBooking sets it.
  *
  * @property CarbonImmutable $starts_at
  * @property CarbonImmutable $ends_at
  * @property BookingStatus $status
  * @property string|null $cancellation_reason
  * @property CancelledBy|null $cancelled_by
+ * @property bool $created_by_provider
  */
 class Booking extends Model
 {
@@ -65,6 +67,7 @@ class Booking extends Model
      */
     protected $attributes = [
         'status' => BookingStatus::Pending->value,
+        'created_by_provider' => false,
     ];
 
     /**
@@ -79,6 +82,7 @@ class Booking extends Model
             'ends_at' => 'datetime',
             'status' => BookingStatus::class,
             'cancelled_by' => CancelledBy::class,
+            'created_by_provider' => 'boolean',
         ];
     }
 

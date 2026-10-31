@@ -72,6 +72,8 @@ class ProviderBookingResource extends JsonResource
             // itself stays on the server.
             'outcome' => $outcome?->value,
             'whatsapp_url' => $this->whatsappUrl($outcome, $start, $end),
+            // Written by the provider in the own agenda: no customer sent it and no email left.
+            'created_by_provider' => $this->created_by_provider,
         ];
     }
 
