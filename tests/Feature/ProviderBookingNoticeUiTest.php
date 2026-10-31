@@ -19,7 +19,8 @@ test('the email line and the "no contact" line follow their exact conditions', f
     $source = pbnSource('js/pages/provider/bookings/index.tsx');
 
     // The outcome comes from the server: the page no longer works it out from the status.
-    expect($source)->toMatch('/\{booking\.outcome !== null &&\s*booking\.customer_email !== null && \(\s*<p\b[^>]*>\s*\{t\(\'provider\.bookings\.email_notice\', \{\s*email: booking\.customer_email,?\s*\}\)\}/');
+    // A booking the provider wrote and that is still confirmed got no email (issue #49).
+    expect($source)->toMatch('/\{booking\.outcome !== null &&\s*booking\.customer_email !== null &&\s*!\(\s*booking\.created_by_provider &&\s*booking\.outcome === \'confirmed\'\s*\) && \(\s*<p\b[^>]*>\s*\{t\(\'provider\.bookings\.email_notice\', \{\s*email: booking\.customer_email,?\s*\}\)\}/');
     expect($source)->toMatch('/\{booking\.outcome !== null &&\s*booking\.whatsapp_url === null &&\s*booking\.customer_email === null && \(\s*<p\b[^>]*>\s*\{t\(\'provider\.bookings\.no_contact\'\)\}/');
     // The notice block, from its comment to the end of the card, never reads the status.
     expect(preg_match('/How the customer hears of the answer.*?<\/CardContent>/s', $source, $block))->toBe(1);
@@ -30,10 +31,21 @@ test('the email line and the "no contact" line follow their exact conditions', f
 });
 
 test('the phone field of the booking form has its help text, linked to the input', function () {
-    $source = pbnSource('js/components/booking-sheet.tsx');
+    // The fields live in booking-fields.tsx since issue #49; each form chooses its help text.
+    $source = pbnSource('js/components/booking-fields.tsx');
 
     expect($source)->toMatch('/<Input\s+id="customer_phone"[^>]*aria-describedby="customer_phone-help"[^>]*\/>/');
-    expect($source)->toMatch('/<p\s+id="customer_phone-help"[^>]*>\s*\{t\(\'booking\.phone\.help\'\)\}/');
+    expect($source)->toMatch('/<p\s+id="customer_phone-help"[^>]*>\s*\{t\(phoneHelpKey\)\}/');
+    expect(pbnSource('js/components/booking-sheet.tsx'))->toMatch('/<CustomerFields\s+nameLabelKey="booking\.form\.name"\s+phoneHelpKey="booking\.phone\.help"/');
+});
+
+test('the notice block reads created_by_provider only in the email line', function () {
+    $source = pbnSource('js/pages/provider/bookings/index.tsx');
+
+    // Once in the whole page: the WhatsApp button and the "no contact" line do not depend on it.
+    expect(substr_count($source, 'created_by_provider'))->toBe(1);
+    expect(preg_match('/How the customer hears of the answer.*?<\/CardContent>/s', $source, $block))->toBe(1);
+    expect(preg_match('/\{booking\.outcome !== null &&\s*booking\.customer_email !== null &&\s*!\(\s*booking\.created_by_provider &&/', $block[0]))->toBe(1);
 });
 
 test('the Italian texts are exactly the expected ones', function () {

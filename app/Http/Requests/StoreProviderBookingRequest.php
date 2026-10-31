@@ -43,12 +43,16 @@ class StoreProviderBookingRequest extends FormRequest
     }
 
     /**
-     * Messages for the fields the provider fills in.
+     * Messages for the fields the provider fills in: the customer form's ones, except those that
+     * speak to the customer ("your name"), which here speak about the customer.
      *
      * @return array<string, string>
      */
     public function messages(): array
     {
-        return $this->bookingMessages();
+        return [
+            ...$this->bookingMessages(),
+            'customer_name.required' => __('provider.bookings.validation.name_required'),
+        ];
     }
 }

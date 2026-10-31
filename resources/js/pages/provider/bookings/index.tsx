@@ -33,6 +33,7 @@ import { dashboard } from '@/routes';
 import {
     cancel as cancelBooking,
     confirm as confirmBooking,
+    create as createBooking,
     index as bookingsIndex,
     reject as rejectBooking,
 } from '@/routes/provider/bookings';
@@ -86,6 +87,14 @@ export default function ProviderBookingsIndex({ bookings, filters }: Props) {
                             ? t('provider.bookings.filters_active')
                             : t('provider.bookings.help')}
                     </p>
+                    {/* A booking for a customer who asked by phone or in person. */}
+                    <div className="mt-2">
+                        <Button size="sm" asChild className={wrappingLabel}>
+                            <Link href={createBooking()}>
+                                {t('provider.bookings.add')}
+                            </Link>
+                        </Button>
+                    </div>
                 </header>
 
                 {/* Read from the page, outside the forms: a refused change, or the request limit. */}
@@ -343,9 +352,11 @@ function BookingCard({ booking }: { booking: ProviderBooking }) {
 
                 {/* How the customer hears of the answer. The outcome comes from the Resource
                     (BookingOutcome): null for a pending booking, one cancelled by the customer
-                    (which sends no email) and an old cancelled one. Known limit: a booking
-                    confirmed before #102 has an outcome but got no email, so for those data the
-                    email line can be false. "Sent" means queued: the email leaves later. */}
+                    (which sends no email) and an old cancelled one. A booking the provider wrote
+                    is born confirmed with no email: the email line waits for a later answer (a
+                    cancellation does send one). Known limit: a booking confirmed before #102 has
+                    an outcome but got no email, so for those data the email line can be false.
+                    "Sent" means queued: the email leaves later. */}
                 {booking.whatsapp_url !== null && (
                     <div>
                         <Button
@@ -365,7 +376,11 @@ function BookingCard({ booking }: { booking: ProviderBooking }) {
                     </div>
                 )}
                 {booking.outcome !== null &&
-                    booking.customer_email !== null && (
+                    booking.customer_email !== null &&
+                    !(
+                        booking.created_by_provider &&
+                        booking.outcome === 'confirmed'
+                    ) && (
                         <p className="break-all text-muted-foreground">
                             {t('provider.bookings.email_notice', {
                                 email: booking.customer_email,
