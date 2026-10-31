@@ -66,6 +66,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Reminder of Pending Requests
+    |--------------------------------------------------------------------------
+    |
+    | A request still pending this many minutes after it was sent gets one
+    | email reminder to the provider, never repeated, if it has not started
+    | yet. The email speaks of whole hours: keep it a multiple of 60.
+    |
+    */
+
+    'reminder_after_minutes' => 720,
+
+    /*
+    |--------------------------------------------------------------------------
     | Rate Limits
     |--------------------------------------------------------------------------
     |
