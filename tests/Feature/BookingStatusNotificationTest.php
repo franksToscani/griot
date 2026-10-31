@@ -10,6 +10,8 @@ use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Notifications\Dispatcher;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Mail\Mailer;
+use Illuminate\Mail\Transport\ArrayTransport;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\SendQueuedNotifications;
@@ -22,6 +24,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Testing\TestResponse;
 use Symfony\Component\Mailer\SentMessage;
+use Symfony\Component\Mime\Email;
 
 // "Now" is Tuesday 27 October 2026, 08:00 UTC. The bookings are on Thursday 29 October from 08:00
 // to 10:45 UTC: 09:00-11:45 in Italy, winter time.
@@ -29,6 +32,32 @@ beforeEach(function () {
     $this->travelTo(CarbonImmutable::parse('2026-10-27 08:00', 'UTC'));
     app()->setLocale('it');
 });
+
+/**
+ * The array transport of the tests. Mail::mailer() is declared as the Mailer contract, which has
+ * no getSymfonyTransport(): the assertions tell the editor the real types, and check them.
+ */
+function bsnTransport(): ArrayTransport
+{
+    $mailer = Mail::mailer();
+    assert($mailer instanceof Mailer);
+    $transport = $mailer->getSymfonyTransport();
+    assert($transport instanceof ArrayTransport);
+
+    return $transport;
+}
+
+/**
+ * The email of a sent message. getOriginalMessage() is declared as RawMessage, which has no
+ * subject nor recipients: the assertion tells the editor the real type, and checks it.
+ */
+function bsnEmail(SentMessage $sent): Email
+{
+    $email = $sent->getOriginalMessage();
+    assert($email instanceof Email);
+
+    return $email;
+}
 
 /**
  * A booking of "Treccine" by "Salone Awa", with the given fields replaced.
@@ -84,7 +113,7 @@ function bsnText(MailMessage $mail): string
  */
 function bsnSent(): array
 {
-    return array_values(iterator_to_array(Mail::mailer()->getSymfonyTransport()->messages()));
+    return array_values(iterator_to_array(bsnTransport()->messages()));
 }
 
 test('each action notifies the customer\'s email once, with its outcome', function (BookingStatus $status, string $action, BookingOutcome $outcome) {
@@ -219,11 +248,11 @@ test('the token is not in the subject nor in the logs', function () {
     $sent = bsnSent();
 
     expect($sent)->toHaveCount(1);
-    expect($sent[0]->getOriginalMessage()->getSubject())->toBe('Richiesta non accettata: Treccine');
+    expect(bsnEmail($sent[0])->getSubject())->toBe('Richiesta non accettata: Treccine');
     [$headers] = explode("\r\n\r\n", $sent[0]->toString(), 2);
     expect($headers)->not->toContain($booking->public_token);
     // In the body, yes: it is the customer's link. Read before the encoding, which may cut it.
-    expect((string) $sent[0]->getOriginalMessage()->getTextBody())->toContain($booking->public_token);
+    expect((string) bsnEmail($sent[0])->getTextBody())->toContain($booking->public_token);
     expect($logged)->toHaveCount(1);
     expect(implode("\n", $logged))->not->toContain($booking->public_token);
 });
@@ -258,7 +287,7 @@ test('a line break in the customer name does not change the subject or the heade
 
     bsnSend($booking, 'confirm')->assertSessionHasNoErrors();
     $sent = bsnSent()[0];
-    $email = $sent->getOriginalMessage();
+    $email = bsnEmail($sent);
     [$headers] = explode("\r\n\r\n", $sent->toString(), 2);
 
     expect($email->getSubject())->toBe('Prenotazione confermata: Treccine');
@@ -274,9 +303,15 @@ test('the outcome is the one of the answer, even if the booking changes before t
     bsnSend($booking, 'confirm')->assertSessionHasNoErrors();
     // The customer cancels before the worker runs.
     $this->post(route('bookings.cancel', ['booking' => $booking->public_token]))->assertSessionHasNoErrors();
-    $this->artisan('queue:work', ['--once' => true, '--stop-when-empty' => true])->assertSuccessful();
+    // Every job, in any order: the customer's cancellation also queues an email to the provider.
+    $this->artisan('queue:work', ['--stop-when-empty' => true])->assertSuccessful();
 
-    expect(bsnSent()[0]->getOriginalMessage()->getSubject())->toBe('Prenotazione confermata: Treccine');
+    $toCustomer = array_values(array_filter(
+        bsnSent(),
+        fn (SentMessage $sent) => $sent->getEnvelope()->getRecipients()[0]->getAddress() === 'awa@example.com',
+    ));
+    expect($toCustomer)->toHaveCount(1);
+    expect(bsnEmail($toCustomer[0])->getSubject())->toBe('Prenotazione confermata: Treccine');
 });
 
 test('mail channel only, three attempts and the backoff', function () {

@@ -10,6 +10,8 @@ use App\Notifications\NewBookingNotification;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Notifications\Dispatcher;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Mail\Mailer;
+use Illuminate\Mail\Transport\ArrayTransport;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\SendQueuedNotifications;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +20,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Symfony\Component\Mailer\SentMessage;
+use Symfony\Component\Mime\Email;
 
 // "Now" is Sunday 18 October 2026, 08:00 UTC. The form books Monday 19 October at 09:00 local
 // (07:00 UTC), inside the 09:00-13:00 window of the provider.
@@ -25,6 +28,32 @@ beforeEach(function () {
     $this->travelTo(CarbonImmutable::parse('2026-10-18 08:00', 'UTC'));
     app()->setLocale('it');
 });
+
+/**
+ * The array transport of the tests. Mail::mailer() is declared as the Mailer contract, which has
+ * no getSymfonyTransport(): the assertions tell the editor the real types, and check them.
+ */
+function nbTransport(): ArrayTransport
+{
+    $mailer = Mail::mailer();
+    assert($mailer instanceof Mailer);
+    $transport = $mailer->getSymfonyTransport();
+    assert($transport instanceof ArrayTransport);
+
+    return $transport;
+}
+
+/**
+ * The email of a sent message. getOriginalMessage() is declared as RawMessage, which has no
+ * subject nor recipients: the assertion tells the editor the real type, and checks it.
+ */
+function nbEmail(SentMessage $sent): Email
+{
+    $email = $sent->getOriginalMessage();
+    assert($email instanceof Email);
+
+    return $email;
+}
 
 function nbProvider(): Provider
 {
@@ -101,7 +130,7 @@ function nbSend(Booking $booking): SentMessage
 {
     $booking->provider->user->notify(new NewBookingNotification($booking));
 
-    return Mail::mailer()->getSymfonyTransport()->messages()->sole();
+    return nbTransport()->messages()->sole();
 }
 
 test('a valid form notifies only the user of that provider, once', function () {
@@ -125,7 +154,7 @@ test('the email is queued, not sent during the request', function () {
 
     Queue::assertCount(1);
     Queue::assertPushed(SendQueuedNotifications::class, fn (SendQueuedNotifications $job) => $job->notification instanceof NewBookingNotification);
-    expect(Mail::mailer()->getSymfonyTransport()->messages())->toBeEmpty();
+    expect(nbTransport()->messages())->toBeEmpty();
 });
 
 test('no notification for an invalid form, a taken time or an unpublished provider', function () {
@@ -256,7 +285,7 @@ test('what the customer wrote is shown as text, never as Markdown or HTML', func
 
 test('a line break in the customer name does not change the subject or the headers', function () {
     $sent = nbSend(nbBooking(['customer_name' => "Mario\nBcc: x@example.com"]));
-    $email = $sent->getOriginalMessage();
+    $email = nbEmail($sent);
     [$headers] = explode("\r\n\r\n", $sent->toString(), 2);
 
     expect($email->getSubject())->toBe('Nuova richiesta di prenotazione: Treccine');
@@ -287,7 +316,7 @@ test('a job for a booking deleted in the meantime is discarded without failing',
 
     expect(DB::table('jobs')->count())->toBe(0);
     expect(DB::table('failed_jobs')->count())->toBe(0);
-    expect(Mail::mailer()->getSymfonyTransport()->messages())->toBeEmpty();
+    expect(nbTransport()->messages())->toBeEmpty();
 });
 
 test('the Italian texts are exactly the expected ones', function () {
