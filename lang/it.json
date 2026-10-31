@@ -294,6 +294,8 @@
     "provider.publish.published": "Il tuo profilo è pubblicato: i clienti ora ti trovano.",
     "provider.publish.unpublished": "Il tuo profilo non è più visibile ai clienti.",
     "provider.publish.blocked": "Non puoi ancora pubblicare il profilo: mancano alcune cose.",
+    "provider.publish.published_incomplete": "Il tuo profilo è pubblicato, ma i clienti non possono ancora prenotarti: ti manca ancora:",
+    "provider.publish.published_incomplete_help": "Completa quello che manca oppure togli il profilo dalla pubblicazione.",
     "provider.avatar.saved": "Foto aggiornata.",
     "provider.avatar.title": "La tua foto",
     "provider.avatar.help": "JPG, PNG o WebP, al massimo 1,5 MB, almeno 200 pixel per lato. Viene ridimensionata.",

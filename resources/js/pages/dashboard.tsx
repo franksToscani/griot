@@ -2,6 +2,7 @@ import { Form, Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { ProviderAvatar } from '@/components/provider-avatar';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -154,7 +155,10 @@ export default function Dashboard({ provider, publishing }: Props) {
                             {t('provider.publish.title')}
                         </h2>
                         {provider.is_published ? (
-                            <UnpublishButton />
+                            <>
+                                <IncompleteWarning publishing={publishing} />
+                                <UnpublishButton />
+                            </>
                         ) : (
                             <PublishSection publishing={publishing} />
                         )}
@@ -210,6 +214,47 @@ function PublishSection({ publishing }: { publishing: PublishingStatus }) {
                 )}
             </Form>
         </>
+    );
+}
+
+// A published profile that has lost a requirement: the customers still find it, but cannot
+// book. A static notice, read when the page loads, so role="status" and not the kit's "alert".
+// It only warns: taking the profile off stays the provider's choice, with the button below.
+function IncompleteWarning({ publishing }: { publishing: PublishingStatus }) {
+    const { t } = useTranslation();
+
+    if (publishing.missing.length === 0) {
+        return null;
+    }
+
+    const missing = publishing.missing.filter(isMissingCode);
+
+    return (
+        <Alert
+            variant="destructive"
+            role="status"
+            className="border-destructive"
+        >
+            {/* Only unknown codes: no list to show, only what to do. */}
+            {missing.length > 0 && (
+                // The kit cuts the title to one line: this one is long.
+                <AlertTitle className="line-clamp-none">
+                    {t('provider.publish.published_incomplete')}
+                </AlertTitle>
+            )}
+            <AlertDescription>
+                {missing.length > 0 && (
+                    <ul className="list-disc pl-5">
+                        {missing.map((code) => (
+                            <li key={code}>
+                                {t(`provider.publish.missing_${code}`)}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+                <p>{t('provider.publish.published_incomplete_help')}</p>
+            </AlertDescription>
+        </Alert>
     );
 }
 
