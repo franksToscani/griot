@@ -30,6 +30,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * created_by_provider (the provider wrote it, no customer sent it) is not fillable: CreateBooking sets it.
  * reminder_sent_at (when the provider was reminded of a pending request) is not fillable either:
  * RemindPendingBookings writes it, once, with the query builder, so updated_at does not change.
+ * locale (the customer's language, for the emails and the WhatsApp text) is not fillable either:
+ * CreateBooking sets it, never from the input of the request.
  *
  * @property CarbonImmutable $starts_at
  * @property CarbonImmutable $ends_at
@@ -38,6 +40,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property CancelledBy|null $cancelled_by
  * @property bool $created_by_provider
  * @property CarbonImmutable|null $reminder_sent_at
+ * @property string $locale
  */
 class Booking extends Model
 {
@@ -71,6 +74,7 @@ class Booking extends Model
     protected $attributes = [
         'status' => BookingStatus::Pending->value,
         'created_by_provider' => false,
+        'locale' => 'it',
     ];
 
     /**

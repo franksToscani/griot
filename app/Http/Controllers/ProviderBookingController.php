@@ -49,7 +49,8 @@ class ProviderBookingController extends Controller
 
         // ServiceNotOfProvider is not caught: the service comes from this provider, so it would be a bug.
         try {
-            $booking = $createBooking->create($publishedProvider, $service, $request->optionIds(), $request->startsAt(), $request->customer());
+            // The customer's language is the one of the page they booked from (SetLocale), never a field.
+            $booking = $createBooking->create($publishedProvider, $service, $request->optionIds(), $request->startsAt(), $request->customer(), locale: app()->getLocale());
         } catch (SlotNotAvailable) {
             // Taken in the meantime, or never bookable (past, off the grid, outside the window).
             throw ValidationException::withMessages(['starts_at' => __('booking.create.slot_taken')]);

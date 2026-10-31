@@ -59,6 +59,7 @@ class ProviderBookingStoreController extends Controller
                 status: BookingStatus::Confirmed,
                 rules: SlotRules::forProvider(),
                 createdByProvider: true,
+                locale: $request->customerLocale(),
             );
         } catch (SlotNotAvailable) {
             // Taken in the meantime, or never bookable (past, off the grid, outside the window).

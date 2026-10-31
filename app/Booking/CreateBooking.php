@@ -18,7 +18,8 @@ use Illuminate\Support\Str;
  * transaction and with the same rules it received, and accepts only a start that is exactly one of
  * the slots it returns. By default it is a customer's request: pending, with the customer's rules.
  * The provider writing a booking in the own agenda passes Confirmed, SlotRules::forProvider() and
- * createdByProvider: true.
+ * createdByProvider: true. $locale is the customer's language, for the emails and the WhatsApp
+ * text: the caller gives it, never the input of the request.
  */
 final class CreateBooking
 {
@@ -42,6 +43,7 @@ final class CreateBooking
         BookingStatus $status = BookingStatus::Pending,
         ?SlotRules $rules = null,
         bool $createdByProvider = false,
+        string $locale = 'it',
     ): Booking {
         $start = CarbonImmutable::instance($startsAt)->utc();
         // FreeSlots works on the provider's local calendar day.
@@ -49,7 +51,7 @@ final class CreateBooking
         $rules ??= SlotRules::forCustomer();
 
         // Any exception inside the closure rolls the transaction back: nothing is saved.
-        return DB::transaction(function () use ($provider, $service, $optionIds, $start, $day, $customer, $status, $rules, $createdByProvider): Booking {
+        return DB::transaction(function () use ($provider, $service, $optionIds, $start, $day, $customer, $status, $rules, $createdByProvider, $locale): Booking {
             // This lock MUST be the first statement of the transaction. Two bookings for the same
             // provider wait for each other here. On MySQL (REPEATABLE READ) a transaction reads
             // from a snapshot taken at its first plain read: if the bookings were read before the
@@ -81,6 +83,7 @@ final class CreateBooking
             // who wrote the booking.
             $booking->status = $status;
             $booking->created_by_provider = $createdByProvider;
+            $booking->locale = $locale;
             $booking->public_token = Str::random(48);
             $booking->save();
 

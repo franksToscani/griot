@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use App\Http\Middleware\SetLocale;
+use App\Support\Locales;
 use Illuminate\Cookie\CookieValuePrefix;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -37,7 +38,7 @@ final class LocaleFromRequest
                 $value = CookieValuePrefix::validate(SetLocale::COOKIE, Crypt::decryptString($value), Crypt::getAllKeys());
             }
 
-            return is_string($value) && array_key_exists($value, config()->array('app.available_locales')) ? $value : null;
+            return is_string($value) ? Locales::available($value) : null;
         } catch (Throwable) {
             return null;
         }

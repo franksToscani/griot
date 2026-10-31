@@ -5,6 +5,7 @@ namespace App\Notifications;
 use App\Booking\BookingOutcome;
 use App\Booking\LocalTime;
 use App\Models\Booking;
+use App\Support\Locales;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -47,7 +48,9 @@ class BookingStatusNotification extends Notification implements ShouldQueue
     /**
      * Send the email to the customer, if the booking has an address; nothing otherwise. Called by
      * the controllers once the provider's action is saved, outside its transaction. A failure
-     * while queueing the email is reported and nothing more: the action stays done.
+     * while queueing the email is reported and nothing more: the action stays done. The email is in
+     * the customer's language (booking.locale), whatever the language of the provider who answered:
+     * the job carries it to the worker.
      */
     public static function sendFor(Booking $booking, BookingOutcome $outcome): void
     {
@@ -56,7 +59,8 @@ class BookingStatusNotification extends Notification implements ShouldQueue
         }
 
         try {
-            Notifications::route('mail', $booking->customer_email)->notify(new self($booking, $outcome));
+            Notifications::route('mail', $booking->customer_email)
+                ->notify((new self($booking, $outcome))->locale(Locales::forDelivery($booking->locale)));
         } catch (Throwable $exception) {
             report($exception);
         }
