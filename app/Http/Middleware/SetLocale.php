@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\LocaleFromRequest;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,6 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
  * The language of the request: the one chosen with the language selector (the "locale" cookie,
  * written by LocaleController), if it is still among the available ones. Otherwise the default
  * one, app.locale: the browser's Accept-Language is never read, the site starts in Italian.
+ * LocaleFromRequest reads and checks the cookie.
  *
  * It runs before HandleInertiaRequests, so the shared translations, <html lang> and the dates of
  * Carbon all follow it.
@@ -28,9 +30,10 @@ class SetLocale
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $chosen = $request->cookie(self::COOKIE);
+        // EncryptCookies has already run: the cookie holds its plain value.
+        $chosen = LocaleFromRequest::resolve($request);
 
-        if (is_string($chosen) && array_key_exists($chosen, config()->array('app.available_locales'))) {
+        if ($chosen !== null) {
             app()->setLocale($chosen);
         }
 

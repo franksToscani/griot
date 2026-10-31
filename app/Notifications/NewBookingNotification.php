@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Booking\LocalTime;
 use App\Models\Booking;
 use App\Models\ServiceOption;
 use Illuminate\Bus\Queueable;
@@ -64,13 +65,6 @@ class NewBookingNotification extends Notification implements ShouldQueue
         // One query per relation, however many options were chosen.
         $booking = $this->booking->loadMissing(['provider', 'service', 'options']);
 
-        // The provider's local time, the same rule as BookingConfirmationResource: neither the
-        // server's nor the browser's time zone matters. Carbon follows the application's locale,
-        // so isoFormat() writes day and month in that language.
-        $timezone = config()->string('booking.timezone');
-        $start = $booking->starts_at->setTimezone($timezone);
-        $end = $booking->ends_at->setTimezone($timezone);
-
         $options = $booking->options
             ->sortBy('id')
             ->map(fn (ServiceOption $option) => $option->name)
@@ -83,9 +77,9 @@ class NewBookingNotification extends Notification implements ShouldQueue
                 'providerName' => $booking->provider->name,
                 'service' => $booking->service->name,
                 'options' => $options === '' ? null : $options,
-                // For example "giovedì 29 ottobre 2026" and "09:00–11:45".
-                'date' => $start->isoFormat('dddd D MMMM YYYY'),
-                'time' => $start->format('H:i').'–'.$end->format('H:i'),
+                // The provider's local time, in the language of the email (see LocalTime).
+                'date' => LocalTime::longDate($booking->starts_at),
+                'time' => LocalTime::timeRange($booking->starts_at, $booking->ends_at),
                 'customerName' => $booking->customer_name,
                 'customerPhone' => $booking->customer_phone,
                 'customerEmail' => $booking->customer_email,

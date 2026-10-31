@@ -401,6 +401,7 @@
     "common.cancel": "Annulla",
     "common.close": "Chiudi",
     "common.more": "Altro",
+    "common.breadcrumb": "Percorso",
     "common.show_password": "Mostra la password",
     "common.hide_password": "Nascondi la password",
     "nav.register": "Registrati",

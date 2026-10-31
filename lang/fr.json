@@ -401,6 +401,7 @@
     "common.cancel": "Annuler",
     "common.close": "Fermer",
     "common.more": "Plus",
+    "common.breadcrumb": "Fil d'Ariane",
     "common.show_password": "Afficher le mot de passe",
     "common.hide_password": "Masquer le mot de passe",
     "nav.register": "S'inscrire",
