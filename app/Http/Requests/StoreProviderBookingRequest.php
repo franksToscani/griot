@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Http\Requests\Concerns\BookingRules;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * A booking the logged-in provider writes in the own agenda, for a customer who asked by phone or
@@ -39,7 +40,21 @@ class StoreProviderBookingRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->bookingRules();
+        return [
+            ...$this->bookingRules(),
+            // The customer's language, for the WhatsApp text and the emails: one of the available ones.
+            'customer_locale' => ['nullable', 'string', Rule::in(array_keys(config()->array('app.available_locales')))],
+        ];
+    }
+
+    /**
+     * The customer's language: the one chosen in the form, or the provider's own language now.
+     */
+    public function customerLocale(): string
+    {
+        $locale = $this->validated('customer_locale');
+
+        return is_string($locale) && $locale !== '' ? $locale : app()->getLocale();
     }
 
     /**
@@ -53,6 +68,7 @@ class StoreProviderBookingRequest extends FormRequest
         return [
             ...$this->bookingMessages(),
             'customer_name.required' => __('provider.bookings.validation.name_required'),
+            'customer_locale.in' => __('provider.bookings.validation.customer_locale_invalid'),
         ];
     }
 }

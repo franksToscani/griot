@@ -1,4 +1,4 @@
-import { Form, Head, Link } from '@inertiajs/react';
+import { Form, Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import {
     BookingDayAndTimes,
@@ -243,6 +243,7 @@ function BookingForm({
                             phoneHelpKey="provider.bookings.create.phone_help"
                             errors={errors}
                         />
+                        <CustomerLocaleField error={errors.customer_locale} />
                     </fieldset>
 
                     <Button
@@ -256,6 +257,51 @@ function BookingForm({
                 </>
             )}
         </Form>
+    );
+}
+
+// The customer's language, for the WhatsApp text and the emails: sent as customer_locale, the
+// provider's own language by default. Hidden while only one language is available: the server
+// then uses the provider's language.
+function CustomerLocaleField({ error }: { error?: string }) {
+    const { t, locale } = useTranslation();
+    const { locales } = usePage().props;
+
+    if (locales.length <= 1) {
+        return null;
+    }
+
+    return (
+        <div className="grid gap-2">
+            <Label htmlFor="customer_locale">
+                {t('provider.bookings.create.customer_locale')}
+            </Label>
+            <select
+                id="customer_locale"
+                name="customer_locale"
+                defaultValue={locale}
+                aria-describedby="customer_locale-help"
+                className={selectClass}
+            >
+                {/* Each language in its own name, as in the language selector. */}
+                {locales.map((option) => (
+                    <option
+                        key={option.code}
+                        value={option.code}
+                        lang={option.code}
+                    >
+                        {option.name}
+                    </option>
+                ))}
+            </select>
+            <p
+                id="customer_locale-help"
+                className="text-sm text-muted-foreground"
+            >
+                {t('provider.bookings.create.customer_locale_help')}
+            </p>
+            <InputError message={error} />
+        </div>
     );
 }
 

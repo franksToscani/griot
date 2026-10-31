@@ -42,13 +42,15 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'locale' => app()->getLocale(),
+            // Closures: read when the page is rendered, so a language set after this middleware (the
+            // private page of a booking, UseBookingLocale) applies to the translations too.
+            'locale' => fn () => app()->getLocale(),
             // The languages of the selector, in the order of the config: [{code, name}].
             'locales' => collect(config()->array('app.available_locales'))
                 ->map(fn (string $name, string $code) => ['code' => $code, 'name' => $name])
                 ->values()
                 ->all(),
-            'translations' => $this->translations(),
+            'translations' => fn () => $this->translations(),
         ];
     }
 

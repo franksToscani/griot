@@ -8,6 +8,7 @@ use App\Booking\LocalTime;
 use App\Booking\PhoneNumber;
 use App\Models\Booking;
 use App\Models\ServiceOption;
+use App\Support\Locales;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -17,7 +18,8 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * loaded. It leaves out on purpose every internal id but the booking's. The public_token appears in
  * one place only: inside whatsapp_url, the private address the provider sends to the customer,
  * and only for a booking the provider has answered. The customer's fields are data written by
- * the customer: the page shows them as plain text.
+ * the customer: the page shows them as plain text. The WhatsApp text is in the customer's language
+ * (booking.locale), not in the provider's; the language itself is not sent to the page.
  *
  * @mixin Booking
  */
@@ -92,19 +94,22 @@ class ProviderBookingResource extends JsonResource
             return null;
         }
 
+        // The customer's language, given to each text: the page stays in the provider's language.
+        $locale = Locales::forDelivery($this->locale);
+
         $lines = [__('provider.bookings.whatsapp_text_'.$outcome->value, [
             'name' => $this->customer_name,
             'provider' => $this->provider->name,
             'service' => $this->service->name,
             // As in the emails: "giovedì 29 ottobre 2026, 09:00–11:45".
-            'when' => LocalTime::longDate($start).', '.LocalTime::timeRange($start, $end),
-        ])];
+            'when' => LocalTime::longDate($start, $locale).', '.LocalTime::timeRange($start, $end),
+        ], $locale)];
 
         if ($outcome !== BookingOutcome::Confirmed && $this->cancellation_reason !== null) {
-            $lines[] = __('provider.bookings.whatsapp_reason', ['reason' => $this->cancellation_reason]);
+            $lines[] = __('provider.bookings.whatsapp_reason', ['reason' => $this->cancellation_reason], $locale);
         }
 
-        $lines[] = __('provider.bookings.whatsapp_link', ['url' => route('bookings.show', ['booking' => $this->public_token])]);
+        $lines[] = __('provider.bookings.whatsapp_link', ['url' => route('bookings.show', ['booking' => $this->public_token])], $locale);
 
         // wa.me wants the digits without "+". rawurlencode() writes a space as %20, which every
         // WhatsApp app reads as a space ("+" from urlencode() can stay a "+").

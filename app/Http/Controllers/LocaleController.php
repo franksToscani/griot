@@ -19,10 +19,19 @@ class LocaleController extends Controller
 
     /**
      * Handle the incoming request. The cookie is written by the server and encrypted, like every
-     * cookie that is not listed in bootstrap/app.php. Back to the page where the choice was made.
+     * cookie that is not listed in bootstrap/app.php. A logged-in user keeps the choice too
+     * (users.locale), for a new device and for the emails. Back to the page where the choice was made.
      */
     public function __invoke(UpdateLocaleRequest $request): RedirectResponse
     {
+        $user = $request->user();
+
+        if ($user !== null) {
+            // Not fillable: assigned here only, with a value already validated.
+            $user->locale = $request->locale();
+            $user->save();
+        }
+
         return back(fallback: route('home'))
             ->withCookie(cookie(SetLocale::COOKIE, $request->locale(), self::COOKIE_MINUTES));
     }

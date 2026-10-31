@@ -41,6 +41,7 @@ use App\Http\Controllers\ProviderUnpublishController;
 use App\Http\Controllers\ProviderUpdateController;
 use App\Http\Middleware\PrivateBookingPage;
 use App\Http\Middleware\PrivateProviderPage;
+use App\Http\Middleware\UseBookingLocale;
 use Illuminate\Support\Facades\Route;
 
 // Provisional: the home page sends to the providers' list until a real home page exists. A closure,
@@ -67,14 +68,14 @@ Route::post('providers/{publishedProvider:slug}/bookings', ProviderBookingContro
 // too) without querying the database; an unknown code gets the same 404 from the binding.
 Route::get('bookings/{booking:public_token}', BookingConfirmationController::class)
     ->where('booking', '[A-Za-z0-9]{48}')
-    ->middleware(PrivateBookingPage::class)
+    ->middleware([PrivateBookingPage::class, UseBookingLocale::class])
     ->name('bookings.show');
 // POST only, in the web group with CSRF protection: a GET (a link, a prefetch) cannot cancel.
 // Same pattern, binding and headers as bookings.show.
 // Its "throttle:" limit, like the two above, is defined in AppServiceProvider::configureRateLimiting.
 Route::post('bookings/{booking:public_token}/cancel', BookingCancellationController::class)
     ->where('booking', '[A-Za-z0-9]{48}')
-    ->middleware([PrivateBookingPage::class, 'throttle:booking-cancel'])
+    ->middleware([PrivateBookingPage::class, UseBookingLocale::class, 'throttle:booking-cancel'])
     ->name('bookings.cancel');
 
 // The provider's private area. No route has an id or a slug: the provider is always the
