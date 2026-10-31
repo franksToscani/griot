@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Lang;
 
 class Category extends Model
 {
@@ -27,6 +28,17 @@ class Category extends Model
         $query->whereHas('services', fn (Builder $services) => $services
             ->where('is_active', true)
             ->whereHas('provider', fn (Builder $provider) => $provider->where('is_published', true)));
+    }
+
+    /**
+     * The name to show, in the language of the request: the key "categories.{slug}" of the
+     * translation files, or the saved name when the key is missing (a category added later).
+     */
+    public function displayName(): string
+    {
+        $key = "categories.{$this->slug}";
+
+        return Lang::has($key) ? __($key) : $this->name;
     }
 
     /**

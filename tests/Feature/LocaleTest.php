@@ -7,8 +7,8 @@ use Inertia\Testing\AssertableInertia as Assert;
 // The pages are read on the providers' list: "/" only redirects there since issue #54 (phase 1b).
 
 /**
- * Two languages available, as when French is complete: the selector and the cookie only matter
- * then. lang/fr.json does not exist in this phase, so the French translations are empty.
+ * Two languages available, as with APP_PREVIEW_LOCALES=fr: the selector and the cookie only matter
+ * then. French is written (lang/fr.json) but not open to everyone by default.
  */
 function locTwoLanguages(): void
 {
@@ -61,7 +61,7 @@ test('the language of the cookie is used when it is available', function () {
 });
 
 test('a cookie with a language that is not available, or not readable, gives Italian', function (string $value, bool $encrypted) {
-    // Only Italian is available: "fr" is not, yet.
+    // Only Italian is available by default: French is written, but not open without APP_PREVIEW_LOCALES.
     $test = $encrypted ? $this->withCookie('locale', $value) : $this->withUnencryptedCookie('locale', $value);
 
     $response = $test->get(route('providers.index'));
@@ -69,8 +69,9 @@ test('a cookie with a language that is not available, or not readable, gives Ita
     expect(locProps($response)['locale'])->toBe('it');
     $response->assertSee('<html lang="it"', false);
 })->with([
-    'a language not yet available' => ['fr', true],
-    'an unknown language' => ['de', true],
+    'a language that does not exist' => ['de', true],
+    'French, written but not open by default' => ['fr', true],
+    'English, not written yet' => ['en', true],
     'an invalid value' => ['../../etc', true],
     // Written by hand in the browser: the server only trusts the cookies it encrypted.
     'a cookie not encrypted by the server' => ['it', false],
@@ -158,7 +159,8 @@ test('a language that is not available is refused with an Italian message, and n
         ->assertSessionHasErrors(['locale' => $message])
         ->assertCookieMissing('locale');
 })->with([
-    'French, not yet available' => [['locale' => 'fr'], 'Il valore scelto per lingua non è valido.'],
+    'a language that does not exist' => [['locale' => 'de'], 'Il valore scelto per lingua non è valido.'],
+    'French, written but not open by default' => [['locale' => 'fr'], 'Il valore scelto per lingua non è valido.'],
     'unknown' => [['locale' => 'de'], 'Il valore scelto per lingua non è valido.'],
     'an array' => [['locale' => ['it']], 'Il campo lingua deve essere un testo.'],
     'missing' => [[], 'Il campo lingua è obbligatorio.'],
