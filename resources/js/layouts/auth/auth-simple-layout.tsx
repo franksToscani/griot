@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import AppLogoIcon from '@/components/app-logo-icon';
+import { LocaleSwitcher } from '@/components/locale-switcher';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
@@ -31,6 +32,7 @@ export default function AuthSimpleLayout({
                         </div>
                     </div>
                     {children}
+                    <LocaleSwitcher className="justify-center" />
                 </div>
             </div>
         </div>

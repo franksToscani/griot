@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import AppLogo from '@/components/app-logo';
+import { LocaleSwitcher } from '@/components/locale-switcher';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard, home, login } from '@/routes';
 
@@ -16,13 +17,18 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                     <Link href={home()} className="flex items-center">
                         <AppLogo />
                     </Link>
-                    <nav className="text-sm">
-                        {auth.user ? (
-                            <Link href={dashboard()}>{t('nav.dashboard')}</Link>
-                        ) : (
-                            <Link href={login()}>{t('nav.login')}</Link>
-                        )}
-                    </nav>
+                    <div className="flex items-center gap-4">
+                        <LocaleSwitcher />
+                        <nav className="text-sm">
+                            {auth.user ? (
+                                <Link href={dashboard()}>
+                                    {t('nav.dashboard')}
+                                </Link>
+                            ) : (
+                                <Link href={login()}>{t('nav.login')}</Link>
+                            )}
+                        </nav>
+                    </div>
                 </div>
             </header>
             <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">

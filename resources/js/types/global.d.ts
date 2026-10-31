@@ -13,6 +13,8 @@ declare module '@inertiajs/core' {
             auth: Auth;
             sidebarOpen: boolean;
             locale: string;
+            // The languages of the selector, from config/app.php (available_locales).
+            locales: { code: string; name: string }[];
             translations: Record<string, string>;
             [key: string]: unknown;
         };

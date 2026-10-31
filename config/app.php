@@ -78,9 +78,27 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'it'),
 
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
+    // Italian is the reference language, always complete: a key missing in another language shows
+    // the Italian text, never the key itself.
+    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'it'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Available Locales
+    |--------------------------------------------------------------------------
+    |
+    | The languages a visitor can choose with the language selector, each with
+    | its own name, written in that language. A language is added here only
+    | when its lang/{code}.json is complete. The selector is hidden while
+    | there is only one. The site always starts in the "locale" above.
+    |
+    */
+
+    'available_locales' => [
+        'it' => 'Italiano',
+    ],
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
