@@ -28,6 +28,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * changes (CancelBooking for the customer, ManageBooking for the provider). cancellation_reason is
  * set by ManageBooking only; cancelled_by (who cancelled, and how) by the one that cancels.
  * created_by_provider (the provider wrote it, no customer sent it) is not fillable: CreateBooking sets it.
+ * reminder_sent_at (when the provider was reminded of a pending request) is not fillable either:
+ * RemindPendingBookings writes it, once, with the query builder, so updated_at does not change.
  *
  * @property CarbonImmutable $starts_at
  * @property CarbonImmutable $ends_at
@@ -35,6 +37,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property string|null $cancellation_reason
  * @property CancelledBy|null $cancelled_by
  * @property bool $created_by_provider
+ * @property CarbonImmutable|null $reminder_sent_at
  */
 class Booking extends Model
 {
@@ -83,6 +86,7 @@ class Booking extends Model
             'status' => BookingStatus::class,
             'cancelled_by' => CancelledBy::class,
             'created_by_provider' => 'boolean',
+            'reminder_sent_at' => 'datetime',
         ];
     }
 
@@ -111,6 +115,24 @@ class Booking extends Model
         $query
             ->where('starts_at', '<', CarbonImmutable::instance($end)->utc())
             ->where('ends_at', '>', CarbonImmutable::instance($start)->utc());
+    }
+
+    /**
+     * Only the pending requests to remind the provider of: created at or before $createdBefore, not
+     * started yet, and never reminded. RemindPendingBookings reads them with this scope, and reads
+     * each one again with it under the lock.
+     *
+     * @param  Builder<Booking>  $query
+     */
+    #[Scope]
+    protected function awaitingReminder(Builder $query, CarbonInterface $createdBefore): void
+    {
+        // Moved to UTC first, like the stored values (see overlapping()).
+        $query
+            ->where('status', BookingStatus::Pending)
+            ->whereNull('reminder_sent_at')
+            ->where('created_at', '<=', CarbonImmutable::instance($createdBefore)->utc())
+            ->where('starts_at', '>', CarbonImmutable::now()->utc());
     }
 
     /**
