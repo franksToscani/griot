@@ -274,10 +274,11 @@ test('the new page explains instead of showing the form: unpublished first, then
     expect(substr_count($source, '<BookingForm'))->toBe(1);
 });
 
-test('the new page has the three breadcrumbs, with the kit texts in English', function () {
+test('the new page has the three breadcrumbs, as translation keys', function () {
     $source = pbcSource('js/pages/provider/bookings/create.tsx');
 
-    expect($source)->toMatch("/title: 'Dashboard',\s*href: dashboard\(\),\s*\},\s*\{\s*title: 'Bookings',\s*href: bookingsIndex\(\),\s*\},\s*\{\s*title: 'New booking',\s*href: createBooking\(\),/");
+    // Since issue #54 the breadcrumbs carry keys: breadcrumbs.tsx translates them.
+    expect($source)->toMatch("/titleKey: 'nav\.dashboard',\s*href: dashboard\(\),\s*\},\s*\{\s*titleKey: 'provider\.bookings\.title',\s*href: bookingsIndex\(\),\s*\},\s*\{\s*titleKey: 'provider\.bookings\.create\.title',\s*href: createBooking\(\),/");
 });
 
 test('the slots hook gets its address from the caller; the customer panel passes the public one', function () {

@@ -273,15 +273,14 @@ function AddServiceForm({ categories }: { categories: Category[] }) {
     );
 }
 
-// Kit texts in English, like the other breadcrumbs, until the kit is translated (issue #54).
 ProviderServicesIndex.layout = {
     breadcrumbs: [
         {
-            title: 'Dashboard',
+            titleKey: 'nav.dashboard',
             href: dashboard(),
         },
         {
-            title: 'Services',
+            titleKey: 'provider.services.title',
             href: index(),
         },
     ],

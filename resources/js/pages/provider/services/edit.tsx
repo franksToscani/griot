@@ -459,19 +459,18 @@ function DeleteSection({
     );
 }
 
-// Kit texts in English, like the other breadcrumbs, until the kit is translated (issue #54).
 ProviderServiceEdit.layout = (props: { service: ProviderService }) => ({
     breadcrumbs: [
         {
-            title: 'Dashboard',
+            titleKey: 'nav.dashboard',
             href: dashboard(),
         },
         {
-            title: 'Services',
+            titleKey: 'provider.services.title',
             href: index(),
         },
         {
-            title: 'Edit service',
+            titleKey: 'provider.services.edit_title',
             href: edit(props.service.id),
         },
     ],

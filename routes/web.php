@@ -43,7 +43,9 @@ use App\Http\Middleware\PrivateBookingPage;
 use App\Http\Middleware\PrivateProviderPage;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'welcome')->name('home');
+// Provisional: the home page sends to the providers' list until a real home page exists. A closure,
+// not Route::redirect(), which generates invalid Wayfinder types (see CLAUDE.md).
+Route::get('/', fn () => redirect()->route('providers.index'))->name('home');
 
 // The language selector, for everyone: it only writes the "locale" cookie and goes back.
 Route::post('locale', LocaleController::class)->name('locale.update');

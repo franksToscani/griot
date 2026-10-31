@@ -178,15 +178,14 @@ function AvatarForm({
     );
 }
 
-// Kit texts in English, like the other breadcrumbs, until the kit is translated (issue #54).
 ProviderEditPage.layout = {
     breadcrumbs: [
         {
-            title: 'Dashboard',
+            titleKey: 'nav.dashboard',
             href: dashboard(),
         },
         {
-            title: 'Edit profile',
+            titleKey: 'provider.edit.title',
             href: edit(),
         },
     ],

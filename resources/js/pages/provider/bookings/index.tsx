@@ -523,15 +523,14 @@ function ReasonDialog({
     );
 }
 
-// Kit texts in English, like the other breadcrumbs, until the kit is translated (issue #54).
 ProviderBookingsIndex.layout = {
     breadcrumbs: [
         {
-            title: 'Dashboard',
+            titleKey: 'nav.dashboard',
             href: dashboard(),
         },
         {
-            title: 'Bookings',
+            titleKey: 'provider.bookings.title',
             href: bookingsIndex(),
         },
     ],

@@ -322,7 +322,7 @@ function UnpublishButton() {
 Dashboard.layout = {
     breadcrumbs: [
         {
-            title: 'Dashboard',
+            titleKey: 'nav.dashboard',
             href: dashboard(),
         },
     ],

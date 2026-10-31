@@ -98,8 +98,8 @@ function trkSources(string $folder, array $extensions): array
 }
 
 /**
- * Every literal key the code asks for: t('…') and props ending in "Key" in React, __('…') in PHP
- * and Blade. Keys built at run time ('provider.bookings.transition.'.$reason) are not literals:
+ * Every literal key the code asks for: t('…'), props ending in "Key" and the titleKey/descriptionKey
+ * of the static breadcrumbs, menus and auth layouts in React, __('…') in PHP and Blade. Keys built at run time ('provider.bookings.transition.'.$reason) are not literals:
  * trkDynamicKeys() lists them.
  *
  * @return list<string>
@@ -112,7 +112,8 @@ function trkUsedKeys(): array
         $source = (string) file_get_contents($path);
         preg_match_all('/\bt\(\s*([\'"])([^\'"`$]+)\1\s*[,)]/', $source, $calls);
         preg_match_all('/\b[a-zA-Z]+Key="([a-z0-9_.]+)"/', $source, $props);
-        $keys = [...$keys, ...$calls[2], ...$props[1]];
+        preg_match_all('/\b(?:titleKey|descriptionKey): \'([a-z0-9_.]+)\'/', $source, $objects);
+        $keys = [...$keys, ...$calls[2], ...$props[1], ...$objects[1]];
     }
 
     foreach ([...trkSources('app', ['.php']), ...trkSources('resources/views', ['.php']), ...trkSources('routes', ['.php'])] as $path) {
@@ -223,7 +224,7 @@ test('every key used in the code exists in Italian', function () {
 
     // The scan really reads the sources.
     expect(count($used))->toBeGreaterThan(300)
-        ->and($used)->toContain('providers.list.title', 'booking.form.name', 'common.locale.label', 'booking.reminder.subject');
+        ->and($used)->toContain('providers.list.title', 'booking.form.name', 'common.locale.label', 'booking.reminder.subject', 'settings.nav.profile', 'account.login.title', 'common.close');
 
     $missing = array_values(array_filter([...$used, ...trkDynamicKeys()], function (string $key) use ($italian) {
         // A key of a PHP group ("validation.required", "auth.failed") lives in lang/it/{group}.php.
