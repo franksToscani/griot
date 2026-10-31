@@ -410,15 +410,14 @@ function AddAvailabilityForm({
     );
 }
 
-// Kit texts in English, like the other breadcrumbs, until the kit is translated (issue #54).
 ProviderAvailabilityIndex.layout = {
     breadcrumbs: [
         {
-            title: 'Dashboard',
+            titleKey: 'nav.dashboard',
             href: dashboard(),
         },
         {
-            title: 'Availability',
+            titleKey: 'provider.availability.title',
             href: availabilityIndex(),
         },
     ],

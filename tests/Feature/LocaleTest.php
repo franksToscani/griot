@@ -4,6 +4,8 @@ use App\Models\User;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
 
+// The pages are read on the providers' list: "/" only redirects there since issue #54 (phase 1b).
+
 /**
  * Two languages available, as when French is complete: the selector and the cookie only matter
  * then. lang/fr.json does not exist in this phase, so the French translations are empty.
@@ -33,7 +35,7 @@ function locProps(TestResponse $response): array
 // ---------------------------------------------------------------------------------------------
 
 test('without a choice the site is in Italian, with the Italian translations', function () {
-    $props = locProps($this->get('/'));
+    $props = locProps($this->get(route('providers.index')));
 
     expect($props['locale'])->toBe('it')
         ->and($props['translations'])->toHaveKey('providers.list.title', 'Trova un professionista');
@@ -42,7 +44,7 @@ test('without a choice the site is in Italian, with the Italian translations', f
 test('the browser language is never read: the site starts in Italian', function () {
     locTwoLanguages();
 
-    $response = $this->withHeader('Accept-Language', 'fr-FR,fr;q=0.9')->get('/');
+    $response = $this->withHeader('Accept-Language', 'fr-FR,fr;q=0.9')->get(route('providers.index'));
 
     expect(locProps($response)['locale'])->toBe('it');
     $response->assertSee('<html lang="it"', false);
@@ -51,7 +53,7 @@ test('the browser language is never read: the site starts in Italian', function 
 test('the language of the cookie is used when it is available', function () {
     locTwoLanguages();
 
-    $response = $this->withCookie('locale', 'fr')->get('/');
+    $response = $this->withCookie('locale', 'fr')->get(route('providers.index'));
 
     expect(locProps($response)['locale'])->toBe('fr');
     $response->assertSee('<html lang="fr"', false);
@@ -62,7 +64,7 @@ test('a cookie with a language that is not available, or not readable, gives Ita
     // Only Italian is available: "fr" is not, yet.
     $test = $encrypted ? $this->withCookie('locale', $value) : $this->withUnencryptedCookie('locale', $value);
 
-    $response = $test->get('/');
+    $response = $test->get(route('providers.index'));
 
     expect(locProps($response)['locale'])->toBe('it');
     $response->assertSee('<html lang="it"', false);
@@ -91,10 +93,10 @@ test('Italian is the fallback language in the config and in the example environm
 // ---------------------------------------------------------------------------------------------
 
 test('the pages get the available languages, each with its own name', function () {
-    expect(locProps($this->get('/'))['locales'])->toBe([['code' => 'it', 'name' => 'Italiano']]);
+    expect(locProps($this->get(route('providers.index')))['locales'])->toBe([['code' => 'it', 'name' => 'Italiano']]);
 
     locTwoLanguages();
-    expect(locProps($this->get('/'))['locales'])->toBe([
+    expect(locProps($this->get(route('providers.index')))['locales'])->toBe([
         ['code' => 'it', 'name' => 'Italiano'],
         ['code' => 'fr', 'name' => 'Français'],
     ]);
@@ -130,7 +132,7 @@ test('the next page is in the chosen language', function () {
 
     $cookie = $this->post(route('locale.update'), ['locale' => 'fr'])->getCookie('locale', decrypt: true);
 
-    expect(locProps($this->withCookie('locale', (string) $cookie?->getValue())->get('/'))['locale'])->toBe('fr');
+    expect(locProps($this->withCookie('locale', (string) $cookie?->getValue())->get(route('providers.index')))['locale'])->toBe('fr');
 });
 
 test('without a previous page the choice goes back to the home page', function () {

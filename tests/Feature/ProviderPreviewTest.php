@@ -192,7 +192,8 @@ test('the booking form is mounted only on the real page, not in the preview', fu
 test('the texts of the preview are exactly the expected ones', function () {
     $texts = [
         'provider.preview.banner' => 'Anteprima: così ti vedono i clienti.',
-        'provider.preview.back' => 'Torna alla dashboard',
+        // "Il mio pannello", as the menu and the breadcrumbs call the dashboard (issue #54).
+        'provider.preview.back' => 'Torna al mio pannello',
         'provider.preview.no_booking' => 'In anteprima non si può prenotare.',
         'provider.area.preview' => "Vedi l'anteprima",
     ];

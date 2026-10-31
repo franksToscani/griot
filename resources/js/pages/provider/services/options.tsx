@@ -498,20 +498,19 @@ function AddOptionForm({ serviceId }: { serviceId: number }) {
     );
 }
 
-// Kit texts in English, like the other breadcrumbs, until the kit is translated (issue #54).
 // The second point goes back to the edit page of this service.
 ProviderServiceOptions.layout = (props: { service: ProviderService }) => ({
     breadcrumbs: [
         {
-            title: 'Dashboard',
+            titleKey: 'nav.dashboard',
             href: dashboard(),
         },
         {
-            title: 'Services',
+            titleKey: 'provider.services.title',
             href: edit(props.service.id),
         },
         {
-            title: 'Options',
+            titleKey: 'provider.options.title',
             href: optionsIndex(props.service.id),
         },
     ],

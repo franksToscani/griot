@@ -259,19 +259,18 @@ function BookingForm({
     );
 }
 
-// Kit texts in English, like the other breadcrumbs, until the kit is translated (issue #54).
 ProviderBookingCreate.layout = {
     breadcrumbs: [
         {
-            title: 'Dashboard',
+            titleKey: 'nav.dashboard',
             href: dashboard(),
         },
         {
-            title: 'Bookings',
+            titleKey: 'provider.bookings.title',
             href: bookingsIndex(),
         },
         {
-            title: 'New booking',
+            titleKey: 'provider.bookings.create.title',
             href: createBooking(),
         },
     ],

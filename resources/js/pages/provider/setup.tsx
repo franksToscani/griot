@@ -57,12 +57,11 @@ export default function ProviderSetup() {
     );
 }
 
-// Same format as the dashboard; like 'Dashboard', the breadcrumb is a kit text in English
-// until the kit is translated (issue #54).
+// Same format as the dashboard: one breadcrumb.
 ProviderSetup.layout = {
     breadcrumbs: [
         {
-            title: 'Profile setup',
+            titleKey: 'provider.setup.title',
             href: setup(),
         },
     ],
