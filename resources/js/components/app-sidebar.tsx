@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
+import { LocaleSwitcher } from '@/components/locale-switcher';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -58,6 +59,8 @@ export function AppSidebar() {
 
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
+                {/* Hidden when the sidebar is folded to icons: a select does not fit there. */}
+                <LocaleSwitcher className="px-2 group-data-[collapsible=icon]:hidden" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
