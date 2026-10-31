@@ -101,6 +101,9 @@ export type ProviderBooking = {
     // WhatsApp chat with the provider's answer already written, built by the server; null without
     // an answer from the provider or with a number that cannot be read. It holds the private link.
     whatsapp_url: string | null;
+    // The provider's answer, from the server; null without one (pending, cancelled by the
+    // customer, or cancelled before the outcome was saved).
+    outcome: 'confirmed' | 'rejected' | 'cancelled' | null;
 };
 
 // The "filters" prop of the bookings page: the active ones, null when missing.
