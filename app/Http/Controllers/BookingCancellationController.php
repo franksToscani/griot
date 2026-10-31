@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Booking\CancelBooking;
 use App\Booking\CancellationNotAllowed;
 use App\Models\Booking;
+use App\Notifications\CustomerCancelledNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -32,8 +33,13 @@ class BookingCancellationController extends Controller
                 ->redirectTo(route('bookings.show', ['booking' => $booking->public_token]));
         }
 
-        // Already cancelled: back to the page as it is, without a message.
+        // Already cancelled: back to the page as it is, without a message, and no email.
         if ($cancelled) {
+            // After the transaction, which is committed: the queued email never runs for a
+            // cancellation that was rolled back. A failure while queueing it is reported, and the
+            // booking stays cancelled.
+            CustomerCancelledNotification::sendFor($booking);
+
             Inertia::flash('toast', ['type' => 'success', 'message' => __('booking.cancel.cancelled')]);
         }
 
