@@ -34,6 +34,8 @@ class ProviderBookingResource extends JsonResource
         $end = LocalTime::fromUtc($this->ends_at);
         $options = $this->options->sortBy('id')->values();
         $transitions = app(BookingTransitions::class);
+        // The provider's answer, read once: the page and the WhatsApp message both use it.
+        $outcome = BookingOutcome::of($this->resource);
 
         return [
             'id' => $this->id,
@@ -65,7 +67,11 @@ class ProviderBookingResource extends JsonResource
             'can_confirm' => $transitions->canConfirm($this->resource),
             'can_reject' => $transitions->canReject($this->resource),
             'can_cancel' => $transitions->canCancelAsProvider($this->resource),
-            'whatsapp_url' => $this->whatsappUrl($start, $end),
+            // confirmed, rejected or cancelled; null without an answer of the provider (pending,
+            // cancelled by the customer, or cancelled before cancelled_by existed). cancelled_by
+            // itself stays on the server.
+            'outcome' => $outcome?->value,
+            'whatsapp_url' => $this->whatsappUrl($outcome, $start, $end),
         ];
     }
 
@@ -75,9 +81,8 @@ class ProviderBookingResource extends JsonResource
      * cancelled by the customer or before cancelled_by existed) and for a number that cannot be
      * put in international format. The message holds the private address of the booking.
      */
-    private function whatsappUrl(CarbonImmutable $start, CarbonImmutable $end): ?string
+    private function whatsappUrl(?BookingOutcome $outcome, CarbonImmutable $start, CarbonImmutable $end): ?string
     {
-        $outcome = BookingOutcome::of($this->resource);
         // The numbers saved before the form normalized them are read with the same rule.
         $phone = PhoneNumber::normalize($this->customer_phone);
 

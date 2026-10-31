@@ -341,11 +341,11 @@ function BookingCard({ booking }: { booking: ProviderBooking }) {
                     </div>
                 )}
 
-                {/* How the customer hears of the answer. The Resource does not expose the outcome
-                    (BookingOutcome): a confirmed booking is always the provider's answer, a
-                    cancelled one only when whatsapp_url is there (the customer's own cancellation
-                    sends no email). Known debt: a rejection or a cancellation by the provider with
-                    a number that cannot be read shows no line, even if the email was sent. */}
+                {/* How the customer hears of the answer. The outcome comes from the Resource
+                    (BookingOutcome): null for a pending booking, one cancelled by the customer
+                    (which sends no email) and an old cancelled one. Known limit: a booking
+                    confirmed before #102 has an outcome but got no email, so for those data the
+                    email line can be false. "Sent" means queued: the email leaves later. */}
                 {booking.whatsapp_url !== null && (
                     <div>
                         <Button
@@ -364,16 +364,15 @@ function BookingCard({ booking }: { booking: ProviderBooking }) {
                         </Button>
                     </div>
                 )}
-                {booking.customer_email !== null &&
-                    (booking.status === 'confirmed' ||
-                        booking.whatsapp_url !== null) && (
+                {booking.outcome !== null &&
+                    booking.customer_email !== null && (
                         <p className="break-all text-muted-foreground">
                             {t('provider.bookings.email_notice', {
                                 email: booking.customer_email,
                             })}
                         </p>
                     )}
-                {booking.status === 'confirmed' &&
+                {booking.outcome !== null &&
                     booking.whatsapp_url === null &&
                     booking.customer_email === null && (
                         <p className="text-muted-foreground">

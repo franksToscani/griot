@@ -18,10 +18,12 @@ test('the WhatsApp button is shown only with whatsapp_url, in a new tab without 
 test('the email line and the "no contact" line follow their exact conditions', function () {
     $source = pbnSource('js/pages/provider/bookings/index.tsx');
 
-    // The email: only for an answer of the provider (confirmed, or whatsapp_url present).
-    expect($source)->toMatch('/\{booking\.customer_email !== null &&\s*\(booking\.status === \'confirmed\' \|\|\s*booking\.whatsapp_url !== null\) && \(\s*<p\b[^>]*>\s*\{t\(\'provider\.bookings\.email_notice\', \{\s*email: booking\.customer_email,?\s*\}\)\}/');
-    // No contact: only a confirmed booking, where a missing whatsapp_url means a number that cannot be read.
-    expect($source)->toMatch('/\{booking\.status === \'confirmed\' &&\s*booking\.whatsapp_url === null &&\s*booking\.customer_email === null && \(\s*<p\b[^>]*>\s*\{t\(\'provider\.bookings\.no_contact\'\)\}/');
+    // The outcome comes from the server: the page no longer works it out from the status.
+    expect($source)->toMatch('/\{booking\.outcome !== null &&\s*booking\.customer_email !== null && \(\s*<p\b[^>]*>\s*\{t\(\'provider\.bookings\.email_notice\', \{\s*email: booking\.customer_email,?\s*\}\)\}/');
+    expect($source)->toMatch('/\{booking\.outcome !== null &&\s*booking\.whatsapp_url === null &&\s*booking\.customer_email === null && \(\s*<p\b[^>]*>\s*\{t\(\'provider\.bookings\.no_contact\'\)\}/');
+    // The notice block, from its comment to the end of the card, never reads the status.
+    expect(preg_match('/How the customer hears of the answer.*?<\/CardContent>/s', $source, $block))->toBe(1);
+    expect($block[0])->not->toContain('booking.status');
     expect(substr_count($source, "'provider.bookings.email_notice'"))->toBe(1);
     expect(substr_count($source, "'provider.bookings.no_contact'"))->toBe(1);
     expect($source)->not->toContain('mailto:')->not->toContain('tel:');

@@ -159,6 +159,7 @@ test('each booking has exactly the expected keys, and the private token is only 
         'can_confirm' => false,
         'can_reject' => false,
         'can_cancel' => true,
+        'outcome' => 'confirmed',
         // Confirmed, with a number that can be read: the answer for the customer, with the private
         // address. The number saved with spaces is read in international format.
         'whatsapp_url' => 'https://wa.me/393331234567?text='.rawurlencode(
