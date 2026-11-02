@@ -8,3 +8,10 @@ use Illuminate\Support\Facades\Schedule;
 Schedule::command('bookings:remind-pending')
     ->everyFifteenMinutes()
     ->withoutOverlapping();
+
+// The retention of the customers' data (issue #56), once a day. --force: nobody answers the
+// confirmation on the server. withoutOverlapping(): a long run is not doubled (AnonymizeOldBookings
+// also locks each booking).
+Schedule::command('bookings:anonymize-old --force')
+    ->daily()
+    ->withoutOverlapping();

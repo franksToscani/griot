@@ -15,7 +15,8 @@ use Carbon\CarbonImmutable;
  * - pending or confirmed → cancelled: the customer, up to the cancellation notice before the
  *   start, the limit included;
  * - anything else is refused: a cancelled booking never changes again, a confirmed one never goes
- *   back to pending.
+ *   back to pending, and the provider cannot change an anonymous booking (AnonymizeOldBookings):
+ *   there is no customer left to tell, and a new reason would be personal data written again.
  *
  * Every method reads the booking it receives and the clock, never the database: the callers pass
  * a row they have just read again under a lock.
@@ -45,12 +46,13 @@ final class BookingTransitions
     /**
      * Why the provider cannot confirm, or null if it can.
      *
-     * @return 'already_cancelled'|'not_pending'|'already_started'|null
+     * @return 'already_cancelled'|'anonymized'|'not_pending'|'already_started'|null
      */
     public function confirmRefusal(Booking $booking): ?string
     {
         return match (true) {
             $booking->status === BookingStatus::Cancelled => 'already_cancelled',
+            $booking->isAnonymized() => 'anonymized',
             $booking->status !== BookingStatus::Pending => 'not_pending',
             // Strictly before: at the exact start the slot has begun.
             ! CarbonImmutable::now()->lessThan($booking->starts_at) => 'already_started',
@@ -61,12 +63,13 @@ final class BookingTransitions
     /**
      * Why the provider cannot reject, or null if it can: a pending booking, even a past one.
      *
-     * @return 'already_cancelled'|'not_pending'|null
+     * @return 'already_cancelled'|'anonymized'|'not_pending'|null
      */
     public function rejectRefusal(Booking $booking): ?string
     {
         return match (true) {
             $booking->status === BookingStatus::Cancelled => 'already_cancelled',
+            $booking->isAnonymized() => 'anonymized',
             $booking->status !== BookingStatus::Pending => 'not_pending',
             default => null,
         };
@@ -75,12 +78,13 @@ final class BookingTransitions
     /**
      * Why the provider cannot cancel, or null if it can: a confirmed booking, even a past one.
      *
-     * @return 'already_cancelled'|'not_confirmed'|null
+     * @return 'already_cancelled'|'anonymized'|'not_confirmed'|null
      */
     public function providerCancelRefusal(Booking $booking): ?string
     {
         return match (true) {
             $booking->status === BookingStatus::Cancelled => 'already_cancelled',
+            $booking->isAnonymized() => 'anonymized',
             $booking->status !== BookingStatus::Confirmed => 'not_confirmed',
             default => null,
         };

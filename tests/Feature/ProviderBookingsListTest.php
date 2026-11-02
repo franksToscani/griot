@@ -168,6 +168,8 @@ test('each booking has exactly the expected keys, and the private token is only 
         ),
         // Sent by a customer from the public page.
         'created_by_provider' => false,
+        // The customer's data are still there (retention, DataRetentionTest).
+        'anonymized' => false,
     ]]);
     expect($props['filters'])->toBe(['status' => null, 'from' => null, 'to' => null]);
     // The token is in the whole response once, inside whatsapp_url; the props without that key

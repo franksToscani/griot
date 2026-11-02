@@ -21,7 +21,8 @@ test('the email line and the "no contact" line follow their exact conditions', f
     // The outcome comes from the server: the page no longer works it out from the status.
     // A booking the provider wrote and that is still confirmed got no email (issue #49).
     expect($source)->toMatch('/\{booking\.outcome !== null &&\s*booking\.customer_email !== null &&\s*!\(\s*booking\.created_by_provider &&\s*booking\.outcome === \'confirmed\'\s*\) && \(\s*<p\b[^>]*>\s*\{t\(\'provider\.bookings\.email_notice\', \{\s*email: booking\.customer_email,?\s*\}\)\}/');
-    expect($source)->toMatch('/\{booking\.outcome !== null &&\s*booking\.whatsapp_url === null &&\s*booking\.customer_email === null && \(\s*<p\b[^>]*>\s*\{t\(\'provider\.bookings\.no_contact\'\)\}/');
+    // Not for an anonymous booking: there is no customer left to contact (issue #56).
+    expect($source)->toMatch('/\{!booking\.anonymized &&\s*booking\.outcome !== null &&\s*booking\.whatsapp_url === null &&\s*booking\.customer_email === null && \(\s*<p\b[^>]*>\s*\{t\(\'provider\.bookings\.no_contact\'\)\}/');
     // The notice block, from its comment to the end of the card, never reads the status.
     expect(preg_match('/How the customer hears of the answer.*?<\/CardContent>/s', $source, $block))->toBe(1);
     expect($block[0])->not->toContain('booking.status');

@@ -14,7 +14,7 @@ use RuntimeException;
 final class TransitionNotAllowed extends RuntimeException
 {
     /**
-     * @param  'not_pending'|'not_confirmed'|'already_started'|'already_cancelled'|'too_late'  $reason
+     * @param  'not_pending'|'not_confirmed'|'already_started'|'already_cancelled'|'anonymized'|'too_late'  $reason
      */
     private function __construct(string $message, private readonly string $reason)
     {
@@ -23,7 +23,7 @@ final class TransitionNotAllowed extends RuntimeException
 
     /**
      * @param  'confirm'|'reject'|'cancel'  $action
-     * @param  'not_pending'|'not_confirmed'|'already_started'|'already_cancelled'|'too_late'  $reason
+     * @param  'not_pending'|'not_confirmed'|'already_started'|'already_cancelled'|'anonymized'|'too_late'  $reason
      */
     public static function because(Booking $booking, string $action, string $reason): self
     {
@@ -39,7 +39,7 @@ final class TransitionNotAllowed extends RuntimeException
     /**
      * Why the change is refused.
      *
-     * @return 'not_pending'|'not_confirmed'|'already_started'|'already_cancelled'|'too_late'
+     * @return 'not_pending'|'not_confirmed'|'already_started'|'already_cancelled'|'anonymized'|'too_late'
      */
     public function reason(): string
     {

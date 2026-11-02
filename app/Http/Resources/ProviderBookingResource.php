@@ -19,7 +19,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * one place only: inside whatsapp_url, the private address the provider sends to the customer,
  * and only for a booking the provider has answered. The customer's fields are data written by
  * the customer: the page shows them as plain text. The WhatsApp text is in the customer's language
- * (booking.locale), not in the provider's; the language itself is not sent to the page.
+ * (booking.locale), not in the provider's; the language itself is not sent to the page. An
+ * anonymous booking (AnonymizeOldBookings) has no customer's fields and no WhatsApp link: the page
+ * shows a translated "anonymous customer" instead.
  *
  * @mixin Booking
  */
@@ -76,6 +78,8 @@ class ProviderBookingResource extends JsonResource
             'whatsapp_url' => $this->whatsappUrl($outcome, $start, $end),
             // Written by the provider in the own agenda: no customer sent it and no email left.
             'created_by_provider' => $this->created_by_provider,
+            // The customer's data were removed (retention, issue #56): name and phone are null.
+            'anonymized' => $this->isAnonymized(),
         ];
     }
 
@@ -87,8 +91,9 @@ class ProviderBookingResource extends JsonResource
      */
     private function whatsappUrl(?BookingOutcome $outcome, CarbonImmutable $start, CarbonImmutable $end): ?string
     {
-        // The numbers saved before the form normalized them are read with the same rule.
-        $phone = PhoneNumber::normalize($this->customer_phone);
+        // The numbers saved before the form normalized them are read with the same rule. An
+        // anonymous booking has no number.
+        $phone = $this->customer_phone === null ? null : PhoneNumber::normalize($this->customer_phone);
 
         if ($outcome === null || $phone === null) {
             return null;
