@@ -79,6 +79,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Retention of the Customers' Data
+    |--------------------------------------------------------------------------
+    |
+    | The customer's data of a booking (name, phone, email, notes) are made
+    | anonymous this many months after the booking ended, or after it started
+    | for a request that never got an answer. The privacy page shows this
+    | number; the command that applies it comes with issue #56, phase 2.
+    |
+    */
+
+    'anonymize_after_months' => 6,
+
+    /*
+    |--------------------------------------------------------------------------
     | Rate Limits
     |--------------------------------------------------------------------------
     |

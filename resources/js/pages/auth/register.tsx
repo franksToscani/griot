@@ -1,6 +1,7 @@
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
+import { PrivacyLink } from '@/components/privacy-link';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -106,6 +107,11 @@ export default function Register({ passwordRules }: Props) {
                                 {processing && <Spinner />}
                                 {t('account.register.submit')}
                             </Button>
+
+                            <p className="text-center text-xs text-muted-foreground">
+                                {t('account.register.privacy_note')}{' '}
+                                <PrivacyLink />
+                            </p>
                         </div>
 
                         <div className="text-center text-sm text-muted-foreground">

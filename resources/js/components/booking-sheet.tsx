@@ -7,6 +7,7 @@ import {
     CustomerFields,
 } from '@/components/booking-fields';
 import InputError from '@/components/input-error';
+import { PrivacyLink } from '@/components/privacy-link';
 import { Button } from '@/components/ui/button';
 import {
     Sheet,
@@ -170,6 +171,10 @@ export function BookingSheet({ providerSlug, service, bookingWindow }: Props) {
                                 {processing && <Spinner />}
                                 {t('booking.form.submit')}
                             </Button>
+
+                            <p className="text-xs text-muted-foreground">
+                                {t('booking.form.privacy_note')} <PrivacyLink />
+                            </p>
                         </>
                     )}
                 </Form>

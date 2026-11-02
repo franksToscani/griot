@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import AppLogo from '@/components/app-logo';
 import { LocaleSwitcher } from '@/components/locale-switcher';
 import { useTranslation } from '@/hooks/use-translation';
-import { dashboard, home, login } from '@/routes';
+import { dashboard, home, login, privacy } from '@/routes';
 
 // Layout for the public pages that customers see without logging in.
 export default function PublicLayout({ children }: { children: ReactNode }) {
@@ -34,6 +34,16 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
                 {children}
             </main>
+            <footer className="border-t">
+                <div className="mx-auto w-full max-w-6xl px-4 py-4 text-sm text-muted-foreground">
+                    <Link
+                        href={privacy()}
+                        className="underline underline-offset-4"
+                    >
+                        {t('privacy.link')}
+                    </Link>
+                </div>
+            </footer>
         </div>
     );
 }
