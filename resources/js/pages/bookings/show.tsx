@@ -16,7 +16,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslation } from '@/hooks/use-translation';
-import { centsToPrice, formatPrice, priceToCents } from '@/lib/format';
+import {
+    centsToPrice,
+    formatLongDate,
+    formatPrice,
+    priceToCents,
+} from '@/lib/format';
 import { show as providerShow } from '@/routes/providers';
 import type { BookingConfirmation } from '@/types';
 
@@ -44,12 +49,8 @@ export default function BookingsShow({
             0,
         );
 
-    // The date is already the provider's local day: read at midnight UTC and formatted in UTC,
-    // so the browser's time zone cannot move it to another day.
-    const date = new Intl.DateTimeFormat(locale, {
-        dateStyle: 'full',
-        timeZone: 'UTC',
-    }).format(new Date(`${booking.local_date}T00:00:00Z`));
+    // The date is already the provider's local day (see formatLongDate).
+    const date = formatLongDate(locale, booking.local_date);
 
     const copyLink = async () => {
         try {

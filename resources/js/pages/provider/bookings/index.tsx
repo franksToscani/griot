@@ -26,7 +26,12 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from '@/hooks/use-translation';
-import { centsToPrice, formatPrice, priceToCents } from '@/lib/format';
+import {
+    centsToPrice,
+    formatLongDate,
+    formatPrice,
+    priceToCents,
+} from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 // Explicit names: '@/routes/bookings' has the customer's own "cancel".
@@ -233,11 +238,8 @@ function BookingFilters({
 function BookingCard({ booking }: { booking: ProviderBooking }) {
     const { t, locale } = useTranslation();
     const pending = booking.status === 'pending';
-    // The date is already the provider's local day: read and written in UTC, so it never moves.
-    const date = new Intl.DateTimeFormat(locale, {
-        dateStyle: 'full',
-        timeZone: 'UTC',
-    }).format(new Date(`${booking.local_date}T00:00:00Z`));
+    // The date is already the provider's local day (see formatLongDate).
+    const date = formatLongDate(locale, booking.local_date);
 
     return (
         <Card className={cn(pending && 'border-2 border-primary')}>
