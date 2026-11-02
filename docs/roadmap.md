@@ -435,7 +435,7 @@ Si parte con la A per i primi due o tre provider; la C diventa utile per una pro
 - Il comando è `bookings:anonymize-old`: `--dry-run` conta senza modificare, `--force` salta la conferma. Lo scheduler lo lancia ogni giorno con `--force`.
 - La regola sta solo nello scope `Booking::dueForAnonymization()`; la pagina `/privacy` legge lo stesso numero di mesi dal config.
 - Dati tecnici: lo scheduler lancia ogni giorno `queue:prune-failed --hours=720` (i job falliti, che contengono anche l'email del cliente, restano 30 giorni) e `auth:clear-resets` (i token di reset della password scaduti). Le sessioni le cancella già Laravel.
-- In produzione l'app rifiuta di avviarsi con `MAIL_MAILER=log` o `array` (`App\Support\ProductionMailer`): con `log` le email intere, link privati compresi, finirebbero nel registro. Per i log `.env.example` indica `LOG_CHANNEL=stderr` oppure `daily` con `LOG_DAILY_DAYS=14`.
+- In produzione, con `MAIL_MAILER=log` o `array`, si fermano le pagine web, il lavoratore delle code (`queue:work`, `queue:listen`) e lo scheduler (`schedule:run`, `schedule:work`): sono i punti da cui partono le email (`App\Support\ProductionMailer`). Con `log` le email intere, link privati compresi, finirebbero nel registro. Gli altri comandi non si fermano: `composer install` senza `.env` (clone nuovo, CI), `migrate`, la build. Per i log `.env.example` indica `LOG_CHANNEL=stderr` oppure `daily` con `LOG_DAILY_DAYS=14`.
 
 **Attività tecniche**
 
@@ -501,7 +501,7 @@ Griot va online in modo sicuro, prima per i provider pilota e poi per un pubblic
 
 **Email in produzione** _Come cliente e provider voglio ricevere le email, per sapere come è andata la prenotazione._
 
-- Un servizio di invio configurato, con il dominio verificato. `MAIL_MAILER` deve essere un servizio vero: con `log` o `array` l'app in produzione non si avvia (issue #56).
+- Un servizio di invio configurato, con il dominio verificato. `MAIL_MAILER` deve essere un servizio vero: con `log` o `array` in produzione non partono le pagine web, le code e lo scheduler (issue #56); `migrate` e la build invece funzionano, quindi l'errore si vede al primo accesso o all'avvio del lavoratore, non nella build.
 - Prova end to end: una prenotazione di prova genera l'email al provider e, alla conferma, al cliente.
 - Gli errori di invio finiscono in un registro leggibile e non rompono la prenotazione.
 
