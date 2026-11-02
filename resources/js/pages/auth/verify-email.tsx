@@ -15,7 +15,7 @@ export default function VerifyEmail({ status }: { status?: string }) {
             <Head title={t('account.verify.title')} />
 
             {status === 'verification-link-sent' && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                <div className="mb-4 text-center text-sm font-medium text-green-700 dark:text-green-600">
                     {t('account.verify.sent')}
                 </div>
             )}
