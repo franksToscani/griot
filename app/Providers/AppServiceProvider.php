@@ -3,13 +3,16 @@
 namespace App\Providers;
 
 use App\Models\Provider;
+use App\Support\ProductionMailer;
 use Carbon\CarbonImmutable;
 use Closure;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -31,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->configureProductionMailer();
         $this->configureDefaults();
         $this->configureRouteBindings();
         $this->configureRateLimiting();
@@ -158,6 +162,23 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('provider-bookings', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_provider_bookings_per_minute'))
             ->by('user:'.$request->user()?->id)
             ->response($tooMany('booking')));
+    }
+
+    /**
+     * In production, refuse a mailer that does not send (ProductionMailer) where an email can leave:
+     * a web request stops here, before anything else is configured; the queue workers and the
+     * scheduler stop before they start. The other commands (package:discover in "composer install"
+     * without .env, migrate, the build) are never stopped.
+     */
+    protected function configureProductionMailer(): void
+    {
+        if (! $this->app->runningInConsole()) {
+            ProductionMailer::ensureItSends($this->app);
+        }
+
+        Event::listen(CommandStarting::class, function (CommandStarting $event): void {
+            ProductionMailer::ensureItSendsBefore($event->command, $this->app);
+        });
     }
 
     /**
