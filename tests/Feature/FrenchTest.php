@@ -15,12 +15,12 @@ use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
 
 // French (issue #54): written in phase 2, open to everyone since phase 3a-3. APP_PREVIEW_LOCALES is
-// kept for the languages that are known but not open yet: English.
+// kept for languages that are known but not open yet: today none, since English is open too.
 
 /**
  * The available locales of config/app.php, read again with APP_PREVIEW_LOCALES set to $preview, or
  * unset when null. With $base, the lang/ files are looked for there instead of in the project (a
- * temporary folder with a written English). The variable and the base path are put back as they were.
+ * temporary folder, see frtBaseWith()). The variable and the base path are put back as they were.
  *
  * @return array<string, string>
  */
@@ -57,14 +57,14 @@ function frtLocales(?string $preview, ?string $base = null): array
 }
 
 /**
- * A temporary folder that looks like a project with a written English (lang/en.json), outside the
- * real project, so no file appears in lang/.
+ * A temporary folder that looks like a project where the language $code is written
+ * (lang/{code}.json), outside the real project, so no file appears in lang/.
  */
-function frtBaseWithEnglish(): string
+function frtBaseWith(string $code): string
 {
     $base = sys_get_temp_dir().'/griot-lang-'.bin2hex(random_bytes(6));
     mkdir("{$base}/lang", recursive: true);
-    file_put_contents("{$base}/lang/en.json", '{}');
+    file_put_contents("{$base}/lang/{$code}.json", '{}');
 
     return $base;
 }
@@ -117,43 +117,42 @@ function frtTexts(): array
 // Preview
 // ---------------------------------------------------------------------------------------------
 
-test('without APP_PREVIEW_LOCALES Italian and French are available', function () {
-    expect(frtLocales(null))->toBe(['it' => 'Italiano', 'fr' => 'Français'])
-        ->and(frtLocales(''))->toBe(['it' => 'Italiano', 'fr' => 'Français']);
+test('without APP_PREVIEW_LOCALES Italian, French and English are available', function () {
+    expect(frtLocales(null))->toBe(['it' => 'Italiano', 'fr' => 'Français', 'en' => 'English'])
+        ->and(frtLocales(''))->toBe(['it' => 'Italiano', 'fr' => 'Français', 'en' => 'English']);
     // The tests themselves start from there (phpunit.xml).
-    expect(config()->array('app.available_locales'))->toBe(['it' => 'Italiano', 'fr' => 'Français']);
+    expect(config()->array('app.available_locales'))->toBe(['it' => 'Italiano', 'fr' => 'Français', 'en' => 'English']);
 });
 
-test('APP_PREVIEW_LOCALES does not add English while lang/en.json does not exist', function (string $preview) {
-    expect(is_file(lang_path('en.json')))->toBeFalse();
-    expect(frtLocales($preview))->toBe(['it' => 'Italiano', 'fr' => 'Français']);
+test('APP_PREVIEW_LOCALES never repeats an open language', function (string $preview) {
+    expect(frtLocales($preview))->toBe(['it' => 'Italiano', 'fr' => 'Français', 'en' => 'English']);
 })->with([
     'en' => 'en',
-    'with spaces and an unknown language' => ' en , de ',
+    'with spaces' => ' en , fr ',
     'the open ones repeated' => 'it,fr,en',
 ]);
 
-test('APP_PREVIEW_LOCALES adds a known language once it is written, and only the known ones', function (string $preview) {
-    $base = frtBaseWithEnglish();
+test('APP_PREVIEW_LOCALES never adds an unknown language, even with its file written', function (string $preview) {
+    // Every known language is open today, so nothing can be added: a language must be listed in
+    // config/app.php first. A written German in a temporary project shows that the file alone is not enough.
+    $base = frtBaseWith('de');
 
     try {
         expect(frtLocales($preview, $base))->toBe(['it' => 'Italiano', 'fr' => 'Français', 'en' => 'English']);
-        // Without the variable, a written English stays closed.
-        expect(frtLocales(null, $base))->toBe(['it' => 'Italiano', 'fr' => 'Français']);
     } finally {
-        unlink("{$base}/lang/en.json");
+        unlink("{$base}/lang/de.json");
         rmdir("{$base}/lang");
         rmdir($base);
     }
 
     expect(base_path())->toBe(dirname(__DIR__, 2));
 })->with([
-    'en' => 'en',
-    'with spaces and an unknown language' => ' en , de ',
+    'de' => 'de',
+    'with spaces' => ' de , es ',
 ]);
 
 test('APP_PREVIEW_LOCALES with only unknown languages adds nothing', function () {
-    expect(frtLocales('de,es'))->toBe(['it' => 'Italiano', 'fr' => 'Français']);
+    expect(frtLocales('de,es'))->toBe(['it' => 'Italiano', 'fr' => 'Français', 'en' => 'English']);
 });
 
 test('the example environment documents the variable, commented and empty', function () {
@@ -172,7 +171,7 @@ test('with the cookie a page is in French, with the French translations', functi
 
     expect($props['locale'])->toBe('fr')
         ->and($props['translations'])->toHaveKey('providers.list.title', 'Trouver un professionnel')
-        ->and($props['locales'])->toBe([['code' => 'it', 'name' => 'Italiano'], ['code' => 'fr', 'name' => 'Français']]);
+        ->and($props['locales'])->toBe([['code' => 'it', 'name' => 'Italiano'], ['code' => 'fr', 'name' => 'Français'], ['code' => 'en', 'name' => 'English']]);
     $response->assertSee('<html lang="fr"', false);
 });
 
@@ -315,10 +314,10 @@ test('the Italian texts changed in this phase are exactly the expected ones', fu
 // Open to everyone (phase 3a-3), without any variable
 // ---------------------------------------------------------------------------------------------
 
-test('without any variable the selector offers Italian and French, on public and login pages', function (string $route) {
+test('without any variable the selector offers Italian, French and English, on public and login pages', function (string $route) {
     $props = frtProps($this->get(route($route)));
 
-    expect($props['locales'])->toBe([['code' => 'it', 'name' => 'Italiano'], ['code' => 'fr', 'name' => 'Français']])
+    expect($props['locales'])->toBe([['code' => 'it', 'name' => 'Italiano'], ['code' => 'fr', 'name' => 'Français'], ['code' => 'en', 'name' => 'English']])
         // Still Italian until someone chooses.
         ->and($props['locale'])->toBe('it');
 })->with(['providers.index', 'login']);
@@ -351,12 +350,12 @@ test('a booking sent with the cookie fr keeps French as the customer\'s language
     expect(Booking::query()->sole()->locale)->toBe('fr');
 });
 
-test('English is not accepted while it is not open: cookie, selector and provider form', function () {
+test('a language that is not open is not accepted: cookie, selector and provider form', function () {
     // The cookie: Italian.
-    expect(frtProps($this->withCookie('locale', 'en')->get(route('providers.index')))['locale'])->toBe('it');
+    expect(frtProps($this->withCookie('locale', 'de')->get(route('providers.index')))['locale'])->toBe('it');
 
     // The selector: refused.
-    $this->from('/providers')->post(route('locale.update'), ['locale' => 'en'])
+    $this->from('/providers')->post(route('locale.update'), ['locale' => 'de'])
         ->assertSessionHasErrors(['locale' => 'Il valore scelto per lingua non è valido.'])
         ->assertCookieMissing('locale');
 
@@ -371,7 +370,7 @@ test('English is not accepted while it is not open: cookie, selector and provide
         'starts_at' => '2026-11-02T09:00:00Z',
         'customer_name' => 'Awa Diop',
         'customer_phone' => '+33612345678',
-        'customer_locale' => 'en',
+        'customer_locale' => 'de',
     ])->assertSessionHasErrors(['customer_locale' => 'Scegli una lingua tra quelle disponibili.']);
 
     expect(Booking::query()->count())->toBe(0);

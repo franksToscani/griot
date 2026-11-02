@@ -1,8 +1,33 @@
 import type { TranslateFn } from '@/hooks/use-translation';
 
-// "90.00" becomes "90,00 €" for the "it" locale.
+// The language of the site as Intl reads it. The one place where a language becomes a regional
+// variant: "en" is British English, as Carbon writes it on the server ("Thursday 29 October 2026",
+// "€90.00"). The other languages stay as they are.
+export function intlLocale(locale: string): string {
+    return locale === 'en' ? 'en-GB' : locale;
+}
+
+// A local day "Y-m-d" written in full, the same text as LocalTime::longDate() on the server:
+// "giovedì 29 ottobre 2026", "jeudi 29 octobre 2026", "Thursday 29 October 2026". The parts are
+// joined with spaces, since Intl adds a comma after the English weekday that Carbon does not write.
+// The day is read at midnight UTC and written in UTC, so the browser's time zone cannot move it.
+export function formatLongDate(locale: string, day: string): string {
+    return new Intl.DateTimeFormat(intlLocale(locale), {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+    })
+        .formatToParts(new Date(`${day}T00:00:00Z`))
+        .filter((part) => part.type !== 'literal')
+        .map((part) => part.value)
+        .join(' ');
+}
+
+// "90.00" becomes "90,00 €" for the "it" locale, "€90.00" for "en".
 export function formatPrice(locale: string, price: string): string {
-    return new Intl.NumberFormat(locale, {
+    return new Intl.NumberFormat(intlLocale(locale), {
         style: 'currency',
         currency: 'EUR',
     }).format(Number(price));
