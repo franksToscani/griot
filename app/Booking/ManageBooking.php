@@ -63,7 +63,7 @@ final class ManageBooking
 
     /**
      * @param  'confirm'|'reject'|'cancel'  $action
-     * @param  Closure(Booking): ('not_pending'|'not_confirmed'|'already_started'|'already_cancelled'|null)  $refusal
+     * @param  Closure(Booking): ('not_pending'|'not_confirmed'|'already_started'|'already_cancelled'|'anonymized'|null)  $refusal
      * @param  Closure(Booking): void  $apply
      */
     private function change(Booking $booking, string $action, Closure $refusal, Closure $apply): Booking

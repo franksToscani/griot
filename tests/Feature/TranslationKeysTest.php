@@ -143,7 +143,7 @@ function trkDynamicKeys(): array
         ...array_map(fn (string $outcome) => "booking.notice.subject_{$outcome}", $outcomes),
         ...array_map(fn (string $outcome) => "booking.notice.{$outcome}", $outcomes),
         // The provider's answers (BookingTransitions' reasons).
-        ...array_map(fn (string $reason) => "provider.bookings.transition.{$reason}", ['not_pending', 'not_confirmed', 'already_started', 'already_cancelled']),
+        ...array_map(fn (string $reason) => "provider.bookings.transition.{$reason}", ['not_pending', 'not_confirmed', 'already_started', 'already_cancelled', 'anonymized']),
         // dashboard.tsx (PublishingRequirements' codes).
         ...array_map(fn (string $code) => "provider.publish.missing_{$code}", ['name', 'city', 'service', 'availability']),
         // provider/bookings/index.tsx.

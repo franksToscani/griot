@@ -427,6 +427,14 @@ Si parte con la A per i primi due o tre provider; la C diventa utile per una pro
 - Informativa breve nel form di prenotazione, con link a una pagina dedicata.
 - Una regola di conservazione scritta (per esempio cancellare o anonimizzare i dati dei clienti dopo un certo periodo) e un comando che la applica.
 
+**Regola di conservazione dei dati dei clienti (decisa, issue #56)**
+
+- Una prenotazione finita (`ends_at`) da più di `config('booking.anonymize_after_months')` mesi (oggi 6) viene resa anonima, in qualunque stato: confermata e conclusa, annullata, in attesa senza risposta.
+- Si svuotano nome, telefono, email, note e motivo dell'annullamento; si scrive `anonymized_at` e si rigenera il `public_token`, così il vecchio link privato dà 404.
+- La riga resta per lo storico del provider: servizio, opzioni, data, stato, chi ha annullato, lingua. Il provider la vede come « Cliente anonimo » e non può più cambiarla.
+- Il comando è `bookings:anonymize-old`: `--dry-run` conta senza modificare, `--force` salta la conferma. Lo scheduler lo lancia ogni giorno con `--force`.
+- La regola sta solo nello scope `Booking::dueForAnonymization()`; la pagina `/privacy` legge lo stesso numero di mesi dal config.
+
 **Attività tecniche**
 
 - Libreria di traduzioni per React (da scegliere) e file per IT, FR, EN.

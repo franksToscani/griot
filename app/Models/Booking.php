@@ -32,6 +32,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * RemindPendingBookings writes it, once, with the query builder, so updated_at does not change.
  * locale (the customer's language, for the emails and the WhatsApp text) is not fillable either:
  * CreateBooking sets it, never from the input of the request.
+ * anonymized_at (when the customer's data were removed, issue #56) is not fillable either: only
+ * AnonymizeOldBookings writes it, with the query builder, together with the empty customer's
+ * fields and a new public_token. An anonymous booking has no customer_name and no customer_phone.
  *
  * @property CarbonImmutable $starts_at
  * @property CarbonImmutable $ends_at
@@ -41,6 +44,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property bool $created_by_provider
  * @property CarbonImmutable|null $reminder_sent_at
  * @property string $locale
+ * @property string|null $customer_name
+ * @property string|null $customer_phone
+ * @property string|null $customer_email
+ * @property string|null $notes
+ * @property CarbonImmutable|null $anonymized_at
  */
 class Booking extends Model
 {
@@ -91,6 +99,7 @@ class Booking extends Model
             'cancelled_by' => CancelledBy::class,
             'created_by_provider' => 'boolean',
             'reminder_sent_at' => 'datetime',
+            'anonymized_at' => 'datetime',
         ];
     }
 
@@ -137,6 +146,32 @@ class Booking extends Model
             ->whereNull('reminder_sent_at')
             ->where('created_at', '<=', CarbonImmutable::instance($createdBefore)->utc())
             ->where('starts_at', '>', CarbonImmutable::now()->utc());
+    }
+
+    /**
+     * Only the bookings whose customer's data must be made anonymous now: ended before $before, in
+     * any status (confirmed and over, cancelled, or pending and never answered), and not anonymous
+     * yet. A booking that ends at $before or later is never touched. The one place where the
+     * retention rule is written: AnonymizeOldBookings reads the bookings with this scope, and reads
+     * each one again with it under the lock.
+     *
+     * @param  Builder<Booking>  $query
+     */
+    #[Scope]
+    protected function dueForAnonymization(Builder $query, CarbonInterface $before): void
+    {
+        // Moved to UTC first, like the stored values (see overlapping()).
+        $query
+            ->whereNull('anonymized_at')
+            ->where('ends_at', '<', CarbonImmutable::instance($before)->utc());
+    }
+
+    /**
+     * Whether the customer's data of this booking were made anonymous.
+     */
+    public function isAnonymized(): bool
+    {
+        return $this->anonymized_at !== null;
     }
 
     /**

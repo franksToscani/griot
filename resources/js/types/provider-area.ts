@@ -84,9 +84,9 @@ export type ProviderBooking = {
     local_date: string;
     local_start: string;
     local_end: string;
-    // Written by the customer: shown as plain text only.
-    customer_name: string;
-    customer_phone: string;
+    // Written by the customer: shown as plain text only. Null once the booking is anonymous.
+    customer_name: string | null;
+    customer_phone: string | null;
     customer_email: string | null;
     notes: string | null;
     service: { name: string };
@@ -106,6 +106,8 @@ export type ProviderBooking = {
     outcome: 'confirmed' | 'rejected' | 'cancelled' | null;
     // Written by the provider in the own agenda, born confirmed with no email to the customer.
     created_by_provider: boolean;
+    // The customer's data were removed after the retention period: no name, phone or email.
+    anonymized: boolean;
 };
 
 // The "filters" prop of the bookings page: the active ones, null when missing.

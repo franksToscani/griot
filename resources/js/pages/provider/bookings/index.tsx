@@ -256,12 +256,22 @@ function BookingCard({ booking }: { booking: ProviderBooking }) {
             </CardHeader>
             <CardContent className="flex flex-col gap-3 text-sm">
                 <div className="flex flex-col gap-1">
-                    <p className="font-medium break-words">
-                        {booking.customer_name}
-                    </p>
-                    <p className="break-words">
-                        {t('provider.bookings.phone')}: {booking.customer_phone}
-                    </p>
+                    {/* An anonymous booking keeps no name and no phone: a translated label only. */}
+                    {booking.anonymized ? (
+                        <p className="text-muted-foreground italic">
+                            {t('provider.bookings.anonymous_customer')}
+                        </p>
+                    ) : (
+                        <p className="font-medium break-words">
+                            {booking.customer_name}
+                        </p>
+                    )}
+                    {booking.customer_phone !== null && (
+                        <p className="break-words">
+                            {t('provider.bookings.phone')}:{' '}
+                            {booking.customer_phone}
+                        </p>
+                    )}
                     {booking.customer_email !== null && (
                         <p className="break-all">
                             {t('provider.bookings.email')}:{' '}
@@ -389,7 +399,8 @@ function BookingCard({ booking }: { booking: ProviderBooking }) {
                             })}
                         </p>
                     )}
-                {booking.outcome !== null &&
+                {!booking.anonymized &&
+                    booking.outcome !== null &&
                     booking.whatsapp_url === null &&
                     booking.customer_email === null && (
                         <p className="text-muted-foreground">
