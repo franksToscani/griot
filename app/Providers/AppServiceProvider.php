@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Provider;
+use App\Support\ProductionMailer;
 use Carbon\CarbonImmutable;
 use Closure;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -31,6 +32,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // First: in production with a mailer that does not send, nothing else is configured.
+        ProductionMailer::ensureItSends($this->app);
+
         $this->configureDefaults();
         $this->configureRouteBindings();
         $this->configureRateLimiting();
