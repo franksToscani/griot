@@ -4,6 +4,7 @@ use App\Http\Controllers\BookingCancellationController;
 use App\Http\Controllers\BookingConfirmationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\ProviderAvailabilityDestroyController;
 use App\Http\Controllers\ProviderAvailabilityIndexController;
 use App\Http\Controllers\ProviderAvailabilityStoreController;
@@ -50,6 +51,9 @@ Route::get('/', fn () => redirect()->route('providers.index'))->name('home');
 
 // The language selector, for everyone: it only writes the "locale" cookie and goes back.
 Route::post('locale', LocaleController::class)->name('locale.update');
+
+// The privacy page, for everyone.
+Route::get('privacy', PrivacyController::class)->name('privacy');
 
 Route::get('providers', [ProviderController::class, 'index'])->name('providers.index');
 Route::get('providers/{slug}', [ProviderController::class, 'show'])->name('providers.show');
