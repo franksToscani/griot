@@ -261,7 +261,10 @@ test('the link of the forms opens the page in a new tab, without the opener', fu
         ->toContain('target="_blank"')
         ->toContain('rel="noopener noreferrer"')
         ->toContain("{t('privacy.link')}")
-        ->toContain("{t('privacy.new_tab')}");
+        // The "new tab" notice, shared with every link that opens a new tab (issue #55).
+        ->toMatch("/\\{t\\('privacy\\.link'\\)\\}\\s*<NewTabHint \\/>\\s*<\\/a>/");
+    expect((string) file_get_contents(resource_path('js/components/new-tab-hint.tsx')))
+        ->toContain("<span className=\"sr-only\"> {t('privacy.new_tab')}</span>");
 });
 
 test('the booking form has a short line with the link, under the button', function () {
@@ -298,6 +301,7 @@ test('every privacy text exists in the three languages, and every one is used by
 
     $sources = (string) file_get_contents(resource_path('js/pages/privacy.tsx'))
         .file_get_contents(resource_path('js/components/privacy-link.tsx'))
+        .file_get_contents(resource_path('js/components/new-tab-hint.tsx'))
         .file_get_contents(resource_path('js/layouts/public-layout.tsx'));
 
     foreach ($italian as $key) {

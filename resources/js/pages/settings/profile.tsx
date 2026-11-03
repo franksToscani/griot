@@ -104,14 +104,17 @@ export default function Profile({
                                             </Link>
                                         </p>
 
-                                        {status ===
-                                            'verification-link-sent' && (
-                                            <div className="mt-2 text-sm font-medium text-green-700 dark:text-green-600">
-                                                {t(
-                                                    'settings.profile.link_sent',
-                                                )}
-                                            </div>
-                                        )}
+                                        {/* Always on the page, so that the message is read when it appears. */}
+                                        <div role="status">
+                                            {status ===
+                                                'verification-link-sent' && (
+                                                <p className="mt-2 text-sm font-medium text-green-700 dark:text-green-600">
+                                                    {t(
+                                                        'settings.profile.link_sent',
+                                                    )}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
 

@@ -14,11 +14,14 @@ export default function VerifyEmail({ status }: { status?: string }) {
         <>
             <Head title={t('account.verify.title')} />
 
-            {status === 'verification-link-sent' && (
-                <div className="mb-4 text-center text-sm font-medium text-green-700 dark:text-green-600">
-                    {t('account.verify.sent')}
-                </div>
-            )}
+            {/* Always on the page, so that the message is read when it appears. */}
+            <div role="status">
+                {status === 'verification-link-sent' && (
+                    <p className="mb-4 text-center text-sm font-medium text-green-700 dark:text-green-600">
+                        {t('account.verify.sent')}
+                    </p>
+                )}
+            </div>
 
             <Form {...send.form()} className="space-y-6 text-center">
                 {({ processing }) => (

@@ -6,8 +6,12 @@ import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 import PublicLayout from '@/layouts/public-layout';
 import SettingsLayout from '@/layouts/settings/layout';
+import { syncDocumentLanguage } from '@/lib/document-language';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Griot';
+
+// Before the app starts: <html lang> and the toasts' label follow every page, the first included.
+syncDocumentLanguage();
 
 void createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),

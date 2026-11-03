@@ -132,10 +132,12 @@ function AvatarForm({
                 >
                     {({ processing, errors }) => (
                         <>
+                            {/* Alone above the upload field: the photo has its own alternative text. */}
                             <ProviderAvatar
                                 name={name}
                                 avatarUrl={avatarUrl}
                                 className="size-24 text-2xl"
+                                decorative={false}
                             />
                             <div className="grid gap-2">
                                 <Label htmlFor="avatar">
