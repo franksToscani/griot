@@ -141,3 +141,29 @@
         @apply bg-background text-foreground;
     }
 }
+
+/*
+ * "Reduce motion" in the system or the browser (issue #55): animations and transitions end at
+ * once. One rule for the kit, Radix (dialogs, sheets, lists), Sonner and what comes later.
+ * 0.01ms and not "none": Radix waits for the end of an animation before removing a closed panel,
+ * and the end comes at once. The delays are zeroed too, or a delayed animation would still wait.
+ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+        animation-duration: 0.01ms !important;
+        animation-delay: 0s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
+        scroll-behavior: auto !important;
+    }
+
+    /* The loading spinner keeps turning, slower: small, in place and short, it says that the
+       page is working. Stopped, it would look like a page that hangs. More specific than *. */
+    .animate-spin {
+        animation-duration: 1.5s !important;
+        animation-iteration-count: infinite !important;
+    }
+}

@@ -6,6 +6,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { logout } from '@/routes';
 import { send } from '@/routes/verification';
 import { useTranslation } from '@/hooks/use-translation';
+import { touchTarget } from '@/lib/touch-target';
+import { cn } from '@/lib/utils';
 
 export default function VerifyEmail({ status }: { status?: string }) {
     const { t } = useTranslation();
@@ -31,9 +33,14 @@ export default function VerifyEmail({ status }: { status?: string }) {
                             {t('account.verify.resend')}
                         </Button>
 
+                        {/* Centred on the page: on phones "Esci" is narrower than its 44px box,
+                            so the word is centred in the box too. */}
                         <TextLink
                             href={logout()}
-                            className="mx-auto block text-sm"
+                            className={cn(
+                                'mx-auto block text-sm max-md:justify-center',
+                                touchTarget,
+                            )}
                         >
                             {t('nav.logout')}
                         </TextLink>

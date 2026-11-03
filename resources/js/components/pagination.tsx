@@ -1,11 +1,16 @@
 import { Link } from '@inertiajs/react';
 import { useTranslation } from '@/hooks/use-translation';
+import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
 import type { Paginated } from '@/types';
 
 type Props = Pick<Paginated<unknown>, 'links' | 'meta'>;
 
-const linkClass = 'rounded-md border px-3 py-1.5 text-sm';
+// On phones each link is at least 44x44: a square for a page number.
+const linkClass = cn(
+    'rounded-md border px-3 py-1.5 text-sm max-md:min-w-11 max-md:justify-center',
+    touchTarget,
+);
 
 export function Pagination({ links, meta }: Props) {
     const { t } = useTranslation();

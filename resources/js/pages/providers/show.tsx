@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatDuration, formatOptionExtras, formatPrice } from '@/lib/format';
+import { touchTarget } from '@/lib/touch-target';
+import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { index } from '@/routes/providers';
 import type { BookingWindow, ProviderProfile, Service } from '@/types';
@@ -19,11 +21,12 @@ type Props = {
     preview: boolean;
 };
 
-// External links open in a new tab without giving the new page access to this one.
+// External links open in a new tab without giving the new page access to this one; alone in
+// their line, they get a finger-sized target on phones.
 const externalLink = {
     target: '_blank',
     rel: 'noopener noreferrer',
-    className: 'underline underline-offset-4',
+    className: cn('underline underline-offset-4', touchTarget),
 } as const;
 
 export default function ProvidersShow({
@@ -53,7 +56,10 @@ export default function ProvidersShow({
 
                 <Link
                     href={preview ? dashboard() : index()}
-                    className="text-sm text-muted-foreground underline underline-offset-4"
+                    className={cn(
+                        'text-sm text-muted-foreground underline underline-offset-4',
+                        touchTarget,
+                    )}
                 >
                     {preview
                         ? t('provider.preview.back')
