@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { update } from '@/routes/password';
 import { useTranslation } from '@/hooks/use-translation';
+import { errorId, fieldA11y, focusFirstInvalid } from '@/lib/form-a11y';
 
 type Props = {
     token: string;
@@ -22,6 +23,8 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
             <Head title={t('account.reset.title')} />
 
             <Form
+                id="reset-password-form"
+                onError={() => focusFirstInvalid('reset-password-form')}
                 {...update.form()}
                 transform={(data) => ({ ...data, token, email })}
                 resetOnSuccess={['password', 'password_confirmation']}
@@ -40,8 +43,10 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                                 value={email}
                                 className="mt-1 block w-full"
                                 readOnly
+                                {...fieldA11y('email', errors.email)}
                             />
                             <InputError
+                                id={errorId('email')}
                                 message={errors.email}
                                 className="mt-2"
                             />
@@ -59,8 +64,12 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                                 autoFocus
                                 placeholder={t('common.password')}
                                 passwordrules={passwordRules}
+                                {...fieldA11y('password', errors.password)}
                             />
-                            <InputError message={errors.password} />
+                            <InputError
+                                id={errorId('password')}
+                                message={errors.password}
+                            />
                         </div>
 
                         <div className="grid gap-2">
@@ -74,8 +83,13 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                                 className="mt-1 block w-full"
                                 placeholder={t('common.confirm_password')}
                                 passwordrules={passwordRules}
+                                {...fieldA11y(
+                                    'password_confirmation',
+                                    errors.password_confirmation,
+                                )}
                             />
                             <InputError
+                                id={errorId('password_confirmation')}
                                 message={errors.password_confirmation}
                                 className="mt-2"
                             />

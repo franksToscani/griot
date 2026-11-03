@@ -23,6 +23,7 @@
     "booking.form.choose_day": "Choose a day to see the time slots.",
     "booking.form.slots_loading": "Loading time slots…",
     "booking.form.no_slots": "No free time slots on this day.",
+    "booking.form.slots_found": "Available time slots: :count.",
     "booking.form.slots_error": "The time slots could not be loaded. Please try again.",
     "booking.form.name": "Name",
     "booking.form.phone": "Phone",

@@ -1,5 +1,5 @@
 import { Form, Head, Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import InputError from '@/components/input-error';
 import { Pagination } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
@@ -78,6 +78,15 @@ export default function ProviderBookingsIndex({ bookings, filters }: Props) {
     const { t } = useTranslation();
     const filtered = hasActiveFilters(filters);
     const { errors } = usePage().props;
+    const actionErrors = useRef<HTMLDivElement>(null);
+
+    // A refused action comes back to the same scroll position: the message is brought into view.
+    // It is read by role="alert"; the focus stays where it was (back on the action's button).
+    useEffect(() => {
+        if (errors.booking || errors.services) {
+            actionErrors.current?.scrollIntoView({ block: 'center' });
+        }
+    }, [errors.booking, errors.services]);
 
     return (
         <>
@@ -103,9 +112,9 @@ export default function ProviderBookingsIndex({ bookings, filters }: Props) {
                 </header>
 
                 {/* Read from the page, outside the forms: a refused change, or the request limit. */}
-                <div className="max-w-2xl">
-                    <InputError message={errors.booking} />
-                    <InputError message={errors.services} />
+                <div ref={actionErrors} className="max-w-2xl">
+                    <InputError message={errors.booking} announce />
+                    <InputError message={errors.services} announce />
                 </div>
 
                 <BookingFilters filters={filters} filtered={filtered} />

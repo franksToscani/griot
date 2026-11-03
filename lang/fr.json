@@ -23,6 +23,7 @@
     "booking.form.choose_day": "Choisissez un jour pour voir les créneaux.",
     "booking.form.slots_loading": "Chargement des créneaux…",
     "booking.form.no_slots": "Aucun créneau libre ce jour-là.",
+    "booking.form.slots_found": "Créneaux disponibles : :count.",
     "booking.form.slots_error": "Impossible de charger les créneaux. Réessayez.",
     "booking.form.name": "Nom",
     "booking.form.phone": "Téléphone",

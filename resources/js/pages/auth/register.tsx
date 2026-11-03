@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 import { useTranslation } from '@/hooks/use-translation';
+import { errorId, fieldA11y, focusFirstInvalid } from '@/lib/form-a11y';
 
 type Props = {
     passwordRules: string;
@@ -22,6 +23,8 @@ export default function Register({ passwordRules }: Props) {
         <>
             <Head title={t('nav.register')} />
             <Form
+                id="register-form"
+                onError={() => focusFirstInvalid('register-form')}
                 {...store.form()}
                 resetOnSuccess={['password', 'password_confirmation']}
                 disableWhileProcessing
@@ -41,8 +44,10 @@ export default function Register({ passwordRules }: Props) {
                                     autoComplete="name"
                                     name="name"
                                     placeholder={t('common.full_name')}
+                                    {...fieldA11y('name', errors.name)}
                                 />
                                 <InputError
+                                    id={errorId('name')}
                                     message={errors.name}
                                     className="mt-2"
                                 />
@@ -60,8 +65,12 @@ export default function Register({ passwordRules }: Props) {
                                     autoComplete="email"
                                     name="email"
                                     placeholder={t('common.email_placeholder')}
+                                    {...fieldA11y('email', errors.email)}
                                 />
-                                <InputError message={errors.email} />
+                                <InputError
+                                    id={errorId('email')}
+                                    message={errors.email}
+                                />
                             </div>
 
                             <div className="grid gap-2">
@@ -76,8 +85,12 @@ export default function Register({ passwordRules }: Props) {
                                     name="password"
                                     placeholder={t('common.password')}
                                     passwordrules={passwordRules}
+                                    {...fieldA11y('password', errors.password)}
                                 />
-                                <InputError message={errors.password} />
+                                <InputError
+                                    id={errorId('password')}
+                                    message={errors.password}
+                                />
                             </div>
 
                             <div className="grid gap-2">
@@ -92,8 +105,13 @@ export default function Register({ passwordRules }: Props) {
                                     name="password_confirmation"
                                     placeholder={t('common.confirm_password')}
                                     passwordrules={passwordRules}
+                                    {...fieldA11y(
+                                        'password_confirmation',
+                                        errors.password_confirmation,
+                                    )}
                                 />
                                 <InputError
+                                    id={errorId('password_confirmation')}
                                     message={errors.password_confirmation}
                                 />
                             </div>

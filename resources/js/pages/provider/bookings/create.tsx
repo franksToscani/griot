@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useFreeSlots } from '@/hooks/use-free-slots';
 import { useTranslation } from '@/hooks/use-translation';
+import { errorId, fieldA11y, focusFirstInvalid } from '@/lib/form-a11y';
 import { dashboard } from '@/routes';
 // Explicit names: '@/routes/providers' has the public "slots" and "bookings.store".
 import {
@@ -164,6 +165,7 @@ function BookingForm({
 
     return (
         <Form
+            id="provider-booking-form"
             {...storeBooking.form()}
             options={{ preserveScroll: true }}
             onError={(errors) => {
@@ -173,6 +175,8 @@ function BookingForm({
                     setStartsAt('');
                     reload();
                 }
+
+                focusFirstInvalid('provider-booking-form');
             }}
             className="flex max-w-xl flex-col gap-6"
         >
@@ -193,6 +197,7 @@ function BookingForm({
                                 changeService(event.target.value)
                             }
                             className={selectClass}
+                            {...fieldA11y('booking-service', errors.service)}
                         >
                             <option value="" disabled>
                                 {t('provider.bookings.create.choose_service')}
@@ -203,7 +208,10 @@ function BookingForm({
                                 </option>
                             ))}
                         </select>
-                        <InputError message={errors.service} />
+                        <InputError
+                            id={errorId('booking-service')}
+                            message={errors.service}
+                        />
                     </div>
 
                     {service !== null && (
@@ -246,9 +254,11 @@ function BookingForm({
                         <CustomerLocaleField error={errors.customer_locale} />
                     </fieldset>
 
+                    {/* Never disabled for a missing time: the day field stops the submit with
+                        its message (booking-fields.tsx). */}
                     <Button
                         type="submit"
-                        disabled={startsAt === '' || processing}
+                        disabled={processing}
                         className={wrappingLabel}
                     >
                         {processing && <Spinner />}
@@ -280,8 +290,8 @@ function CustomerLocaleField({ error }: { error?: string }) {
                 id="customer_locale"
                 name="customer_locale"
                 defaultValue={locale}
-                aria-describedby="customer_locale-help"
                 className={selectClass}
+                {...fieldA11y('customer_locale', error, 'customer_locale-help')}
             >
                 {/* Each language in its own name, as in the language selector. */}
                 {locales.map((option) => (
@@ -300,7 +310,7 @@ function CustomerLocaleField({ error }: { error?: string }) {
             >
                 {t('provider.bookings.create.customer_locale_help')}
             </p>
-            <InputError message={error} />
+            <InputError id={errorId('customer_locale')} message={error} />
         </div>
     );
 }
