@@ -53,18 +53,25 @@ Risultati del lavoro sull'issue #55: cosa è stato cambiato, come è protetto da
         - la X di Sheet e Dialog: ha già `focus:outline-hidden`.
     - Restano fuori dalla regola le voci della Select aperta e del menu utente: hanno `outline-hidden` e la voce attiva è indicata dallo sfondo, che nei colori forzati non si vede (debito nella #112, sezione 6).
 - **Contrasto**: i colori vengono dai token di `app.css` e dalla palette di Tailwind. Il test li calcola da lì (oklch convertito in sRGB), non da valori copiati.
+- **Palette (Sprint 8)**: verde scuro per azioni, link e nome del sito; superfici bianche e azzurre; tre token in più.
+    - `highlight` (giallo): solo come sfondo, sempre con il suo testo scuro `highlight-foreground`. Mai testo giallo su bianco.
+    - `info` (azzurro): sfondi per le informazioni, con `info-foreground` e `info-border`.
+    - `decor` (rosso): solo un filo di 2 px sotto l'header pubblico e sotto il nome del sito. Non ha significato: mai nei badge, accanto ai campi o nei messaggi.
+    - Errori, stati, `destructive` e l'avviso "Elimina account" hanno gli stessi colori di prima (`red-600`/`red-400`, `green-700`/`green-600`).
+- **Carattere**: Noto Sans variabile, incluso nel progetto (`@fontsource-variable/noto-sans`), nessun servizio esterno né durante la build né nel browser. Una pagina scarica solo il sottoinsieme latino; ɛ ɔ ŋ ṣ (latin-ext) e ẹ ọ (vietnamese) arrivano solo se un nome li contiene.
 - **Errori dei moduli**: un solo annuncio per errore. Gli errori di un campo si leggono col focus e `aria-describedby`; solo quelli senza campo usano `role="alert"`.
 
 ## 4. Test automatici
 
-| File                                           | Cosa controlla                                                                                                                                                                                                |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tests/Feature/AccessibilityContrastTest.php`  | Rapporti di contrasto calcolati dai token, in chiaro e in scuro: testo, campi, anelli del focus, messaggi verdi, avviso rosso, tab dell'aspetto. I vecchi valori devono restare sotto soglia.                 |
-| `tests/Feature/AccessibleErrorsTest.php`       | Errori collegati ai campi, focus sul primo campo sbagliato, annunci di orari ed errori senza campo, e le stesse risposte del server per i moduli di prenotazione.                                             |
-| `tests/Feature/KeyboardNavigationTest.php`     | Nessun `tabIndex` positivo, ordine del login, mostra password raggiungibile, link "Salta al contenuto", selettore della lingua, focus dopo un'azione nella lista prenotazioni, toast in una regione `polite`. |
-| `tests/Feature/AccessibleNamesTest.php`        | Link in nuova scheda con avviso, "Prenota" col nome del servizio, avatar, ordine dei titoli, messaggi di stato, `<html lang>`, menu laterale come `nav`, nome del logo, "Orari" e "Contatti" come h2.         |
-| `tests/Feature/TouchAndMotionTest.php`         | Regola del movimento ridotto ed eccezione dello spinner, nessuno scroll morbido, 44 px sotto 768 px nei componenti e nei link isolati, aree invisibili.                                                       |
-| `tests/Feature/ForcedColorsAndSpacingTest.php` | `focus-visible:outline-hidden` accanto a ogni `outline-none`, bordo dei pulsanti nei colori forzati, `aria-pressed` sui tab dell'aspetto, logo dell'header, larghezza dei filtri.                             |
+| File                                           | Cosa controlla                                                                                                                                                                                                                                                                                      |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/Feature/AccessibilityContrastTest.php`  | Rapporti di contrasto calcolati dai token, in chiaro e in scuro: testo, campi, anelli del focus (anche su giallo e azzurro), messaggi verdi, avviso rosso, tab dell'aspetto, link e nome del sito, schede, giallo, azzurro, filo rosso, menu laterale. I vecchi valori devono restare sotto soglia. |
+| `tests/Feature/AccessibleErrorsTest.php`       | Errori collegati ai campi, focus sul primo campo sbagliato, annunci di orari ed errori senza campo, e le stesse risposte del server per i moduli di prenotazione.                                                                                                                                   |
+| `tests/Feature/KeyboardNavigationTest.php`     | Nessun `tabIndex` positivo, ordine del login, mostra password raggiungibile, link "Salta al contenuto", selettore della lingua, focus dopo un'azione nella lista prenotazioni, toast in una regione `polite`.                                                                                       |
+| `tests/Feature/AccessibleNamesTest.php`        | Link in nuova scheda con avviso, "Prenota" col nome del servizio, avatar, ordine dei titoli, messaggi di stato, `<html lang>`, menu laterale come `nav`, nome del logo, "Orari" e "Contatti" come h2.                                                                                               |
+| `tests/Feature/TouchAndMotionTest.php`         | Regola del movimento ridotto ed eccezione dello spinner, nessuno scroll morbido, 44 px sotto 768 px nei componenti e nei link isolati, aree invisibili.                                                                                                                                             |
+| `tests/Feature/ForcedColorsAndSpacingTest.php` | `focus-visible:outline-hidden` accanto a ogni `outline-none`, bordo dei pulsanti nei colori forzati, `aria-pressed` sui tab dell'aspetto, logo dell'header, larghezza dei filtri.                                                                                                                   |
+| `tests/Feature/VisualIdentityTest.php`         | Carattere incluso nel progetto (niente Bunny), sottoinsiemi con ɛ ɔ ŋ ẹ ọ ṣ, colori di errori e stati invariati, filo rosso solo nell'header e nel nome, nome del sito come testo, segno e favicon di Griot.                                                                                        |
 
 **Limite**: non c'è un runner JavaScript. Quasi tutti questi test leggono i sorgenti: dicono che una classe o un attributo c'è, non che il risultato sullo schermo misura 44 px o che un lettore di schermo lo annuncia. Le misure vere sono quelle della sezione 5.
 
@@ -77,7 +84,7 @@ composer ci:check
 Solo questi file:
 
 ```bash
-php artisan test --compact tests/Feature/AccessibilityContrastTest.php tests/Feature/AccessibleErrorsTest.php tests/Feature/KeyboardNavigationTest.php tests/Feature/AccessibleNamesTest.php tests/Feature/TouchAndMotionTest.php tests/Feature/ForcedColorsAndSpacingTest.php
+php artisan test --compact tests/Feature/AccessibilityContrastTest.php tests/Feature/AccessibleErrorsTest.php tests/Feature/KeyboardNavigationTest.php tests/Feature/AccessibleNamesTest.php tests/Feature/TouchAndMotionTest.php tests/Feature/ForcedColorsAndSpacingTest.php tests/Feature/VisualIdentityTest.php
 ```
 
 Prima di lanciarli, `composer dev` deve essere spento: `public/hot` non deve esistere.
@@ -176,4 +183,5 @@ Data: novembre 2026, sul codice delle PR #128, #129 e #134. Strumenti: Playwrigh
 - [ ] Un solo h1 per pagina, poi h2 e h3 senza salti.
 - [ ] Nessuna animazione nuova senza passare dalla regola di `prefers-reduced-motion` in `app.css`.
 - [ ] Colori dai token di `app.css` o dalla palette; i nuovi abbinamenti aggiunti al test di contrasto.
+- [ ] Giallo (`highlight`) solo come sfondo con il suo testo scuro; rosso decorativo (`decor`) mai per dare un significato; errori e stati con i loro colori di sempre.
 - [ ] Un test Pest per ogni regola nuova, con una controprova: rompere la regola e vedere fallire il test giusto.

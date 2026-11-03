@@ -149,15 +149,35 @@ function accPairs(string $theme): array
         $light
             ? ['delete-account warning', accSrgb(accTailwind('red-700')), accSrgb(accTailwind('red-50')), 4.5]
             : ['delete-account warning', accSrgb(accTailwind('red-100')), accOver(accTailwind('red-700'), 0.1, $t['background']), 4.5],
-        // appearance-tabs.tsx, a tab not chosen: "text-neutral-600" on "bg-neutral-100", dark
-        // "dark:text-neutral-400" on "dark:bg-neutral-800".
-        $light
-            ? ['appearance tab', accSrgb(accTailwind('neutral-600')), accSrgb(accTailwind('neutral-100')), 4.5]
-            : ['appearance tab', accSrgb(accTailwind('neutral-400')), accSrgb(accTailwind('neutral-800')), 4.5],
+        // appearance-tabs.tsx, a tab not chosen: "text-muted-foreground" on "bg-muted".
+        ['appearance tab', accSrgb($t['muted-foreground']), accSrgb($t['muted']), 4.5],
         ['border of the fields (border-input)', accSrgb($t['input']), $background, 3.0],
         ['border of a field with the focus (border-ring)', accSrgb($ring), $background, 3.0],
         ['sidebar focus ring (ring-sidebar-ring)', accSrgb($t['sidebar-ring']), accSrgb($t['sidebar']), 3.0],
+
+        // The palette of the visual identity (Sprint 8): green for links and titles, the cards, the
+        // grey and blue surfaces, the yellow, the red decor, the sidebar.
+        ['links and the name of the site (text-primary) on the background', accSrgb($t['primary']), $background, 4.5],
+        ['the name of the site in the sidebar', accSrgb($t['primary']), accSrgb($t['sidebar']), 4.5],
+        ['text on the cards', accSrgb($t['card-foreground']), accSrgb($t['card']), 4.5],
+        ['muted text on the grey surfaces', accSrgb($t['muted-foreground']), accSrgb($t['muted']), 4.5],
+        ['active item (accent)', accSrgb($t['accent-foreground']), accSrgb($t['accent']), 4.5],
+        ['outline badge: text on the background', accSrgb($t['foreground']), $background, 4.5],
+        ['text on the yellow (highlight)', accSrgb($t['highlight-foreground']), accSrgb($t['highlight']), 4.5],
+        ['text on the light blue (info)', accSrgb($t['info-foreground']), accSrgb($t['info']), 4.5],
+        ['border of the light blue (info-border)', accSrgb($t['info-border']), accSrgb($t['info']), 3.0],
+        ['red decor line on the background', accSrgb($t['decor']), $background, 3.0],
+        ['sidebar: text', accSrgb($t['sidebar-foreground']), accSrgb($t['sidebar']), 4.5],
+        ['sidebar: active item', accSrgb($t['sidebar-accent-foreground']), accSrgb($t['sidebar-accent']), 4.5],
+        ['error text on the cards', accSrgb(accTailwind($light ? 'red-600' : 'red-400')), accSrgb($t['card']), 4.5],
+        ['status text on the cards', accSrgb(accTailwind($light ? 'green-700' : 'green-600')), accSrgb($t['card']), 4.5],
     ];
+
+    // The focus ring over the yellow and the light blue, as over the other surfaces.
+    foreach (['highlight', 'info'] as $surface) {
+        $opacity = accOpacity('input', 'focus-visible:ring-ring/');
+        $pairs[] = ["focus ring ({$opacity}) over {$surface}", accOver($ring, $opacity, $t[$surface]), accSrgb($t[$surface]), 3.0];
+    }
 
     // The focus ring as the components really draw it: the ring colour with their opacity, around
     // the field, over the page, the sidebar and the grey surfaces.
@@ -222,15 +242,15 @@ test('the delete-account warning and the appearance tabs use the colours measure
         ->toContain('text-red-700 dark:text-red-100')
         ->not->toContain('text-red-600');
     expect((string) file_get_contents(resource_path('js/components/appearance-tabs.tsx')))
-        ->toContain('rounded-lg bg-neutral-100 p-1 dark:bg-neutral-800')
-        ->toContain("'text-neutral-600 hover:bg-neutral-200/60 hover:text-black dark:text-neutral-400")
-        ->not->toContain('text-neutral-500');
+        ->toContain("'inline-flex gap-1 rounded-lg bg-muted p-1'")
+        ->toContain("'text-muted-foreground hover:bg-accent hover:text-accent-foreground'")
+        ->not->toContain('neutral-');
 });
 
 test('the borders of cards and separators keep their light colour', function () {
-    // Decorative: no threshold. Only the fields (--input) became darker.
-    expect(accTokens('light')['border'])->toBe([0.922, 0.0, 0.0])
-        ->and(accTokens('dark')['border'])->toBe([0.269, 0.0, 0.0]);
+    // Decorative: no threshold. The fields (--input) have their own, darker border.
+    expect(accTokens('light')['border'])->toBe([0.91, 0.02, 225.0])
+        ->and(accTokens('dark')['border'])->toBe([0.31, 0.03, 245.0]);
 });
 
 test('no light green-600 text is left in the pages: the status messages use green-700', function () {
