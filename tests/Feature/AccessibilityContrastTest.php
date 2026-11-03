@@ -31,13 +31,14 @@ function accTailwind(string $color): array
 }
 
 /**
- * The "--name: oklch(L C H)" declarations of a CSS text; L may be written as a percentage.
+ * The "--name: oklch(L C H)" declarations of a CSS text; L may be written as a percentage, and the
+ * hue of a grey as "none" (no hue: 0, as CSS reads it).
  *
  * @return array<string, array{0: float, 1: float, 2: float}>
  */
 function accParse(string $css): array
 {
-    preg_match_all('/--([a-z0-9-]+):\s*oklch\(([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+)\)/', $css, $matches, PREG_SET_ORDER);
+    preg_match_all('/--([a-z0-9-]+):\s*oklch\(([\d.]+)(%?)\s+([\d.]+)\s+([\d.]+|none)\)/', $css, $matches, PREG_SET_ORDER);
     $colors = [];
 
     foreach ($matches as [, $name, $lightness, $percent, $chroma, $hue]) {
@@ -143,6 +144,16 @@ function accPairs(string $theme): array
         ['error text', accSrgb(accTailwind($light ? 'red-600' : 'red-400')), $background, 4.5],
         // login, forgot-password, verify-email, settings/profile: "text-green-700 dark:text-green-600".
         ['status text (green)', accSrgb(accTailwind($light ? 'green-700' : 'green-600')), $background, 4.5],
+        // delete-user.tsx, the warning: "bg-red-50 … text-red-700", dark "dark:bg-red-700/10 …
+        // dark:text-red-100".
+        $light
+            ? ['delete-account warning', accSrgb(accTailwind('red-700')), accSrgb(accTailwind('red-50')), 4.5]
+            : ['delete-account warning', accSrgb(accTailwind('red-100')), accOver(accTailwind('red-700'), 0.1, $t['background']), 4.5],
+        // appearance-tabs.tsx, a tab not chosen: "text-neutral-600" on "bg-neutral-100", dark
+        // "dark:text-neutral-400" on "dark:bg-neutral-800".
+        $light
+            ? ['appearance tab', accSrgb(accTailwind('neutral-600')), accSrgb(accTailwind('neutral-100')), 4.5]
+            : ['appearance tab', accSrgb(accTailwind('neutral-400')), accSrgb(accTailwind('neutral-800')), 4.5],
         ['border of the fields (border-input)', accSrgb($t['input']), $background, 3.0],
         ['border of a field with the focus (border-ring)', accSrgb($ring), $background, 3.0],
         ['sidebar focus ring (ring-sidebar-ring)', accSrgb($t['sidebar-ring']), accSrgb($t['sidebar']), 3.0],
@@ -198,7 +209,22 @@ test('the old tokens and the old ring opacities do not reach the thresholds', fu
         ->and(accRatio(accSrgb([0.269, 0.0, 0.0]), accSrgb($dark)))->toBeLessThan(3.0)
         ->and(accRatio(accOver([0.439, 0.0, 0.0], 0.5, $dark), accSrgb($dark)))->toBeLessThan(3.0)
         ->and(accRatio(accOver([0.577, 0.245, 27.325], 0.2, $white), accSrgb($white)))->toBeLessThan(3.0)
-        ->and(accRatio(accSrgb(accTailwind('green-600')), accSrgb($white)))->toBeLessThan(4.5);
+        ->and(accRatio(accSrgb(accTailwind('green-600')), accSrgb($white)))->toBeLessThan(4.5)
+        // The delete-account warning and the appearance tabs before the final check (axe: 4.36
+        // and 4.34).
+        ->and(accRatio(accSrgb(accTailwind('red-600')), accSrgb(accTailwind('red-50'))))->toBeLessThan(4.5)
+        ->and(accRatio(accSrgb(accTailwind('neutral-500')), accSrgb(accTailwind('neutral-100'))))->toBeLessThan(4.5);
+});
+
+test('the delete-account warning and the appearance tabs use the colours measured above', function () {
+    expect((string) file_get_contents(resource_path('js/components/delete-user.tsx')))
+        ->toContain('bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10')
+        ->toContain('text-red-700 dark:text-red-100')
+        ->not->toContain('text-red-600');
+    expect((string) file_get_contents(resource_path('js/components/appearance-tabs.tsx')))
+        ->toContain('rounded-lg bg-neutral-100 p-1 dark:bg-neutral-800')
+        ->toContain("'text-neutral-600 hover:bg-neutral-200/60 hover:text-black dark:text-neutral-400")
+        ->not->toContain('text-neutral-500');
 });
 
 test('the borders of cards and separators keep their light colour', function () {
