@@ -1,6 +1,7 @@
 import { Form, Head, Link, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import InputError from '@/components/input-error';
+import { NewTabHint } from '@/components/new-tab-hint';
 import { Pagination } from '@/components/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -424,6 +425,7 @@ function BookingCard({ booking }: { booking: ProviderBooking }) {
                                 rel="noopener noreferrer"
                             >
                                 {t('provider.bookings.whatsapp_button')}
+                                <NewTabHint />
                             </a>
                         </Button>
                     </div>

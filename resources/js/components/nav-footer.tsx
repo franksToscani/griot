@@ -6,6 +6,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { NewTabHint } from '@/components/new-tab-hint';
 import { useTranslation } from '@/hooks/use-translation';
 import { toUrl } from '@/lib/utils';
 import type { NavItem } from '@/types';
@@ -46,6 +47,7 @@ export function NavFooter({
                                         <item.icon className="h-5 w-5" />
                                     )}
                                     <span>{t(item.titleKey)}</span>
+                                    <NewTabHint />
                                 </a>
                             </SidebarMenuButton>
                         </SidebarMenuItem>

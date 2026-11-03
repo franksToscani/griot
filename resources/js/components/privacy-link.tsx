@@ -1,3 +1,4 @@
+import { NewTabHint } from '@/components/new-tab-hint';
 import { useTranslation } from '@/hooks/use-translation';
 import { privacy } from '@/routes';
 
@@ -13,7 +14,7 @@ export function PrivacyLink() {
             className="underline underline-offset-4"
         >
             {t('privacy.link')}
-            <span className="sr-only"> {t('privacy.new_tab')}</span>
+            <NewTabHint />
         </a>
     );
 }

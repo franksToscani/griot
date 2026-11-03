@@ -78,7 +78,13 @@ export function BookingSheet({ providerSlug, service, bookingWindow }: Props) {
     return (
         <Sheet open={open} onOpenChange={changeOpen}>
             <SheetTrigger asChild>
-                <Button size="sm">{t('booking.form.open')}</Button>
+                {/* One "Prenota" per service: screen readers hear which one ("Prenota Box
+                    braids"), the screen shows the verb only. The name starts with the visible
+                    text, as voice control expects. */}
+                <Button size="sm">
+                    {t('booking.form.open')}
+                    <span className="sr-only"> {service.name}</span>
+                </Button>
             </SheetTrigger>
             <SheetContent className="w-full overflow-y-auto sm:max-w-md">
                 <SheetHeader>

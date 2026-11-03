@@ -11,7 +11,7 @@ function pbnSource(string $path): string
 test('the WhatsApp button is shown only with whatsapp_url, in a new tab without the opener', function () {
     $source = pbnSource('js/pages/provider/bookings/index.tsx');
 
-    expect($source)->toMatch('/\{booking\.whatsapp_url !== null && \(\s*<div>\s*<Button\b[^>]*>\s*<a\s+href=\{booking\.whatsapp_url\}\s+target="_blank"\s+rel="noopener noreferrer"\s*>\s*\{t\(\'provider\.bookings\.whatsapp_button\'\)\}/');
+    expect($source)->toMatch('/\{booking\.whatsapp_url !== null && \(\s*<div>\s*<Button\b[^>]*>\s*<a\s+href=\{booking\.whatsapp_url\}\s+target="_blank"\s+rel="noopener noreferrer"\s*>\s*\{t\(\'provider\.bookings\.whatsapp_button\'\)\}\s*<NewTabHint \/>\s*<\/a>/');
     expect(substr_count($source, "'provider.bookings.whatsapp_button'"))->toBe(1);
 });
 

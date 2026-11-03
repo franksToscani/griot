@@ -111,11 +111,14 @@ export default function Login({ status, canResetPassword }: Props) {
                 )}
             </Form>
 
-            {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-700 dark:text-green-600">
-                    {status}
-                </div>
-            )}
+            {/* Always on the page, so that the message is read when it appears. */}
+            <div role="status">
+                {status && (
+                    <p className="mb-4 text-center text-sm font-medium text-green-700 dark:text-green-600">
+                        {status}
+                    </p>
+                )}
+            </div>
         </>
     );
 }

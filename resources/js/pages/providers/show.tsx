@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { BookingSheet } from '@/components/booking-sheet';
+import { NewTabHint } from '@/components/new-tab-hint';
 import { ProviderAvatar } from '@/components/provider-avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -195,6 +196,7 @@ export default function ProvidersShow({
                                                             {...externalLink}
                                                         >
                                                             {whatsapp.number}
+                                                            <NewTabHint />
                                                         </a>
                                                     ) : (
                                                         whatsapp.number
@@ -217,6 +219,7 @@ export default function ProvidersShow({
                                                         >
                                                             @
                                                             {instagram.username}
+                                                            <NewTabHint />
                                                         </a>
                                                     ) : (
                                                         instagram.username
