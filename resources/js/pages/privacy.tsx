@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatLongDate } from '@/lib/format';
+import { touchTarget } from '@/lib/touch-target';
+import { cn } from '@/lib/utils';
 
 type Props = {
     // From the environment (config/privacy.php): null when missing, never an invented value.
@@ -120,7 +122,10 @@ export default function Privacy({
                             {controller.email !== null ? (
                                 <a
                                     href={`mailto:${controller.email}`}
-                                    className="underline underline-offset-4"
+                                    className={cn(
+                                        'underline underline-offset-4',
+                                        touchTarget,
+                                    )}
                                 >
                                     {controller.email}
                                 </a>

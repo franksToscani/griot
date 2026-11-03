@@ -35,7 +35,14 @@ export function Breadcrumbs({
                                             </BreadcrumbPage>
                                         ) : (
                                             <BreadcrumbLink asChild>
-                                                <Link href={item.href}>
+                                                {/* 44px high on phones with an invisible area,
+                                                    in height only: the header keeps its height
+                                                    and the links next to each other do not
+                                                    overlap. */}
+                                                <Link
+                                                    href={item.href}
+                                                    className="relative max-md:after:absolute max-md:after:inset-x-0 max-md:after:-inset-y-3"
+                                                >
                                                     {t(item.titleKey)}
                                                 </Link>
                                             </BreadcrumbLink>

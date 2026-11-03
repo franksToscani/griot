@@ -4,6 +4,8 @@ import AppLogo from '@/components/app-logo';
 import { LocaleSwitcher } from '@/components/locale-switcher';
 import { MAIN_CONTENT_ID, SkipLink } from '@/components/skip-link';
 import { useTranslation } from '@/hooks/use-translation';
+import { touchTarget } from '@/lib/touch-target';
+import { cn } from '@/lib/utils';
 import { dashboard, home, login, privacy } from '@/routes';
 
 // Layout for the public pages that customers see without logging in.
@@ -16,18 +18,26 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             <SkipLink />
             <header className="border-b">
                 <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3">
-                    <Link href={home()} className="flex items-center">
+                    <Link
+                        href={home()}
+                        className={cn('flex items-center', touchTarget)}
+                    >
                         <AppLogo />
                     </Link>
                     <div className="flex items-center gap-4">
                         <LocaleSwitcher />
                         <nav className="text-sm">
                             {auth.user ? (
-                                <Link href={dashboard()}>
+                                <Link
+                                    href={dashboard()}
+                                    className={touchTarget}
+                                >
                                     {t('nav.dashboard')}
                                 </Link>
                             ) : (
-                                <Link href={login()}>{t('nav.login')}</Link>
+                                <Link href={login()} className={touchTarget}>
+                                    {t('nav.login')}
+                                </Link>
                             )}
                         </nav>
                     </div>
@@ -44,7 +54,10 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                 <div className="mx-auto w-full max-w-6xl px-4 py-4 text-sm text-muted-foreground">
                     <Link
                         href={privacy()}
-                        className="underline underline-offset-4"
+                        className={cn(
+                            'underline underline-offset-4',
+                            touchTarget,
+                        )}
                     >
                         {t('privacy.link')}
                     </Link>

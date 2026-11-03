@@ -16,6 +16,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslation } from '@/hooks/use-translation';
+import { touchTarget } from '@/lib/touch-target';
+import { cn } from '@/lib/utils';
 import {
     centsToPrice,
     formatLongDate,
@@ -113,7 +115,10 @@ export default function BookingsShow({
                             <dd>
                                 <Link
                                     href={providerShow(booking.provider.slug)}
-                                    className="underline underline-offset-4"
+                                    className={cn(
+                                        'underline underline-offset-4',
+                                        touchTarget,
+                                    )}
                                 >
                                     {booking.provider.name}
                                 </Link>

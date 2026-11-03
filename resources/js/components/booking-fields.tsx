@@ -60,8 +60,13 @@ export function BookingOptionsFieldset({
             {service.options.map((option) => {
                 const extras = formatOptionExtras(t, locale, option);
 
+                // 44px rows on phones: the box's invisible 44px area (ui/checkbox) does not
+                // reach the box of the next row.
                 return (
-                    <div key={option.id} className="flex items-center gap-3">
+                    <div
+                        key={option.id}
+                        className="flex items-center gap-3 max-md:min-h-11"
+                    >
                         <Checkbox
                             id={`option-${option.id}`}
                             name="options[]"

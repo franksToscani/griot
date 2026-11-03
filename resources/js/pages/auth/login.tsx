@@ -12,6 +12,8 @@ import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { useTranslation } from '@/hooks/use-translation';
 import { errorId, fieldA11y, focusFirstInvalid } from '@/lib/form-a11y';
+import { touchTarget } from '@/lib/touch-target';
+import { cn } from '@/lib/utils';
 
 type Props = {
     status?: string;
@@ -76,14 +78,18 @@ export default function Login({ status, canResetPassword }: Props) {
                                 {canResetPassword && (
                                     <TextLink
                                         href={request()}
-                                        className="justify-self-end text-sm"
+                                        className={cn(
+                                            'justify-self-end text-sm',
+                                            touchTarget,
+                                        )}
                                     >
                                         {t('account.login.forgot')}
                                     </TextLink>
                                 )}
                             </div>
 
-                            <div className="flex items-center space-x-3">
+                            {/* A 44px row on phones, as the box's invisible area (ui/checkbox). */}
+                            <div className="flex items-center space-x-3 max-md:min-h-11">
                                 <Checkbox id="remember" name="remember" />
                                 <Label htmlFor="remember">
                                     {t('account.login.remember')}
