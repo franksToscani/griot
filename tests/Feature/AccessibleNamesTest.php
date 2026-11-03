@@ -176,3 +176,69 @@ test('<html lang> and the toasts\' label follow every page, the first one includ
         ->and(__('common.notifications', [], 'fr'))->toBe('Notifications')
         ->and(__('common.notifications', [], 'en'))->toBe('Notifications');
 });
+
+// ---------------------------------------------------------------------------------------------
+// The final check (axe and the accessibility tree)
+// ---------------------------------------------------------------------------------------------
+
+test('the side menu is a navigation landmark, on the desktop and in the phone\'s panel', function () {
+    $source = acnSource('js/components/ui/sidebar.tsx');
+
+    // Desktop: the inner container.
+    expect($source)->toMatch('/<nav\s+aria-label=\{t\("nav\.sidebar"\)\}\s+data-sidebar="sidebar"/')
+        ->not->toContain('<div
+          data-sidebar="sidebar"');
+    // Phone: inside the panel, around the content.
+    expect($source)->toMatch('/<nav aria-label=\{t\("nav\.sidebar"\)\} className="flex h-full w-full flex-col">\s*\{children\}\s*<\/nav>\s*<\/SheetContent>/');
+
+    // A name of its own: not the one of the breadcrumb, of the settings or of the pages.
+    $names = array_map(fn (string $key) => __($key, [], 'it'), ['nav.sidebar', 'common.breadcrumb', 'nav.settings', 'common.pagination.label']);
+    expect(array_unique($names))->toHaveCount(4);
+    expect(__('nav.sidebar', [], 'it'))->toBe('Menu laterale')
+        ->and(__('nav.sidebar', [], 'fr'))->toBe('Menu latéral')
+        ->and(__('nav.sidebar', [], 'en'))->toBe('Side menu');
+});
+
+test('the hidden title of the phone\'s menu is inside its panel: nothing is left on the page when it is closed', function () {
+    $source = acnSource('js/components/ui/sidebar.tsx');
+
+    expect($source)->toMatch('/<SheetContent\s+data-sidebar="sidebar"[\s\S]*?>\s*(\{\/\*[\s\S]*?\*\/\}\s*)?<SheetHeader className="sr-only">\s*<SheetTitle>\{t\("nav\.sidebar"\)\}<\/SheetTitle>\s*<SheetDescription>\{t\("nav\.sidebar_description"\)\}<\/SheetDescription>\s*<\/SheetHeader>/')
+        ->not->toMatch('/<Sheet open=\{openMobile\}[^>]*>\s*<SheetHeader/');
+});
+
+test('the logo of the login pages is named after the app, not after the page', function () {
+    $source = acnSource('js/layouts/auth/auth-simple-layout.tsx');
+
+    expect($source)
+        ->toContain('const { name } = usePage().props;')
+        ->toContain('<span className="sr-only">{name}</span>')
+        ->not->toContain('<span className="sr-only">{title}</span>')
+        // The title stays the h1.
+        ->toContain('<h1 className="text-xl font-medium">{title}</h1>');
+    // As the logo of the public header.
+    expect(acnSource('js/components/app-logo.tsx'))->toContain('const { name } = usePage().props;');
+});
+
+test('on the provider\'s page "Orari" and "Contatti" are h2, after the services: h1, h2, h3, then h2', function () {
+    $source = acnSource('js/pages/providers/show.tsx');
+
+    foreach (['hours', 'contacts'] as $key) {
+        expect($source)->toMatch("/<CardTitle>\\s*<h2>\\{t\\('providers\\.show\\.{$key}'\\)\\}<\\/h2>\\s*<\\/CardTitle>/");
+    }
+
+    // The order on the page: the h3 of the services come from ServiceItem, inside the section of
+    // the services, before the aside.
+    $section = strpos($source, "{t('providers.show.services')}");
+    $items = strpos($source, '<ServiceItem');
+    $aside = strpos($source, '<aside');
+    $hours = strpos($source, "<h2>{t('providers.show.hours')}</h2>");
+    $contacts = strpos($source, "<h2>{t('providers.show.contacts')}</h2>");
+    expect([$section, $items, $aside, $hours, $contacts])->each->toBeInt();
+    expect($section)->toBeLessThan($items)
+        ->and($items)->toBeLessThan($aside)
+        ->and($aside)->toBeLessThan($hours)
+        ->and($hours)->toBeLessThan($contacts);
+    expect($source)->toMatch('/function ServiceItem\([\s\S]*<h3 className="font-medium">\{service\.name\}<\/h3>/');
+    expect(substr_count($source, '<h1'))->toBe(1)
+        ->and(substr_count($source, '<h2'))->toBe(3);
+});

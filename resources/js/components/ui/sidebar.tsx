@@ -181,10 +181,6 @@ function Sidebar({
   if (isMobile) {
     return (
       <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-        <SheetHeader className="sr-only">
-          <SheetTitle>{t("nav.sidebar")}</SheetTitle>
-          <SheetDescription>{t("nav.sidebar_description")}</SheetDescription>
-        </SheetHeader>
         <SheetContent
           data-sidebar="sidebar"
           data-slot="sidebar"
@@ -197,7 +193,15 @@ function Sidebar({
           }
           side={side}
         >
-          <div className="flex h-full w-full flex-col">{children}</div>
+          {/* Inside the panel: with the menu closed its hidden title is not left on the page. */}
+          <SheetHeader className="sr-only">
+            <SheetTitle>{t("nav.sidebar")}</SheetTitle>
+            <SheetDescription>{t("nav.sidebar_description")}</SheetDescription>
+          </SheetHeader>
+          {/* A landmark: the menu is a navigation, reached with the landmarks list. */}
+          <nav aria-label={t("nav.sidebar")} className="flex h-full w-full flex-col">
+            {children}
+          </nav>
         </SheetContent>
       </Sheet>
     )
@@ -237,12 +241,14 @@ function Sidebar({
         )}
         {...props}
       >
-        <div
+        {/* A landmark: the menu is a navigation, reached with the landmarks list. */}
+        <nav
+          aria-label={t("nav.sidebar")}
           data-sidebar="sidebar"
           className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
         >
           {children}
-        </div>
+        </nav>
       </div>
     </div>
   )

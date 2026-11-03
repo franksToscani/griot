@@ -138,8 +138,11 @@ export default function ProvidersShow({
                     <aside className="flex flex-col gap-6">
                         <Card>
                             <CardHeader>
+                                {/* Headings, reached with the headings list as "Servizi". The h2
+                                    inherits the look of the title: Tailwind resets its size,
+                                    weight and margins. */}
                                 <CardTitle>
-                                    {t('providers.show.hours')}
+                                    <h2>{t('providers.show.hours')}</h2>
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -183,7 +186,7 @@ export default function ProvidersShow({
                             <Card>
                                 <CardHeader>
                                     <CardTitle>
-                                        {t('providers.show.contacts')}
+                                        <h2>{t('providers.show.contacts')}</h2>
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
