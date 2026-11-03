@@ -29,7 +29,7 @@ export default function AuthSimpleLayout({
                             )}
                         >
                             <div className="mb-1 flex h-9 w-9 items-center justify-center rounded-md">
-                                <AppLogoIcon className="size-9 fill-current text-[var(--foreground)] dark:text-white" />
+                                <AppLogoIcon className="size-9" />
                             </div>
                             {/* The link goes home: its name is the app's, as the logo of the
                                 public header. The page's title is the h1 below. */}

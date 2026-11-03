@@ -128,7 +128,7 @@ test('the appearance tabs say which one is chosen, and show it in forced colours
 
     expect($source)->toContain('aria-pressed={appearance === value}');
     expect(fcsClasses($source, 'appearance === value\s*\?\s*'))
-        ->toContain('bg-white', 'forced-colors:border');
+        ->toContain('bg-background', 'forced-colors:border');
     // Not on the others.
     expect(fcsClasses($source, 'appearance === value\s*\?\s*\'[^\']*\'\s*:\s*'))
         ->not->toContain('forced-colors:border');

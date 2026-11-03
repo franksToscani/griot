@@ -20,7 +20,7 @@ type Props = {
 // A missing value of the configuration, shown so that nobody can miss it.
 function Placeholder({ children }: { children: ReactNode }) {
     return (
-        <span className="rounded bg-amber-100 px-1 font-medium text-amber-900 dark:bg-amber-900 dark:text-amber-100">
+        <span className="rounded bg-highlight px-1 font-medium text-highlight-foreground">
             {children}
         </span>
     );
@@ -83,7 +83,7 @@ export default function Privacy({
             <Head title={t('privacy.title')} />
             <article className="mx-auto flex w-full max-w-2xl flex-col gap-8 text-sm leading-relaxed">
                 {!reviewed && (
-                    <Alert className="border-amber-500 bg-amber-50 text-amber-950 dark:bg-amber-950 dark:text-amber-50">
+                    <Alert className="border-highlight-foreground bg-highlight text-highlight-foreground">
                         <AlertTitle>{t('privacy.draft.title')}</AlertTitle>
                         <AlertDescription className="text-current">
                             {t('privacy.draft.body')}
