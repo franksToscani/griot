@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Provider;
+use App\Support\LinkPreview;
 use App\Support\ProductionMailer;
 use Carbon\CarbonImmutable;
 use Closure;
@@ -26,7 +27,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // The preview of the page being answered: one per request, set by the public controllers.
+        $this->app->scoped(LinkPreview::class);
     }
 
     /**

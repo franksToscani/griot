@@ -574,5 +574,11 @@
     "errors.action.providers": "Vai all'elenco dei professionisti",
     "errors.action.reload": "Ricarica la pagina",
     "errors.action.retry": "Riprova",
-    "errors.action.retry_later": "Riprova tra poco"
+    "errors.action.retry_later": "Riprova tra poco",
+    "link_preview.site.description": "Trova un professionista vicino a te e prenota online, senza creare un account.",
+    "link_preview.provider.title": ":name - :categories a :city",
+    "link_preview.provider.title_no_categories": ":name a :city",
+    "link_preview.provider.description": "Prenota online da :name a :city.",
+    "link_preview.privacy.description": "Come Griot usa i dati di chi prenota e per quanto tempo li conserva.",
+    "link_preview.image_alt": "Griot: trova un professionista e prenota online"
 }

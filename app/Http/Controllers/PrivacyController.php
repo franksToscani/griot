@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Middleware\SetLocale;
+use App\Support\LinkPreview;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,8 +18,10 @@ class PrivacyController extends Controller
      * Handle the incoming request. A missing or blank name or email is sent as null: the page shows
      * a placeholder, never an address of its own.
      */
-    public function __invoke(): Response
+    public function __invoke(LinkPreview $preview): Response
     {
+        $preview->publicPage(__('privacy.title'), __('link_preview.privacy.description'));
+
         return Inertia::render('privacy', [
             'controller' => [
                 'name' => $this->filled(config('privacy.controller_name')),

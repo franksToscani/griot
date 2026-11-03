@@ -171,7 +171,9 @@ test('the error page of a missing provider is in Italian', function () {
 test('the application is called Griot in the config, the example environment, the page and React', function () {
     expect((string) file_get_contents(config_path('app.php')))->toContain("'name' => env('APP_NAME', 'Griot'),");
     expect((string) file_get_contents(base_path('.env.example')))->toContain("APP_NAME=Griot\n");
-    expect((string) file_get_contents(resource_path('views/app.blade.php')))->toContain("config('app.name', 'Griot')");
+    // The <title> of the page comes from the link preview, which falls back to the same name.
+    expect((string) file_get_contents(resource_path('views/app.blade.php')))->toContain('<title>{{ $linkPreview->title() }}</title>');
+    expect((string) file_get_contents(app_path('Support/LinkPreview.php')))->toContain("config('app.name', 'Griot')");
     expect((string) file_get_contents(resource_path('js/app.tsx')))->toContain("import.meta.env.VITE_APP_NAME || 'Griot'");
 });
 

@@ -574,5 +574,11 @@
     "errors.action.providers": "Go to the list of professionals",
     "errors.action.reload": "Reload the page",
     "errors.action.retry": "Try again",
-    "errors.action.retry_later": "Try again in a moment"
+    "errors.action.retry_later": "Try again in a moment",
+    "link_preview.site.description": "Find a professional near you and book online, without creating an account.",
+    "link_preview.provider.title": ":name - :categories in :city",
+    "link_preview.provider.title_no_categories": ":name in :city",
+    "link_preview.provider.description": "Book online with :name in :city.",
+    "link_preview.privacy.description": "How Griot uses the data of the people who book, and how long it keeps it.",
+    "link_preview.image_alt": "Griot: find a professional and book online"
 }

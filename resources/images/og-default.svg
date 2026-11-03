@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- Source of public/og-default.png, the default image of the link previews (docs/link-previews.md).
+       Colours of the Laguna palette (resources/css/app.css, light theme): background, primary,
+       primary-foreground, decor and info. Only the name of the site, no other text: the same image
+       for every language. Regenerate: rsvg-convert -w 1200 -h 630 resources/images/og-default.svg -o public/og-default.png -->
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <rect y="500" width="1200" height="130" fill="#cdeefd"/>
+  <g transform="translate(250 175)">
+    <rect width="200" height="200" rx="44" fill="#005f48"/>
+    <path transform="scale(3.125)" d="M41.9 22.1A14 14 0 1 0 46 32H33" fill="none" stroke="#f8fdfd" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="500" y="345" font-family="Noto Sans, sans-serif" font-size="190" font-weight="700" fill="#005f48" letter-spacing="-4">Griot</text>
+  <rect x="505" y="385" width="440" height="8" rx="4" fill="#c44132"/>
+</svg>

@@ -8,6 +8,7 @@ use App\Http\Resources\CategoryResource;
 use App\Http\Resources\ProviderProfileResource;
 use App\Http\Resources\ProviderResource;
 use App\Models\Provider;
+use App\Support\LinkPreview;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,9 +18,10 @@ class ProviderController extends Controller
     /**
      * Show the public list of published providers, optionally filtered by category and city.
      */
-    public function index(ProviderIndexRequest $request): Response
+    public function index(ProviderIndexRequest $request, LinkPreview $preview): Response
     {
         $filters = $request->filters();
+        $preview->publicPage(__('providers.list.title'));
 
         $providers = Provider::query()
             ->published()
@@ -49,7 +51,7 @@ class ProviderController extends Controller
     /**
      * Show the public page of a published provider.
      */
-    public function show(Request $request, string $slug, FreeSlots $freeSlots): Response
+    public function show(Request $request, string $slug, FreeSlots $freeSlots, LinkPreview $preview): Response
     {
         // Searching among the published ones only: an unpublished provider gets the same 404
         // as a missing one, so the page does not reveal that it exists.
@@ -58,6 +60,9 @@ class ProviderController extends Controller
             ->withPublicProfile()
             ->where('slug', $slug)
             ->firstOrFail();
+
+        // Only now, with a published provider: a missing or hidden one is a 404 with nothing of it.
+        $preview->forProvider($provider);
 
         return Inertia::render('providers/show', [
             // resolve() gives the provider's fields directly, without a "data" wrapper.
