@@ -40,7 +40,6 @@ export default function Register({ passwordRules }: Props) {
                                     type="text"
                                     required
                                     autoFocus
-                                    tabIndex={1}
                                     autoComplete="name"
                                     name="name"
                                     placeholder={t('common.full_name')}
@@ -61,7 +60,6 @@ export default function Register({ passwordRules }: Props) {
                                     id="email"
                                     type="email"
                                     required
-                                    tabIndex={2}
                                     autoComplete="email"
                                     name="email"
                                     placeholder={t('common.email_placeholder')}
@@ -80,7 +78,6 @@ export default function Register({ passwordRules }: Props) {
                                 <PasswordInput
                                     id="password"
                                     required
-                                    tabIndex={3}
                                     autoComplete="new-password"
                                     name="password"
                                     placeholder={t('common.password')}
@@ -100,7 +97,6 @@ export default function Register({ passwordRules }: Props) {
                                 <PasswordInput
                                     id="password_confirmation"
                                     required
-                                    tabIndex={4}
                                     autoComplete="new-password"
                                     name="password_confirmation"
                                     placeholder={t('common.confirm_password')}
@@ -119,7 +115,6 @@ export default function Register({ passwordRules }: Props) {
                             <Button
                                 type="submit"
                                 className="mt-2 w-full"
-                                tabIndex={5}
                                 data-test="register-user-button"
                             >
                                 {processing && <Spinner />}
@@ -134,9 +129,7 @@ export default function Register({ passwordRules }: Props) {
 
                         <div className="text-center text-sm text-muted-foreground">
                             {t('account.register.have_account')}{' '}
-                            <TextLink href={login()} tabIndex={6}>
-                                {t('nav.login')}
-                            </TextLink>
+                            <TextLink href={login()}>{t('nav.login')}</TextLink>
                         </div>
                     </>
                 )}

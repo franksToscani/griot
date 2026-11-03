@@ -45,7 +45,6 @@ export default function Login({ status, canResetPassword }: Props) {
                                     name="email"
                                     required
                                     autoFocus
-                                    tabIndex={1}
                                     autoComplete="email"
                                     placeholder={t('common.email_placeholder')}
                                     {...fieldA11y('email', errors.email)}
@@ -57,25 +56,13 @@ export default function Login({ status, canResetPassword }: Props) {
                             </div>
 
                             <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">
-                                        {t('common.password')}
-                                    </Label>
-                                    {canResetPassword && (
-                                        <TextLink
-                                            href={request()}
-                                            className="ml-auto text-sm"
-                                            tabIndex={5}
-                                        >
-                                            {t('account.login.forgot')}
-                                        </TextLink>
-                                    )}
-                                </div>
+                                <Label htmlFor="password">
+                                    {t('common.password')}
+                                </Label>
                                 <PasswordInput
                                     id="password"
                                     name="password"
                                     required
-                                    tabIndex={2}
                                     autoComplete="current-password"
                                     placeholder={t('common.password')}
                                     {...fieldA11y('password', errors.password)}
@@ -84,14 +71,20 @@ export default function Login({ status, canResetPassword }: Props) {
                                     id={errorId('password')}
                                     message={errors.password}
                                 />
+                                {/* After the field, in the order of the page: field, show password, then
+                                    the way out when the password is lost. */}
+                                {canResetPassword && (
+                                    <TextLink
+                                        href={request()}
+                                        className="justify-self-end text-sm"
+                                    >
+                                        {t('account.login.forgot')}
+                                    </TextLink>
+                                )}
                             </div>
 
                             <div className="flex items-center space-x-3">
-                                <Checkbox
-                                    id="remember"
-                                    name="remember"
-                                    tabIndex={3}
-                                />
+                                <Checkbox id="remember" name="remember" />
                                 <Label htmlFor="remember">
                                     {t('account.login.remember')}
                                 </Label>
@@ -100,7 +93,6 @@ export default function Login({ status, canResetPassword }: Props) {
                             <Button
                                 type="submit"
                                 className="mt-4 w-full"
-                                tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
                             >
@@ -111,7 +103,7 @@ export default function Login({ status, canResetPassword }: Props) {
 
                         <div className="text-center text-sm text-muted-foreground">
                             {t('account.login.no_account')}{' '}
-                            <TextLink href={register()} tabIndex={5}>
+                            <TextLink href={register()}>
                                 {t('nav.register')}
                             </TextLink>
                         </div>

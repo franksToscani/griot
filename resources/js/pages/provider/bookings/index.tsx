@@ -70,6 +70,24 @@ const wrappingLabel = 'h-auto max-w-full whitespace-normal py-2 text-center';
 const selectClass =
     'border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm';
 
+// The stable places for the focus after an answer: the title of the booking's card, or the title of
+// the page when the card left the list (a filter on the status). Both have tabIndex={-1}.
+const PAGE_TITLE_ID = 'provider-bookings-title';
+const cardTitleId = (bookingId: number): string =>
+    `provider-booking-${bookingId}-title`;
+
+// After a confirmation, a rejection or a cancellation the button the focus was on is gone: the
+// focus goes back to the card, on the next frame (the new list is on the page by then). The result
+// itself is the toast, read by Sonner's live region (aria-live="polite").
+function focusAfterAnswer(bookingId: number): void {
+    requestAnimationFrame(() => {
+        (
+            document.getElementById(cardTitleId(bookingId)) ??
+            document.getElementById(PAGE_TITLE_ID)
+        )?.focus();
+    });
+}
+
 const hasActiveFilters = (filters: ProviderBookingFilters): boolean =>
     filters.status !== null || filters.from !== null || filters.to !== null;
 
@@ -93,7 +111,11 @@ export default function ProviderBookingsIndex({ bookings, filters }: Props) {
             <Head title={t('provider.bookings.title')} />
             <div className="flex flex-col gap-6 p-4">
                 <header className="flex max-w-2xl flex-col gap-1">
-                    <h1 className="text-2xl font-semibold">
+                    <h1
+                        id={PAGE_TITLE_ID}
+                        tabIndex={-1}
+                        className="text-2xl font-semibold"
+                    >
                         {t('provider.bookings.title')}
                     </h1>
                     <p className="text-sm text-muted-foreground">
@@ -254,7 +276,15 @@ function BookingCard({ booking }: { booking: ProviderBooking }) {
         <Card className={cn(pending && 'border-2 border-primary')}>
             <CardHeader>
                 <CardTitle className="flex flex-wrap items-center gap-2">
-                    <span className="min-w-0 break-words">{date}</span>
+                    {/* A heading per booking: the focus comes back here after an answer, and
+                        screen readers can move from booking to booking. */}
+                    <h2
+                        id={cardTitleId(booking.id)}
+                        tabIndex={-1}
+                        className="min-w-0 break-words"
+                    >
+                        {date}
+                    </h2>
                     <Badge variant={statusBadge[booking.status]}>
                         {t(`provider.bookings.status.${booking.status}`)}
                     </Badge>
@@ -334,6 +364,7 @@ function BookingCard({ booking }: { booking: ProviderBooking }) {
                         )}
                         {booking.can_reject && (
                             <ReasonDialog
+                                bookingId={booking.id}
                                 action={rejectBooking.form({
                                     booking: booking.id,
                                 })}
@@ -352,6 +383,7 @@ function BookingCard({ booking }: { booking: ProviderBooking }) {
                         )}
                         {booking.can_cancel && (
                             <ReasonDialog
+                                bookingId={booking.id}
                                 action={cancelBooking.form({
                                     booking: booking.id,
                                 })}
@@ -430,6 +462,7 @@ function ConfirmBookingButton({ bookingId }: { bookingId: number }) {
         <Form
             {...confirmBooking.form({ booking: bookingId })}
             options={{ preserveScroll: true }}
+            onSuccess={() => focusAfterAnswer(bookingId)}
         >
             {({ processing }) => (
                 <Button
@@ -451,6 +484,7 @@ function ConfirmBookingButton({ bookingId }: { bookingId: number }) {
 // written; any other error (a refused change, the request limit) closes it, and is shown at the
 // top of the page.
 function ReasonDialog({
+    bookingId,
     action,
     idPrefix,
     trigger,
@@ -458,6 +492,7 @@ function ReasonDialog({
     description,
     yes,
 }: {
+    bookingId: number;
     action: ReturnType<typeof rejectBooking.form>;
     idPrefix: string;
     trigger: string;
@@ -467,6 +502,9 @@ function ReasonDialog({
 }) {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
+    // Set by a success: the window then gives the focus to the card, not to its trigger, which the
+    // answer has removed. After an error the trigger is still there: Radix gives the focus back.
+    const answered = useRef(false);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -479,7 +517,15 @@ function ReasonDialog({
                     {trigger}
                 </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent
+                onCloseAutoFocus={(event) => {
+                    if (answered.current) {
+                        answered.current = false;
+                        event.preventDefault();
+                        focusAfterAnswer(bookingId);
+                    }
+                }}
+            >
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                     <DialogDescription>{description}</DialogDescription>
@@ -487,7 +533,10 @@ function ReasonDialog({
                 <Form
                     {...action}
                     options={{ preserveScroll: true }}
-                    onSuccess={() => setOpen(false)}
+                    onSuccess={() => {
+                        answered.current = true;
+                        setOpen(false);
+                    }}
                     onError={(errors) => {
                         if (!errors.reason) {
                             setOpen(false);

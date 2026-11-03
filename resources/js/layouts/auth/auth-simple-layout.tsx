@@ -11,7 +11,9 @@ export default function AuthSimpleLayout({
 }: AuthLayoutProps) {
     return (
         <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
-            <div className="w-full max-w-sm">
+            {/* The whole card is the content: only the logo comes before the fields, so no skip
+                link here. */}
+            <main className="w-full max-w-sm">
                 <div className="flex flex-col gap-8">
                     <div className="flex flex-col items-center gap-4">
                         <Link
@@ -34,7 +36,7 @@ export default function AuthSimpleLayout({
                     {children}
                     <LocaleSwitcher className="justify-center" />
                 </div>
-            </div>
+            </main>
         </div>
     );
 }

@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import AppLogo from '@/components/app-logo';
 import { LocaleSwitcher } from '@/components/locale-switcher';
+import { MAIN_CONTENT_ID, SkipLink } from '@/components/skip-link';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard, home, login, privacy } from '@/routes';
 
@@ -12,6 +13,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
 
     return (
         <div className="flex min-h-svh flex-col bg-background">
+            <SkipLink />
             <header className="border-b">
                 <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3">
                     <Link href={home()} className="flex items-center">
@@ -31,7 +33,11 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                     </div>
                 </div>
             </header>
-            <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+            <main
+                id={MAIN_CONTENT_ID}
+                tabIndex={-1}
+                className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 outline-none"
+            >
                 {children}
             </main>
             <footer className="border-t">
