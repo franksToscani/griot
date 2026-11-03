@@ -36,10 +36,13 @@ export default function AppearanceToggleTab({
                 <button
                     key={value}
                     onClick={() => updateAppearance(value)}
+                    // The chosen one: said to screen readers, and with a border in forced colours,
+                    // where its background is not drawn.
+                    aria-pressed={appearance === value}
                     className={cn(
                         'flex items-center rounded-md px-3.5 py-1.5 transition-colors max-md:min-h-11',
                         appearance === value
-                            ? 'bg-white shadow-xs dark:bg-neutral-700 dark:text-neutral-100'
+                            ? 'bg-white shadow-xs dark:bg-neutral-700 dark:text-neutral-100 forced-colors:border'
                             : 'text-neutral-600 hover:bg-neutral-200/60 hover:text-black dark:text-neutral-400 dark:hover:bg-neutral-700/60',
                     )}
                 >

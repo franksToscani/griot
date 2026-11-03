@@ -50,7 +50,10 @@ export function ProviderFilters({ filters, options }: Props) {
                     value={filters.category ?? ALL}
                     onValueChange={(value) => apply('category', value)}
                 >
-                    <SelectTrigger id="filter-category" className="w-56">
+                    <SelectTrigger
+                        id="filter-category"
+                        className="max-w-full min-w-56"
+                    >
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -74,7 +77,10 @@ export function ProviderFilters({ filters, options }: Props) {
                     value={filters.city ?? ALL}
                     onValueChange={(value) => apply('city', value)}
                 >
-                    <SelectTrigger id="filter-city" className="w-56">
+                    <SelectTrigger
+                        id="filter-city"
+                        className="max-w-full min-w-56"
+                    >
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

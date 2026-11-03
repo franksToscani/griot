@@ -36,7 +36,7 @@ const wrappingLabel = 'h-auto max-w-full whitespace-normal py-2 text-center';
 
 // Copied from services/index.tsx: a native select with the same look as the kit's Input.
 const selectClass =
-    'border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm';
+    'border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:outline-hidden focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm';
 
 // The provider writes a booking for a customer who asked by phone or in person: born confirmed,
 // with no email to anyone.

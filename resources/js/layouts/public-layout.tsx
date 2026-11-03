@@ -18,9 +18,14 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             <SkipLink />
             <header className="border-b">
                 <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3">
+                    {/* Never squeezed: on a narrow phone the language and "log in" make room
+                        ("Se connecter" goes on two lines), not the name of the site. */}
                     <Link
                         href={home()}
-                        className={cn('flex items-center', touchTarget)}
+                        className={cn(
+                            'flex shrink-0 items-center',
+                            touchTarget,
+                        )}
                     >
                         <AppLogo />
                     </Link>

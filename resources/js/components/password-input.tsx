@@ -25,7 +25,7 @@ export default function PasswordInput({
             <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-0 flex items-center justify-center rounded-r-md px-3 text-muted-foreground hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none max-md:min-w-11"
+                className="absolute inset-y-0 right-0 flex items-center justify-center rounded-r-md px-3 text-muted-foreground hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-hidden max-md:min-w-11"
                 // A toggle: one name, and its state in aria-pressed. Reached with Tab, right after
                 // the field. On phones 44px wide, and as high as the field (44px there too).
                 aria-label={t('common.show_password')}

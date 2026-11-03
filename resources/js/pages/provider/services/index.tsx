@@ -27,7 +27,7 @@ type Props = {
 
 // A native select with the same look as the kit's Input: the kit has no select of its own.
 const selectClass =
-    'border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm';
+    'border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:outline-hidden focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm';
 
 // The logged-in provider's services, active or not, and the form to add one.
 export default function ProviderServicesIndex({ services, categories }: Props) {

@@ -215,7 +215,7 @@ test('the lone links get it where they are', function () {
     expect(tamSource('js/layouts/public-layout.tsx'))
         ->toContain('<Link href={login()} className={touchTarget}>')
         ->toMatch('/<Link\s+href=\{dashboard\(\)\}\s+className=\{touchTarget\}\s*>/')
-        ->toMatch("/<Link\s+href=\{home\(\)\}\s+className=\{cn\('flex items-center', touchTarget\)\}\s*>/");
+        ->toMatch("/<Link\s+href=\{home\(\)\}\s+className=\{cn\(\s*'flex shrink-0 items-center',\s*touchTarget,?\s*\)\}\s*>/");
     expect(tamSource('js/pages/providers/show.tsx'))
         ->toContain("className: cn('underline underline-offset-4', touchTarget),");
     expect(tamSource('js/pages/privacy.tsx'))
