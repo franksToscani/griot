@@ -1,3 +1,4 @@
+@inject('linkPreview', 'App\Support\LinkPreview')
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
@@ -34,10 +35,13 @@
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
+        @include('partials.meta')
+
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+        {{-- Inertia replaces this <title> with the one of the page (<Head>) as soon as it runs. --}}
         <x-inertia::head>
-            <title>{{ config('app.name', 'Griot') }}</title>
+            <title>{{ $linkPreview->title() }}</title>
         </x-inertia::head>
     </head>
     <body class="font-sans antialiased">

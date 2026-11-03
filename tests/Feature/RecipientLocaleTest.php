@@ -441,7 +441,9 @@ test('an email queued before the language existed is sent in Italian; a new one 
     BookingStatusNotification::sendFor($booking, BookingOutcome::Confirmed);
     expect(DB::table('jobs')->count())->toBe(2);
 
-    $this->artisan('queue:work', ['--stop-when-empty' => true])->assertSuccessful();
+    // A memory limit of its own: the worker runs inside the test process, which holds the whole
+    // suite by now and can be past queue:work's default of 128 MB (exit code 12, memory limit).
+    $this->artisan('queue:work', ['--stop-when-empty' => true, '--memory' => 1024])->assertSuccessful();
 
     expect(rclSent()['vecchia@example.com']->getSubject())->toBe('Prenotazione confermata: Treccine')
         ->and(rclSent()['awa@example.com']->getSubject())->toBe("Réservation confirmée\u{00A0}: Treccine")
