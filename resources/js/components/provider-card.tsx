@@ -9,7 +9,7 @@ export function ProviderCard({ provider }: { provider: ProviderListItem }) {
     return (
         <Link
             href={show(provider.slug)}
-            className="block rounded-xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            className="block rounded-xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-hidden"
         >
             <Card className="py-4 transition-colors hover:bg-accent/50">
                 <CardContent className="flex flex-col gap-3 px-4">

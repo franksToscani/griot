@@ -44,7 +44,7 @@ type Props = {
 
 // Same native select as the services list: the kit has no select of its own.
 const selectClass =
-    'border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm';
+    'border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:outline-hidden focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm';
 
 // Copied from dashboard.tsx: the kit's Button keeps its label on one line at a fixed height, and
 // long Italian labels would widen the page at 375 px. cn() uses tailwind-merge, so these win.

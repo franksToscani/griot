@@ -42,7 +42,7 @@ const wrappingLabel = 'h-auto max-w-full whitespace-normal py-2 text-center';
 
 // Copied from services/index.tsx: a native select with the same look as the kit's Input.
 const selectClass =
-    'border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm';
+    'border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:outline-hidden focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm';
 
 // The provider's weekly hours: one Card per day, from Monday, each with its slots, and the form to
 // add one. The slots come ordered by day and start from the server.
