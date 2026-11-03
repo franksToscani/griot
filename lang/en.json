@@ -101,6 +101,7 @@
     "booking.notice.link": "You can see your booking here:",
     "common.loading": "Loading…",
     "common.locale.label": "Language",
+    "common.skip_to_content": "Skip to content",
     "common.pagination.label": "Pages",
     "common.pagination.previous": "Previous",
     "common.pagination.next": "Next",

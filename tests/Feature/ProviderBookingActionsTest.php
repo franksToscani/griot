@@ -380,8 +380,8 @@ test('the buttons of the bookings page follow the three flags of the server', fu
     // Each button only under its own flag, sent by the server: the page computes no rule.
     expect($source)
         ->toMatch('/\{booking\.can_confirm && \(\s*<ConfirmBookingButton\b/')
-        ->toMatch('/\{booking\.can_reject && \(\s*<ReasonDialog\s+action=\{rejectBooking\.form\(/')
-        ->toMatch('/\{booking\.can_cancel && \(\s*<ReasonDialog\s+action=\{cancelBooking\.form\(/');
+        ->toMatch('/\{booking\.can_reject && \(\s*<ReasonDialog\s+bookingId=\{booking\.id\}\s+action=\{rejectBooking\.form\(/')
+        ->toMatch('/\{booking\.can_cancel && \(\s*<ReasonDialog\s+bookingId=\{booking\.id\}\s+action=\{cancelBooking\.form\(/');
 });
 
 test('the customer page shows the reason as plain text, only on a cancelled booking that has one', function () {

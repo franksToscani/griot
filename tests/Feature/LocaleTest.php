@@ -163,7 +163,8 @@ test('the selector hides itself with one language and posts the choice to the ro
     expect($source)
         ->toMatch('/if \(locales\.length <= 1\) \{\s*return null;\s*\}/')
         ->toContain("import { update as updateLocale } from '@/routes/locale';")
-        ->toMatch('/router\.post\(\s*updateLocale\.url\(\),\s*\{ locale: event\.target\.value \},/')
+        // A Radix Select since issue #55: the page changes when a language is confirmed.
+        ->toMatch('/onValueChange=\{\(value\) =>[\s\S]*?router\.post\(\s*updateLocale\.url\(\),\s*\{ locale: value \},/')
         ->toContain("{t('common.locale.label')}")
         // Each language in its own name, from the server: no name written in the component.
         ->toContain('{option.name}');
