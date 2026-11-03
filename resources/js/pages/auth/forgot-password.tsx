@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { login } from '@/routes';
 import { email } from '@/routes/password';
 import { useTranslation } from '@/hooks/use-translation';
+import { errorId, fieldA11y, focusFirstInvalid } from '@/lib/form-a11y';
 
 export default function ForgotPassword({ status }: { status?: string }) {
     const { t } = useTranslation();
@@ -24,7 +25,11 @@ export default function ForgotPassword({ status }: { status?: string }) {
             )}
 
             <div className="space-y-6">
-                <Form {...email.form()}>
+                <Form
+                    id="forgot-password-form"
+                    onError={() => focusFirstInvalid('forgot-password-form')}
+                    {...email.form()}
+                >
                     {({ processing, errors }) => (
                         <>
                             <div className="grid gap-2">
@@ -38,9 +43,13 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     autoComplete="off"
                                     autoFocus
                                     placeholder={t('common.email_placeholder')}
+                                    {...fieldA11y('email', errors.email)}
                                 />
 
-                                <InputError message={errors.email} />
+                                <InputError
+                                    id={errorId('email')}
+                                    message={errors.email}
+                                />
                             </div>
 
                             <div className="my-6 flex items-center justify-start">

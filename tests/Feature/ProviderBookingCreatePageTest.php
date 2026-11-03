@@ -260,9 +260,12 @@ test('the new page sends the provider\'s form and reads the provider\'s slots', 
         ->not->toContain('confirm_reference')
         ->toMatch('/<CustomerFields\s+nameLabelKey="provider\.bookings\.create\.name"\s+phoneHelpKey="provider\.bookings\.create\.phone_help"/')
         ->toMatch('/startsAtError=\{errors\.starts_at\}/')
-        ->toMatch('/<InputError message=\{errors\.service\} \/>/')
+        // The service's error is tied to its select (issue #55).
+        ->toMatch("/<InputError\\s+id=\\{errorId\\('booking-service'\\)\\}\\s+message=\\{errors\\.service\\}\\s*\\/>/")
         ->toMatch('/\{processing && <Spinner \/>\}\s*\{t\(\'provider\.bookings\.create\.submit\'\)\}/')
-        ->toMatch('/disabled=\{startsAt === \'\' \|\| processing\}/');
+        // Disabled while sending only: a missing time is stopped by the day field (issue #55).
+        ->toMatch('/<Button\s+type="submit"\s+disabled=\{processing\}/')
+        ->not->toContain("startsAt === '' || processing");
 });
 
 test('the new page explains instead of showing the form: unpublished first, then no services', function () {

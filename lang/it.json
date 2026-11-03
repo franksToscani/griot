@@ -23,6 +23,7 @@
     "booking.form.choose_day": "Scegli un giorno per vedere gli orari.",
     "booking.form.slots_loading": "Caricamento degli orari…",
     "booking.form.no_slots": "Nessun orario libero in questo giorno.",
+    "booking.form.slots_found": "Orari disponibili: :count.",
     "booking.form.slots_error": "Non è stato possibile caricare gli orari. Riprova.",
     "booking.form.name": "Nome",
     "booking.form.phone": "Telefono",

@@ -20,6 +20,7 @@ import {
 import { Spinner } from '@/components/ui/spinner';
 import { useFreeSlots } from '@/hooks/use-free-slots';
 import { useTranslation } from '@/hooks/use-translation';
+import { focusFirstInvalid } from '@/lib/form-a11y';
 import { slots as slotsRoute } from '@/routes/providers';
 import { store } from '@/routes/providers/bookings';
 import type { BookingWindow, Service } from '@/types';
@@ -90,6 +91,7 @@ export function BookingSheet({ providerSlug, service, bookingWindow }: Props) {
                 </SheetHeader>
 
                 <Form
+                    id="booking-form"
                     {...store.form(providerSlug)}
                     options={{ preserveScroll: true }}
                     onSuccess={() => {
@@ -103,6 +105,8 @@ export function BookingSheet({ providerSlug, service, bookingWindow }: Props) {
                             setStartsAt('');
                             reload();
                         }
+
+                        focusFirstInvalid('booking-form');
                     }}
                     className="flex flex-col gap-6 px-4 pb-6"
                 >
@@ -161,13 +165,13 @@ export function BookingSheet({ providerSlug, service, bookingWindow }: Props) {
                                 />
                             </div>
 
-                            <InputError message={errors.service} />
-                            <InputError message={errors.throttle} />
+                            {/* No field of their own: read as soon as they appear. */}
+                            <InputError message={errors.service} announce />
+                            <InputError message={errors.throttle} announce />
 
-                            <Button
-                                type="submit"
-                                disabled={startsAt === '' || processing}
-                            >
+                            {/* Never disabled for a missing time: the day field stops the
+                                submit with its message (booking-fields.tsx). */}
+                            <Button type="submit" disabled={processing}>
                                 {processing && <Spinner />}
                                 {t('booking.form.submit')}
                             </Button>

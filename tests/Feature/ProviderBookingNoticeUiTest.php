@@ -35,7 +35,8 @@ test('the phone field of the booking form has its help text, linked to the input
     // The fields live in booking-fields.tsx since issue #49; each form chooses its help text.
     $source = pbnSource('js/components/booking-fields.tsx');
 
-    expect($source)->toMatch('/<Input\s+id="customer_phone"[^>]*aria-describedby="customer_phone-help"[^>]*\/>/');
+    // The help stays in aria-describedby; the error, when there is one, is added after it (issue #55).
+    expect($source)->toMatch("/<Input\\s+id=\"customer_phone\"[^>]*\\{\\.\\.\\.fieldA11y\\(\\s*'customer_phone',\\s*errors\\.customer_phone,\\s*'customer_phone-help',?\\s*\\)\\}\\s*\\/>/");
     expect($source)->toMatch('/<p\s+id="customer_phone-help"[^>]*>\s*\{t\(phoneHelpKey\)\}/');
     expect(pbnSource('js/components/booking-sheet.tsx'))->toMatch('/<CustomerFields\s+nameLabelKey="booking\.form\.name"\s+phoneHelpKey="booking\.phone\.help"/');
 });

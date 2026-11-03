@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/password/confirm';
 import { useTranslation } from '@/hooks/use-translation';
+import { errorId, fieldA11y, focusFirstInvalid } from '@/lib/form-a11y';
 
 export default function ConfirmPassword() {
     const { t } = useTranslation();
@@ -14,7 +15,12 @@ export default function ConfirmPassword() {
         <>
             <Head title={t('common.confirm_password')} />
 
-            <Form {...store.form()} resetOnSuccess={['password']}>
+            <Form
+                id="confirm-password-form"
+                onError={() => focusFirstInvalid('confirm-password-form')}
+                {...store.form()}
+                resetOnSuccess={['password']}
+            >
                 {({ processing, errors }) => (
                     <div className="space-y-6">
                         <div className="grid gap-2">
@@ -27,9 +33,13 @@ export default function ConfirmPassword() {
                                 placeholder={t('common.password')}
                                 autoComplete="current-password"
                                 autoFocus
+                                {...fieldA11y('password', errors.password)}
                             />
 
-                            <InputError message={errors.password} />
+                            <InputError
+                                id={errorId('password')}
+                                message={errors.password}
+                            />
                         </div>
 
                         <div className="flex items-center">

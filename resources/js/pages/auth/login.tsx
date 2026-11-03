@@ -11,6 +11,7 @@ import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { useTranslation } from '@/hooks/use-translation';
+import { errorId, fieldA11y, focusFirstInvalid } from '@/lib/form-a11y';
 
 type Props = {
     status?: string;
@@ -25,6 +26,8 @@ export default function Login({ status, canResetPassword }: Props) {
             <Head title={t('nav.login')} />
 
             <Form
+                id="login-form"
+                onError={() => focusFirstInvalid('login-form')}
                 {...store.form()}
                 resetOnSuccess={['password']}
                 className="flex flex-col gap-6"
@@ -45,8 +48,12 @@ export default function Login({ status, canResetPassword }: Props) {
                                     tabIndex={1}
                                     autoComplete="email"
                                     placeholder={t('common.email_placeholder')}
+                                    {...fieldA11y('email', errors.email)}
                                 />
-                                <InputError message={errors.email} />
+                                <InputError
+                                    id={errorId('email')}
+                                    message={errors.email}
+                                />
                             </div>
 
                             <div className="grid gap-2">
@@ -71,8 +78,12 @@ export default function Login({ status, canResetPassword }: Props) {
                                     tabIndex={2}
                                     autoComplete="current-password"
                                     placeholder={t('common.password')}
+                                    {...fieldA11y('password', errors.password)}
                                 />
-                                <InputError message={errors.password} />
+                                <InputError
+                                    id={errorId('password')}
+                                    message={errors.password}
+                                />
                             </div>
 
                             <div className="flex items-center space-x-3">

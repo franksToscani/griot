@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -12,6 +13,7 @@ import {
     formatPrice,
     priceToCents,
 } from '@/lib/format';
+import { errorId, fieldA11y } from '@/lib/form-a11y';
 import { cn } from '@/lib/utils';
 import type { BookingWindow, FreeSlot, Service } from '@/types';
 
@@ -42,6 +44,14 @@ export function BookingOptionsFieldset({
         return null;
     }
 
+    // One error for the whole group: every checkbox points to it.
+    const invalid = error
+        ? {
+              'aria-invalid': true as const,
+              'aria-describedby': errorId('booking-options'),
+          }
+        : {};
+
     return (
         <fieldset className="grid gap-3">
             <legend className="mb-2 text-sm font-medium">
@@ -60,6 +70,7 @@ export function BookingOptionsFieldset({
                             onCheckedChange={(checked) =>
                                 onToggle(option.id, checked === true)
                             }
+                            {...invalid}
                         />
                         <Label
                             htmlFor={`option-${option.id}`}
@@ -71,7 +82,7 @@ export function BookingOptionsFieldset({
                     </div>
                 );
             })}
-            <InputError message={error} />
+            <InputError id={errorId('booking-options')} message={error} />
         </fieldset>
     );
 }
@@ -146,18 +157,48 @@ export function BookingDayAndTimes({
     startsAtError,
 }: DayAndTimesProps) {
     const { t } = useTranslation();
+    const dayRef = useRef<HTMLInputElement>(null);
+    // The browser's own check, before the request: without a time the form is not sent, the
+    // browser shows this message on the day (the first problem, in the order of the form) and
+    // moves the focus there, as it does for the required name and phone. The server's
+    // "starts_at" error stays the safety net.
+    const noTime = t('booking.validation.starts_at_required');
+    const [missingTime, setMissingTime] = useState(false);
+
+    useEffect(() => {
+        dayRef.current?.setCustomValidity(startsAt === '' ? noTime : '');
+    }, [startsAt, noTime]);
+
+    // The server's error first; the browser's only while no time is chosen.
+    const timeError =
+        startsAtError ?? (missingTime && startsAt === '' ? noTime : undefined);
+
+    // Read by screen readers when the times change: nothing is announced before a day is chosen.
+    const status =
+        day === ''
+            ? ''
+            : loading
+              ? t('booking.form.slots_loading')
+              : error
+                ? error
+                : slots.length === 0
+                  ? t('booking.form.no_slots')
+                  : t('booking.form.slots_found', { count: slots.length });
 
     return (
         <>
             <div className="grid gap-2">
                 <Label htmlFor="booking-day">{t('booking.form.day')}</Label>
                 <Input
+                    ref={dayRef}
                     id="booking-day"
                     type="date"
                     min={bookingWindow.first_day}
                     max={bookingWindow.last_day}
                     value={day}
                     onChange={(event) => onDayChange(event.target.value)}
+                    onInvalid={() => setMissingTime(true)}
+                    {...fieldA11y('booking-day', timeError)}
                 />
             </div>
 
@@ -165,7 +206,10 @@ export function BookingDayAndTimes({
                 <p id="booking-times" className="text-sm font-medium">
                     {t('booking.form.times')}
                 </p>
-                <InputError message={startsAtError} />
+                <p role="status" className="sr-only">
+                    {status}
+                </p>
+                <InputError id={errorId('booking-day')} message={timeError} />
                 {day === '' ? (
                     <p className="text-sm text-muted-foreground">
                         {t('booking.form.choose_day')}
@@ -176,6 +220,7 @@ export function BookingDayAndTimes({
                         {t('booking.form.slots_loading')}
                     </p>
                 ) : error ? (
+                    // No field and no alert: the status line above reads it.
                     <InputError message={error} />
                 ) : slots.length === 0 ? (
                     <p className="text-sm text-muted-foreground">
@@ -185,6 +230,9 @@ export function BookingDayAndTimes({
                     <div
                         role="group"
                         aria-labelledby="booking-times"
+                        aria-describedby={
+                            timeError ? errorId('booking-day') : undefined
+                        }
                         className="flex flex-wrap gap-2"
                     >
                         {slots.map((slot) => (
@@ -241,8 +289,12 @@ export function CustomerFields({
                     required
                     maxLength={150}
                     autoComplete="name"
+                    {...fieldA11y('customer_name', errors.customer_name)}
                 />
-                <InputError message={errors.customer_name} />
+                <InputError
+                    id={errorId('customer_name')}
+                    message={errors.customer_name}
+                />
             </div>
             <div className="grid gap-2">
                 <Label htmlFor="customer_phone">
@@ -255,7 +307,11 @@ export function CustomerFields({
                     required
                     maxLength={30}
                     autoComplete="tel"
-                    aria-describedby="customer_phone-help"
+                    {...fieldA11y(
+                        'customer_phone',
+                        errors.customer_phone,
+                        'customer_phone-help',
+                    )}
                 />
                 <p
                     id="customer_phone-help"
@@ -263,7 +319,10 @@ export function CustomerFields({
                 >
                     {t(phoneHelpKey)}
                 </p>
-                <InputError message={errors.customer_phone} />
+                <InputError
+                    id={errorId('customer_phone')}
+                    message={errors.customer_phone}
+                />
             </div>
             <div className="grid gap-2">
                 <Label htmlFor="customer_email">
@@ -275,8 +334,12 @@ export function CustomerFields({
                     type="email"
                     maxLength={255}
                     autoComplete="email"
+                    {...fieldA11y('customer_email', errors.customer_email)}
                 />
-                <InputError message={errors.customer_email} />
+                <InputError
+                    id={errorId('customer_email')}
+                    message={errors.customer_email}
+                />
             </div>
             <div className="grid gap-2">
                 <Label htmlFor="notes">{t('booking.form.notes')}</Label>
@@ -285,8 +348,9 @@ export function CustomerFields({
                     name="notes"
                     maxLength={1000}
                     className={cn(textareaClass)}
+                    {...fieldA11y('notes', errors.notes)}
                 />
-                <InputError message={errors.notes} />
+                <InputError id={errorId('notes')} message={errors.notes} />
             </div>
         </div>
     );
