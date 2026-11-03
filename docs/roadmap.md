@@ -421,6 +421,7 @@ Si parte con la A per i primi due o tre provider; la C diventa utile per una pro
 
 - Contrasto sufficiente, campi con etichetta, navigazione con la tastiera nei form di prenotazione.
 - Verifica con uno strumento automatico (per esempio Lighthouse) e un controllo a mano delle due pagine principali.
+- Risultati, verifiche eseguite e debiti aperti dell'issue #55: [docs/accessibility.md](accessibility.md).
 
 **Privacy di base** _Come cliente voglio sapere come vengono usati i miei dati._
 
