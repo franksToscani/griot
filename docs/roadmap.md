@@ -510,7 +510,7 @@ Griot va online in modo sicuro, prima per i provider pilota e poi per un pubblic
 
 - Registro degli errori consultabile (anche solo i log di Render) e un avviso quando un'email o un lavoro in coda fallisce.
 - Una copia periodica del database e una prova di ripristino fatta davvero, non solo scritta.
-- Una pagina di errore comprensibile per gli utenti.
+- Una pagina di errore comprensibile per gli utenti: `resources/views/errors` (403, 404, 419, 429, 500, 503), vedi [docs/accessibility.md](accessibility.md).
 
 **Passaggio di consegne a se stessi** _Come sviluppatore voglio una lista scritta di cosa fare in caso di problemi, per non improvvisare._
 

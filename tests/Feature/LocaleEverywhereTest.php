@@ -97,15 +97,11 @@ test('a cookie that is not valid or not readable gives Italian, without errors',
     'French not available' => [fn ($test) => tap($test, fn () => config()->set('app.available_locales', ['it' => 'Italiano']))->withCookie('locale', 'fr')->get('/indirizzo-che-non-esiste')],
 ]);
 
-test('the error layout is Laravel\'s, with the language of the page only', function () {
-    $ours = (string) file_get_contents(resource_path('views/errors/minimal.blade.php'));
-    $laravel = (string) file_get_contents(base_path('vendor/laravel/framework/src/Illuminate/Foundation/Exceptions/views/minimal.blade.php'));
-
-    expect($ours)->toContain('<html lang="{{ str_replace(\'_\', \'-\', app()->getLocale()) }}">');
-    $withoutLang = fn (string $view) => preg_replace(['/^\{\{--.*--\}\}\n/m', '/<html lang="[^"]*">/'], ['', '<html>'], $view);
-    expect($withoutLang($ours))->toBe($withoutLang($laravel));
-    // Only this layout: the other error views stay Laravel's.
-    expect(glob(resource_path('views/errors/*')))->toBe([resource_path('views/errors/minimal.blade.php')]);
+test('the error pages say which language they are written in', function () {
+    // Griot's own error views (ErrorPagesTest): the layout gives every page its lang.
+    expect((string) file_get_contents(resource_path('views/errors/layout.blade.php')))
+        ->toContain('<html lang="{{ str_replace(\'_\', \'-\', app()->getLocale()) }}">');
+    expect((string) file_get_contents(resource_path('views/errors/minimal.blade.php')))->toContain("@extends('errors::layout')");
 });
 
 // ---------------------------------------------------------------------------------------------

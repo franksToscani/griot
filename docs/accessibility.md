@@ -12,7 +12,7 @@ Risultati del lavoro sull'issue #55: cosa è stato cambiato, come è protetto da
 - Prenotazione: il modulo nel pannello laterale (Sheet) con opzioni, giorno, orari e dati del cliente.
 - Area provider: pannello, profilo, servizi, opzioni, disponibilità, lista prenotazioni, nuova prenotazione.
 - Accesso e impostazioni: login, registrazione, password dimenticata, impostazioni (profilo, sicurezza, aspetto).
-- Pagina di errore 404.
+- Pagine di errore (403, 404, 419, 429, 500, 503 e una generale per gli altri codici): autosufficienti, senza Vite, database, sessione né JavaScript, con i colori della palette e il carattere di sistema.
 - Tema chiaro e scuro, italiano, francese e inglese.
 
 **Fuori**
@@ -63,15 +63,16 @@ Risultati del lavoro sull'issue #55: cosa è stato cambiato, come è protetto da
 
 ## 4. Test automatici
 
-| File                                           | Cosa controlla                                                                                                                                                                                                                                                                                      |
-| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tests/Feature/AccessibilityContrastTest.php`  | Rapporti di contrasto calcolati dai token, in chiaro e in scuro: testo, campi, anelli del focus (anche su giallo e azzurro), messaggi verdi, avviso rosso, tab dell'aspetto, link e nome del sito, schede, giallo, azzurro, filo rosso, menu laterale. I vecchi valori devono restare sotto soglia. |
-| `tests/Feature/AccessibleErrorsTest.php`       | Errori collegati ai campi, focus sul primo campo sbagliato, annunci di orari ed errori senza campo, e le stesse risposte del server per i moduli di prenotazione.                                                                                                                                   |
-| `tests/Feature/KeyboardNavigationTest.php`     | Nessun `tabIndex` positivo, ordine del login, mostra password raggiungibile, link "Salta al contenuto", selettore della lingua, focus dopo un'azione nella lista prenotazioni, toast in una regione `polite`.                                                                                       |
-| `tests/Feature/AccessibleNamesTest.php`        | Link in nuova scheda con avviso, "Prenota" col nome del servizio, avatar, ordine dei titoli, messaggi di stato, `<html lang>`, menu laterale come `nav`, nome del logo, "Orari" e "Contatti" come h2.                                                                                               |
-| `tests/Feature/TouchAndMotionTest.php`         | Regola del movimento ridotto ed eccezione dello spinner, nessuno scroll morbido, 44 px sotto 768 px nei componenti e nei link isolati, aree invisibili.                                                                                                                                             |
-| `tests/Feature/ForcedColorsAndSpacingTest.php` | `focus-visible:outline-hidden` accanto a ogni `outline-none`, bordo dei pulsanti nei colori forzati, `aria-pressed` sui tab dell'aspetto, logo dell'header, larghezza dei filtri.                                                                                                                   |
-| `tests/Feature/VisualIdentityTest.php`         | Carattere incluso nel progetto (niente Bunny), sottoinsiemi con ɛ ɔ ŋ ẹ ọ ṣ, colori di errori e stati invariati, filo rosso solo nell'header e nel nome, nome del sito come testo, segno e favicon di Griot.                                                                                        |
+| File                                           | Cosa controlla                                                                                                                                                                                                                                                                                                      |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/Feature/AccessibilityContrastTest.php`  | Rapporti di contrasto calcolati dai token, in chiaro e in scuro: testo, campi, anelli del focus (anche su giallo e azzurro), messaggi verdi, avviso rosso, tab dell'aspetto, link e nome del sito, schede, giallo, azzurro, filo rosso, menu laterale. I vecchi valori devono restare sotto soglia.                 |
+| `tests/Feature/AccessibleErrorsTest.php`       | Errori collegati ai campi, focus sul primo campo sbagliato, annunci di orari ed errori senza campo, e le stesse risposte del server per i moduli di prenotazione.                                                                                                                                                   |
+| `tests/Feature/KeyboardNavigationTest.php`     | Nessun `tabIndex` positivo, ordine del login, mostra password raggiungibile, link "Salta al contenuto", selettore della lingua, focus dopo un'azione nella lista prenotazioni, toast in una regione `polite`.                                                                                                       |
+| `tests/Feature/AccessibleNamesTest.php`        | Link in nuova scheda con avviso, "Prenota" col nome del servizio, avatar, ordine dei titoli, messaggi di stato, `<html lang>`, menu laterale come `nav`, nome del logo, "Orari" e "Contatti" come h2.                                                                                                               |
+| `tests/Feature/TouchAndMotionTest.php`         | Regola del movimento ridotto ed eccezione dello spinner, nessuno scroll morbido, 44 px sotto 768 px nei componenti e nei link isolati, aree invisibili.                                                                                                                                                             |
+| `tests/Feature/ForcedColorsAndSpacingTest.php` | `focus-visible:outline-hidden` accanto a ogni `outline-none`, bordo dei pulsanti nei colori forzati, `aria-pressed` sui tab dell'aspetto, logo dell'header, larghezza dei filtri.                                                                                                                                   |
+| `tests/Feature/VisualIdentityTest.php`         | Carattere incluso nel progetto (niente Bunny), sottoinsiemi con ɛ ɔ ŋ ẹ ọ ṣ, colori di errori e stati invariati, filo rosso solo nell'header e nel nome, nome del sito come testo, segno e favicon di Griot.                                                                                                        |
+| `tests/Feature/ErrorPagesTest.php`             | Ogni pagina d'errore nelle tre lingue: stato, titolo, messaggio, link (con `target="_top"` per la finestra di Inertia), un h1, `<main>`, `lang`; nessun dettaglio dell'eccezione; nessuna dipendenza da Vite, sessione o JavaScript; colori uguali ai token e contrasti; 44 px, contorno del focus, colori forzati. |
 
 **Limite**: non c'è un runner JavaScript. Quasi tutti questi test leggono i sorgenti: dicono che una classe o un attributo c'è, non che il risultato sullo schermo misura 44 px o che un lettore di schermo lo annuncia. Le misure vere sono quelle della sezione 5.
 
@@ -84,7 +85,7 @@ composer ci:check
 Solo questi file:
 
 ```bash
-php artisan test --compact tests/Feature/AccessibilityContrastTest.php tests/Feature/AccessibleErrorsTest.php tests/Feature/KeyboardNavigationTest.php tests/Feature/AccessibleNamesTest.php tests/Feature/TouchAndMotionTest.php tests/Feature/ForcedColorsAndSpacingTest.php tests/Feature/VisualIdentityTest.php
+php artisan test --compact tests/Feature/AccessibilityContrastTest.php tests/Feature/AccessibleErrorsTest.php tests/Feature/KeyboardNavigationTest.php tests/Feature/AccessibleNamesTest.php tests/Feature/TouchAndMotionTest.php tests/Feature/ForcedColorsAndSpacingTest.php tests/Feature/VisualIdentityTest.php tests/Feature/ErrorPagesTest.php
 ```
 
 Prima di lanciarli, `composer dev` deve essere spento: `public/hot` non deve esistere.
