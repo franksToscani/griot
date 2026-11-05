@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\SiteContact;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -51,6 +52,9 @@ class HandleInertiaRequests extends Middleware
                 ->values()
                 ->all(),
             'translations' => fn () => $this->translations(),
+            // The site's contacts for the footer of the public pages: email and WhatsApp, each
+            // null when it is not configured or not valid (config/contact.php).
+            'contact' => fn () => SiteContact::shared(),
         ];
     }
 

@@ -34,7 +34,7 @@ function hpSource(string $path): string
  */
 function hpOwnProps(array $props): array
 {
-    return array_values(array_diff(array_keys($props), ['errors', 'name', 'auth', 'sidebarOpen', 'locale', 'locales', 'translations', 'flash']));
+    return array_values(array_diff(array_keys($props), ['errors', 'name', 'auth', 'sidebarOpen', 'locale', 'locales', 'translations', 'contact', 'flash']));
 }
 
 // ---------------------------------------------------------------------------------------------
