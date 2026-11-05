@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Models\ProviderPhoto;
+use App\Profile\DeleteProviderPhoto;
 use App\Support\MediaDisk;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -52,8 +54,10 @@ class ProfileController extends Controller
     public function destroy(ProfileDeleteRequest $request): RedirectResponse
     {
         $user = $request->user();
-        // Read before: the provider's row goes with the user (cascade in the database).
+        // Read before: the provider's row and its gallery go with the user (cascade in the
+        // database), the files stay on the disk until removed below.
         $photo = $user->provider?->avatar_path;
+        $gallery = $user->provider?->photos->flatMap(fn (ProviderPhoto $galleryPhoto) => $galleryPhoto->paths())->all() ?? [];
 
         Auth::logout();
 
@@ -63,6 +67,10 @@ class ProfileController extends Controller
         // bookings, issue #133) throws above and leaves the photo where it is.
         if ($photo !== null && $photo !== '') {
             $this->deletePhoto($photo);
+        }
+
+        foreach ($gallery as $path) {
+            DeleteProviderPhoto::removeFile($path);
         }
 
         $request->session()->invalidate();

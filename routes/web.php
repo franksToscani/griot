@@ -26,6 +26,8 @@ use App\Http\Controllers\ProviderOptionDestroyController;
 use App\Http\Controllers\ProviderOptionIndexController;
 use App\Http\Controllers\ProviderOptionStoreController;
 use App\Http\Controllers\ProviderOptionUpdateController;
+use App\Http\Controllers\ProviderPhotoDestroyController;
+use App\Http\Controllers\ProviderPhotoStoreController;
 use App\Http\Controllers\ProviderPreviewController;
 use App\Http\Controllers\ProviderPublishController;
 use App\Http\Controllers\ProviderServiceActivateController;
@@ -94,6 +96,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('provider/avatar', ProviderAvatarController::class)
         ->middleware('throttle:provider-avatar')
         ->name('provider.avatar.store');
+    // The gallery of the provider's work (issue #143): add a photo, remove one. One limiter for
+    // both, in AppServiceProvider. The photo id is looked for among the provider's own photos.
+    Route::post('provider/photos', ProviderPhotoStoreController::class)
+        ->middleware('throttle:provider-photos')
+        ->name('provider.photos.store');
+    Route::delete('provider/photos/{photo}', ProviderPhotoDestroyController::class)
+        ->whereNumber('photo')
+        ->middleware('throttle:provider-photos')
+        ->name('provider.photos.destroy');
     // No fields: whatever is sent in the body is ignored. One limiter for both, see AppServiceProvider.
     // The provider's own bookings, read only: no identifier in the address, always the user's provider.
     Route::get('provider/bookings', ProviderBookingIndexController::class)->name('provider.bookings.index');
