@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Publishes a provider, only with the minimum requirements, or takes it off, always. Both in
  * one class: they are the two sides of the same switch. They never touch slug, avatar_path or
- * the profile fields.
+ * the profile fields. published_at follows the switch (issue #144): the moment of going from not
+ * published to published, null while not published. The only place in the app that changes them.
  */
 final class PublishProvider
 {
@@ -40,8 +41,10 @@ final class PublishProvider
                 return;
             }
 
-            // Not fillable: assigned on its own.
+            // Not fillable: assigned on their own. Only here, from not published to published:
+            // publishing again an already published profile returned above, with its date.
             $locked->is_published = true;
+            $locked->published_at = now();
             $locked->save();
         });
     }
@@ -60,7 +63,9 @@ final class PublishProvider
                 return;
             }
 
+            // Published again later, it counts as new.
             $locked->is_published = false;
+            $locked->published_at = null;
             $locked->save();
         });
     }

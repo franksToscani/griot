@@ -17,8 +17,9 @@ class Provider extends Model
     use HasFactory;
 
     /**
-     * Only the profile fields a provider writes. slug (unique), is_published (issue #37) and
-     * avatar_path (issue #36) are always set by explicit code, never by mass assignment.
+     * Only the profile fields a provider writes. slug (unique), is_published (issue #37) with its
+     * published_at (issue #144) and avatar_path (issue #36) are always set by explicit code, never
+     * by mass assignment.
      *
      * @var list<string>
      */
@@ -31,6 +32,16 @@ class Provider extends Model
     ];
 
     /**
+     * Never in a response: published_at only sorts (issue #144). The Resources list their fields
+     * one by one; this covers the model serialized whole, as auth.user with its provider loaded.
+     *
+     * @var list<string>
+     */
+    protected $hidden = [
+        'published_at',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
@@ -39,6 +50,7 @@ class Provider extends Model
     {
         return [
             'is_published' => 'boolean',
+            'published_at' => 'datetime',
         ];
     }
 
