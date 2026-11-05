@@ -59,9 +59,9 @@ test('"/" shows the home page to everyone, without a redirect', function (Closur
     'a provider' => [fn ($test) => $test->actingAs(Provider::factory()->published()->create()->user)],
 ]);
 
-test('only one prop of its own: the categories', function () {
+test('two props of its own: the categories and the featured providers', function () {
     $this->get('/')->assertInertia(function (Assert $page) {
-        expect(hpOwnProps($page->toArray()['props']))->toBe(['categories']);
+        expect(hpOwnProps($page->toArray()['props']))->toBe(['categories', 'featured']);
     });
 });
 
@@ -137,28 +137,45 @@ test('the home page has the public layout, not the one with the side menu', func
 test('one h1, in the opening block; an h2 per section and an h3 per step, without a skipped level', function () {
     $intro = hpSource('components/home/home-intro.tsx');
     $page = hpSource('pages/home.tsx');
-    preg_match_all('/<h([1-6])\b/', $intro, $introLevels);
-    preg_match_all('/<h([1-6])\b/', $page, $pageLevels);
+    // Since #144 step 3 the h2 of the rows that scroll is in the shared ScrollRow, and the h3 of a
+    // featured provider in its card, which ScrollRow puts under that h2.
+    $row = hpSource('components/home/scroll-row.tsx');
+    $card = hpSource('components/home/featured-provider-card.tsx');
+    $levels = function (string $source): array {
+        preg_match_all('/<h([1-6])\b/', $source, $found);
 
-    expect($introLevels[1])->toBe(['1'])
-        ->and(array_count_values($pageLevels[1]))->toBe(['2' => 2, '3' => 1])
+        return $found[1];
+    };
+
+    expect($levels($intro))->toBe(['1'])
+        ->and(array_count_values($levels($page)))->toBe(['2' => 1, '3' => 1])
+        ->and($levels($row))->toBe(['2'])
+        ->and($levels($card))->toBe(['3'])
         // The intro comes first, then the sections; the h3 are inside the steps' list.
-        ->and($page)->toMatch('/<HomeIntro \/>[\s\S]*<h2[\s\S]*<ol[^>]*>[\s\S]*<h3[\s\S]*<\/ol>/');
+        ->and($page)->toMatch('/<HomeIntro \/>[\s\S]*<CategoriesSection[\s\S]*<ScrollRow[\s\S]*<h2[\s\S]*<ol[^>]*>[\s\S]*<h3[\s\S]*<\/ol>/')
+        // The row's h2 comes before its items: the cards' h3 are under it.
+        ->and($row)->toMatch('/<h2 id=\{titleId\}[\s\S]*<ul[\s\S]*\{renderItem\(item\)\}/');
     expect($intro)->toMatch("/<h1 className=\"text-3xl font-semibold\">\\{t\\('home\\.intro\\.title'\\)\\}<\\/h1>/");
     expect($intro)->toMatch("/<Button asChild className=\"max-md:w-full\">\\s*<Link href=\\{index\\(\\)\\}>\\{t\\('home\\.intro\\.cta'\\)\\}<\\/Link>\\s*<\\/Button>/");
 });
 
 test('the steps are an ordered list, the categories a list in a region that scrolls sideways', function () {
     $page = hpSource('pages/home.tsx');
+    // The row that scrolls is the shared ScrollRow since #144 step 3: the same rules, in its file.
+    $row = hpSource('components/home/scroll-row.tsx');
 
     expect($page)
         ->toContain("const STEPS = ['choose', 'book', 'confirm'] as const;")
         ->toMatch('/<ol className="grid gap-4 md:grid-cols-3">\s*\{STEPS\.map\(\(step\) => \(\s*<li/')
         ->toMatch('/<h3 className="font-medium">\\s*\\{t\\(`home\\.steps\\.\\$\\{step\\}\\.title`\\)\\}/')
+        // The categories go in the shared row, named by their own title.
+        ->toMatch("/<ScrollRow\\s+titleId=\\{CATEGORIES_TITLE_ID\\}\\s+title=\\{t\\('home\\.categories\\.title'\\)\\}\\s+items=\\{categories\\}/");
+
+    expect($row)
         // Named by the title of its section, focusable for the arrow keys; only the row scrolls.
-        ->toMatch('/<h2 id=\{CATEGORIES_TITLE_ID\}/')
-        ->toMatch('/<div\s+role="region"\s+aria-labelledby=\{CATEGORIES_TITLE_ID\}\s+tabIndex=\{0\}\s+className="overflow-x-auto [^"]*outline-none[^"]*focus-visible:ring-\[3px\][^"]*focus-visible:outline-hidden"/')
-        ->toMatch('/<ul className="flex snap-x gap-3 p-1 pb-3">\s*\{categories\.map\(\(category\) => \(\s*<li key=\{category\.id\} className="shrink-0 snap-start">/')
+        ->toMatch('/<h2 id=\{titleId\}/')
+        ->toMatch('/<div\s+role="region"\s+aria-labelledby=\{titleId\}\s+tabIndex=\{0\}\s+className="overflow-x-auto [^"]*outline-none[^"]*focus-visible:ring-\[3px\][^"]*focus-visible:outline-hidden"/')
+        ->toMatch('/<ul className="flex snap-x gap-3 p-1 pb-3">\s*\{items\.map\(\(item\) => \(\s*<li key=\{item\.id\} className="shrink-0 snap-start">/')
         ->toMatch('/<section className="flex min-w-0 flex-col gap-4">/');
 });
 
@@ -175,7 +192,7 @@ test('the section of the categories is there only with categories', function () 
 });
 
 test('nothing written by hand: no aria-label, no category name; nothing that moves or sticks', function () {
-    $sources = hpSource('pages/home.tsx').hpSource('components/home/home-intro.tsx');
+    $sources = hpSource('pages/home.tsx').hpSource('components/home/home-intro.tsx').hpSource('components/home/scroll-row.tsx').hpSource('components/home/featured-provider-card.tsx');
 
     expect($sources)
         // aria-labelledby is fine: it points to a visible title.
@@ -210,10 +227,11 @@ test('the texts of the home page exist in Italian, French and English, with the 
     };
 
     $keys = array_values(array_filter(array_keys($json('it')), fn (string $key) => str_starts_with($key, 'home.')));
-    expect($keys)->toHaveCount(12);
+    // 12 of the page, 2 of "Professionisti in evidenza" (#144 step 3).
+    expect($keys)->toHaveCount(14);
 
     // Every key the page uses, the steps included.
-    $used = hpSource('pages/home.tsx').hpSource('components/home/home-intro.tsx');
+    $used = hpSource('pages/home.tsx').hpSource('components/home/home-intro.tsx').hpSource('components/home/featured-provider-card.tsx');
     foreach ($keys as $key) {
         $step = preg_match('/^home\.steps\.(choose|book|confirm)\.(title|text)$/', $key, $match) === 1;
         expect($step ? str_contains($used, "'{$match[1]}'") && str_contains($used, "`home.steps.\${step}.{$match[2]}`") : str_contains($used, "'{$key}'"))->toBeTrue("Not used: {$key}");

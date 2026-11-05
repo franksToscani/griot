@@ -641,5 +641,7 @@
     "home.steps.book.title": "Book without an account",
     "home.steps.book.text": "Pick a day and a time, and leave only your name and a contact.",
     "home.steps.confirm.title": "Get the confirmation",
-    "home.steps.confirm.text": "The professional answers your request: you see it on the page of the booking and, if you left your email, you get it there too."
+    "home.steps.confirm.text": "The professional answers your request: you see it on the page of the booking and, if you left your email, you get it there too.",
+    "home.featured.title": "Featured professionals",
+    "home.featured.in_city": ", in :city"
 }

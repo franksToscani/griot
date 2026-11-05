@@ -208,6 +208,8 @@ test('every lone link uses it, and only those: the links inside a sentence are l
     'pagination' => ['components/pagination.tsx', 1],
     // Each category of the row on the home page (#144); the main action is the kit's Button.
     'home page' => ['pages/home.tsx', 1],
+    // Each card of "Professionisti in evidenza" (#144, step 3).
+    'featured provider card' => ['components/home/featured-provider-card.tsx', 1],
 ]);
 
 test('the lone links get it where they are', function () {

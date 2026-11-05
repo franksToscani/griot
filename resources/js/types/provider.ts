@@ -25,6 +25,21 @@ export type ProviderListItem = {
     categories: Category[];
 };
 
+// Shape of App\Http\Resources\FeaturedProviderResource: a provider in "Professionisti in
+// evidenza" on the home page, with its cover (decorative: no alternative text).
+export type FeaturedProvider = {
+    id: number;
+    slug: string;
+    name: string;
+    city: string;
+    categories: Category[];
+    cover: {
+        width: number;
+        height: number;
+        variants: PhotoVariant[];
+    } | null;
+};
+
 export type PaginationLink = {
     url: string | null;
     label: string;
