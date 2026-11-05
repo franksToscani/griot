@@ -35,6 +35,11 @@ class ProviderSeeder extends Seeder
                 'whatsapp' => $data['whatsapp'],
                 'instagram' => $data['instagram'],
                 'is_published' => $data['is_published'],
+                // Different days, so that the order of publication shows (issue #144). A second
+                // run keeps the date already there; an unpublished provider has none.
+                'published_at' => $data['is_published']
+                    ? ($provider->published_at ?? now()->subDays($data['published_days_ago']))
+                    : null,
             ]);
             $user->provider()->save($provider);
 
@@ -114,6 +119,7 @@ class ProviderSeeder extends Seeder
                 'instagram' => 'trecce.sahel',
                 'category' => 'treccine',
                 'is_published' => true,
+                'published_days_ago' => 3,
                 'services' => [
                     [
                         'name' => 'Box braids',
@@ -167,6 +173,7 @@ class ProviderSeeder extends Seeder
                 'instagram' => 'barberia.lagos',
                 'category' => 'barbiere',
                 'is_published' => true,
+                'published_days_ago' => 12,
                 'services' => [
                     [
                         'name' => 'Taglio uomo',
@@ -224,6 +231,7 @@ class ProviderSeeder extends Seeder
                 'instagram' => 'unghie.kente',
                 'category' => 'nails',
                 'is_published' => true,
+                'published_days_ago' => 30,
                 'services' => [
                     [
                         'name' => 'Semipermanente mani',

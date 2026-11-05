@@ -31,6 +31,7 @@ class ProviderFactory extends Factory
             'instagram' => fake()->userName(),
             'avatar_path' => null,
             'is_published' => false,
+            'published_at' => null,
         ];
     }
 
@@ -41,6 +42,8 @@ class ProviderFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'is_published' => true,
+            // A realistic moment in the last months: the order of publication (issue #144).
+            'published_at' => fake()->dateTimeBetween('-6 months', '-1 hour'),
         ]);
     }
 }
