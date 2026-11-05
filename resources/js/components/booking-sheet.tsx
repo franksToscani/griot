@@ -80,8 +80,8 @@ export function BookingSheet({ providerSlug, service, bookingWindow }: Props) {
             <SheetTrigger asChild>
                 {/* One "Prenota" per service: screen readers hear which one ("Prenota Box
                     braids"), the screen shows the verb only. The name starts with the visible
-                    text, as voice control expects. */}
-                <Button size="sm">
+                    text, as voice control expects. The normal size, full width on phones. */}
+                <Button className="max-md:w-full">
                     {t('booking.form.open')}
                     <span className="sr-only"> {service.name}</span>
                 </Button>

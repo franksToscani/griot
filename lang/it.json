@@ -580,5 +580,6 @@
     "link_preview.provider.title_no_categories": ":name a :city",
     "link_preview.provider.description": "Prenota online da :name a :city.",
     "link_preview.privacy.description": "Come Griot usa i dati di chi prenota e per quanto tempo li conserva.",
-    "link_preview.image_alt": "Griot: trova un professionista e prenota online"
+    "link_preview.image_alt": "Griot: trova un professionista e prenota online",
+    "providers.show.choose_service": "Scegli un servizio"
 }
