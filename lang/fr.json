@@ -641,5 +641,7 @@
     "home.steps.book.title": "Réservez sans compte",
     "home.steps.book.text": "Choisissez le jour et l'heure, et laissez seulement votre nom et un contact.",
     "home.steps.confirm.title": "Recevez la confirmation",
-    "home.steps.confirm.text": "Le professionnel répond à votre demande : vous le voyez sur la page de la réservation et, si vous avez laissé votre e-mail, vous le recevez aussi."
+    "home.steps.confirm.text": "Le professionnel répond à votre demande : vous le voyez sur la page de la réservation et, si vous avez laissé votre e-mail, vous le recevez aussi.",
+    "home.featured.title": "Professionnels à la une",
+    "home.featured.in_city": ", à :city"
 }

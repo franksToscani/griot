@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Home\FeaturedProviders;
 use App\Http\Resources\CategoryResource;
+use App\Http\Resources\FeaturedProviderResource;
 use App\Models\Category;
 use App\Support\LinkPreview;
 use Illuminate\Http\Request;
@@ -18,7 +20,7 @@ class HomeController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke(Request $request, LinkPreview $preview): Response
+    public function __invoke(Request $request, LinkPreview $preview, FeaturedProviders $featured): Response
     {
         $preview->publicPage();
 
@@ -34,6 +36,8 @@ class HomeController extends Controller
         return Inertia::render('home', [
             // resolve(): a plain list, without the "data" wrapper.
             'categories' => CategoryResource::collection($categories)->resolve($request),
+            // "Professionisti in evidenza": at most 8, the most recently published first.
+            'featured' => FeaturedProviderResource::collection($featured->get())->resolve($request),
         ]);
     }
 }
