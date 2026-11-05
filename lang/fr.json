@@ -629,5 +629,17 @@
     "providers.show.lightbox.title": "Photo :number sur :total",
     "providers.show.lightbox.keys": "Utilisez les flèches gauche et droite du clavier pour passer d'une photo à l'autre.",
     "providers.show.lightbox.previous": "Photo précédente",
-    "providers.show.lightbox.next": "Photo suivante"
+    "providers.show.lightbox.next": "Photo suivante",
+    "home.title": "Accueil",
+    "home.intro.title": "Le savoir-faire africain, près de chez vous",
+    "home.intro.text": "Beauté, couture, cuisine et plus encore : trouvez qui le pratique et réservez en ligne, sans créer de compte.",
+    "home.intro.cta": "Trouver un professionnel",
+    "home.categories.title": "Catégories",
+    "home.steps.title": "Comment ça marche",
+    "home.steps.choose.title": "Choisissez un professionnel",
+    "home.steps.choose.text": "Regardez les services, les prix et les horaires de la personne qui vous intéresse.",
+    "home.steps.book.title": "Réservez sans compte",
+    "home.steps.book.text": "Choisissez le jour et l'heure, et laissez seulement votre nom et un contact.",
+    "home.steps.confirm.title": "Recevez la confirmation",
+    "home.steps.confirm.text": "Le professionnel répond à votre demande : vous le voyez sur la page de la réservation et, si vous avez laissé votre e-mail, vous le recevez aussi."
 }

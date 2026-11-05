@@ -3,6 +3,7 @@
 use App\Http\Controllers\BookingCancellationController;
 use App\Http\Controllers\BookingConfirmationController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PrivacyController;
 use App\Http\Controllers\ProviderAvailabilityDestroyController;
@@ -47,9 +48,8 @@ use App\Http\Middleware\PrivateProviderPage;
 use App\Http\Middleware\UseBookingLocale;
 use Illuminate\Support\Facades\Route;
 
-// Provisional: the home page sends to the providers' list until a real home page exists. A closure,
-// not Route::redirect(), which generates invalid Wayfinder types (see CLAUDE.md).
-Route::get('/', fn () => redirect()->route('providers.index'))->name('home');
+// The home page for the customers (issue #144, docs/home.md), for everyone, logged in or not.
+Route::get('/', HomeController::class)->name('home');
 
 // The language selector, for everyone: it only writes the "locale" cookie and goes back.
 Route::post('locale', LocaleController::class)->name('locale.update');

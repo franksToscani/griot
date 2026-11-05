@@ -39,6 +39,7 @@ Risultati del lavoro sull'issue #55: cosa è stato cambiato, come è protetto da
     - Pulsanti, campi e Select hanno `max-md:min-h-11`.
     - I link isolati usano la costante `touchTarget` (`resources/js/lib/touch-target.ts`).
     - La X dei pannelli, le caselle e i breadcrumb hanno un'area invisibile (`after:`) attorno all'elemento.
+- **Regioni che scorrono di lato** (#144, la fila delle categorie della home): un contenitore `role="region"` con `aria-labelledby` sul titolo visibile della sezione (mai un `aria-label` scritto a mano) e `tabIndex={0}`, così con il focus le frecce lo fanno scorrere; dentro un `<ul>` con `overflow-x-auto` e `snap-x`, e ogni link resta nel Tab, in ordine. Scorre solo la fila, mai la pagina intera; niente `scroll-smooth`; focus visibile anche sul contenitore.
 - **Link dentro una frase**: esclusi dai bersagli di tocco (lo standard li esenta). La costante `touchTarget` si usa solo per i link da soli.
 - **Movimento ridotto**: una regola globale in `resources/css/app.css` porta animazioni e transizioni a 0.01 ms e toglie lo scroll morbido.
     - 0.01 ms e non `none`: Radix aspetta la fine dell'animazione per chiudere un pannello.

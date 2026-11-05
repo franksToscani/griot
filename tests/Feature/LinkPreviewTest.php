@@ -227,6 +227,26 @@ test('the list and the privacy page have the preview of the site', function (str
     'privacy' => ['/privacy', 'Informativa sulla privacy', 'Come Griot usa i dati di chi prenota e per quanto tempo li conserva.'],
 ]);
 
+test('the home page has the preview of the site and is indexed', function (string $locale, string $description, string $ogLocale) {
+    $response = lpGet('/', $locale)->assertOk()->assertHeaderMissing('X-Robots-Tag');
+    $html = (string) $response->getContent();
+    $tags = lpTags($html);
+
+    // No title of its own: the name of the site, with its description and the default image.
+    expect(lpTitles($html))->toBe(['Griot'])
+        ->and($html)->not->toContain('name="robots"')
+        ->and($tags['og:title'])->toBe('Griot')
+        ->and($tags['description'])->toBe($description)
+        ->and($tags['og:description'])->toBe($description)
+        ->and($tags['og:type'])->toBe('website')
+        ->and($tags['og:locale'])->toBe($ogLocale)
+        ->and($tags['canonical'])->toStartWith('https://griot.example')
+        ->and($tags['og:image'])->toBe('https://griot.example/og-default.png');
+})->with([
+    'it' => ['it', 'Trova un professionista vicino a te e prenota online, senza creare un account.', 'it_IT'],
+    'en' => ['en', 'Find a professional near you and book online, without creating an account.', 'en_GB'],
+]);
+
 test('the addresses are built on APP_URL, not on the host of the request', function () {
     lpProvider();
 
