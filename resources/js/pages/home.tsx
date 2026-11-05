@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { FeaturedProviderCard } from '@/components/home/featured-provider-card';
+import { HomeCarousel } from '@/components/home/home-carousel';
 import { HomeIntro } from '@/components/home/home-intro';
 import { ScrollRow } from '@/components/home/scroll-row';
 import { useTranslation } from '@/hooks/use-translation';
@@ -32,6 +33,11 @@ export default function Home({ categories, featured }: Props) {
             <Head title={t('home.title')} />
             <div className="flex flex-col gap-10">
                 <HomeIntro />
+
+                {/* Right under the opening block; nothing to show without categories. */}
+                {categories.length > 0 && (
+                    <HomeCarousel categories={categories} />
+                )}
 
                 {/* No categories with something to book: no section, rather than an empty one. */}
                 {categories.length > 0 && (

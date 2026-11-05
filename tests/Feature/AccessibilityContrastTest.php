@@ -94,7 +94,57 @@ function accPairs(string $theme): array
     $opacity = accOpacity('button', $class);
     $pairs[] = ["focus ring of a destructive button ({$opacity})", accOver($color, $opacity, $t['background']), $background, 3.0];
 
+    // The tiles of the home carousel (#144), as home-carousel.tsx colours them: the text on the
+    // tile, the edge of its button against the tile, the button's own text, its focus ring over
+    // the tile, and the edge of a tile that has a border, against the page.
+    $buttonOpacity = accOpacity('button', 'focus-visible:ring-ring/');
+    foreach (accCarouselTones() as $tone => [$surface, $text, $button, $ring, $border]) {
+        [$buttonBackground, $buttonText] = $button === 'secondary' ? ['secondary', 'secondary-foreground'] : ['primary', 'primary-foreground'];
+        $pairs[] = ["carousel tile {$tone}: text", accSrgb($t[$text]), accSrgb($t[$surface]), 4.5];
+        $pairs[] = ["carousel tile {$tone}: edge of the button ({$button})", accSrgb($t[$buttonBackground]), accSrgb($t[$surface]), 3.0];
+        $pairs[] = ["carousel tile {$tone}: text of the button ({$button})", accSrgb($t[$buttonText]), accSrgb($t[$buttonBackground]), 4.5];
+        $pairs[] = $ring === null
+            ? ["carousel tile {$tone}: focus ring of the button ({$buttonOpacity})", accOver($t['ring'], $buttonOpacity, $t[$surface]), accSrgb($t[$surface]), 3.0]
+            : ["carousel tile {$tone}: focus ring of the button ({$ring})", accSrgb($t[$ring]), accSrgb($t[$surface]), 3.0];
+        if ($border !== null) {
+            $pairs[] = ["carousel tile {$tone}: its border against the page", accSrgb($t[$border]), $background, 3.0];
+        }
+    }
+
     return $pairs;
+}
+
+/**
+ * The colours of the tiles of the home carousel, read from home-carousel.tsx: for each tone the
+ * surface, the text, the variant of the button, the token of its own focus ring (null: the
+ * button's usual one) and the token of its border (null: none).
+ *
+ * @return array<string, array{0: string, 1: string, 2: string, 3: string|null, 4: string|null}>
+ */
+function accCarouselTones(): array
+{
+    $source = (string) file_get_contents(resource_path('js/components/home/home-carousel.tsx'));
+    preg_match_all("/(\w+): \{\s*tile: '([^']*)',\s*button: '(\w+)',\s*ring: '([^']*)',\s*\}/", $source, $entries, PREG_SET_ORDER);
+    expect($entries)->toHaveCount(4, 'The four tones of the carousel');
+
+    $tones = [];
+    foreach ($entries as [, $tone, $tile, $button, $ring]) {
+        $classes = explode(' ', $tile);
+        $surface = collect($classes)->first(fn (string $class) => str_starts_with($class, 'bg-'));
+        $text = collect($classes)->first(fn (string $class) => str_starts_with($class, 'text-'));
+        $border = collect($classes)->first(fn (string $class) => str_starts_with($class, 'border-'));
+        expect($surface)->not->toBeNull("No surface for {$tone}")->and($text)->not->toBeNull("No text colour for {$tone}");
+
+        $tones[$tone] = [
+            substr((string) $surface, 3),
+            substr((string) $text, 5),
+            $button,
+            $ring === '' ? null : str_replace('focus-visible:ring-', '', $ring),
+            $border === null ? null : substr((string) $border, 7),
+        ];
+    }
+
+    return $tones;
 }
 
 test('every colour pair reaches its WCAG threshold, in the light and in the dark theme', function (string $theme) {
@@ -104,6 +154,16 @@ test('every colour pair reaches its WCAG threshold, in the light and in the dark
         expect($ratio)->toBeGreaterThanOrEqual($threshold, sprintf('%s, %s theme: %.2f:1 (needed %.1f:1)', $what, $theme, $ratio, $threshold));
     }
 })->with(['light', 'dark']);
+
+test('the tiles of the home carousel are green, yellow, light blue and white, never red', function () {
+    $tones = accCarouselTones();
+
+    expect(array_keys($tones))->toBe(['primary', 'highlight', 'info', 'card'])
+        ->and(array_column($tones, 0))->toBe(['primary', 'highlight', 'info', 'card'])
+        ->and(array_column($tones, 1))->toBe(['primary-foreground', 'highlight-foreground', 'info-foreground', 'card-foreground']);
+    expect((string) file_get_contents(resource_path('js/components/home/home-carousel.tsx')))
+        ->not->toMatch('/\b(bg|text|border)-(decor|destructive|red-\d)/');
+});
 
 test('the conversion gives the known ratios: black on white 21:1, a colour on itself 1:1', function () {
     expect(accRatio(accSrgb([0.0, 0.0, 0.0]), accSrgb([1.0, 0.0, 0.0])))->toEqualWithDelta(21.0, 0.01)

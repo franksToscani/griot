@@ -18,8 +18,8 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 | 1     | `providers.published_at` per ordinare i provider per pubblicazione  | fatto     |
 | 2     | Pagina `home` su `/`: blocco introduttivo, categorie, come funziona | fatto     |
 | 3     | Professionisti in evidenza                                          | fatto     |
-| 4     | Piè di pagina con i contatti da configurazione                      | questa PR |
-| 5     | Carousel con riquadri colorati                                      |           |
+| 4     | Piè di pagina con i contatti da configurazione                      | fatto     |
+| 5     | Carousel con riquadri colorati                                      | questa PR |
 | 6     | Foto vere da archivio (`docs/photos.md`, decisione #142)            |           |
 
 ## Cosa c'è oggi
@@ -38,6 +38,18 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 - Fila condivisa `components/home/scroll-row.tsx`: una `<section>` con il suo h2, una regione `role="region"` con `aria-labelledby` sul titolo e `tabIndex={0}`, e il `<ul>` con `snap-x` (vedi `docs/accessibility.md`). La usano le categorie e i professionisti in evidenza.
 - « Come funziona » (h2): un `<ol>` di tre passi, ognuno con un h3 e una frase.
 - Anteprima dei link: `LinkPreview::publicPage()` senza titolo, quindi « Griot », la descrizione del sito e l'immagine predefinita; pagina indicizzabile.
+
+## Carousel
+
+`resources/js/components/home/home-carousel.tsx`, subito sotto il blocco introduttivo e prima di « Categorie »; le regole pure in `resources/js/lib/home-carousel.ts`.
+
+- **Slide**: una per ogni categoria offerta, con gli stessi dati della prop `categories` (nessuna query in più). Nessuna categoria: nessun carousel. Una sola: la slide, senza Precedente, Successiva né punti.
+- **Contenuto**: il nome della categoria in grande (un `<p>`, non un titolo), una frase (`home.carousel.sentence.<slug>`, o `home.carousel.sentence.default` per una categoria che non ne ha una: una categoria nuova non rompe niente) e « Vedi i professionisti », che porta all'elenco filtrato e per i lettori di schermo dice anche la categoria.
+- **Colori**, a rotazione e solo dai token: verde (`primary`, con il pulsante chiaro `secondary` e l'anello del focus del colore del testo del riquadro), giallo (`highlight`), azzurro (`info`), bianco (`card`, con il bordo dei campi). Mai il rosso. Ogni coppia è misurata in `AccessibilityContrastTest`, che legge le classi dal componente.
+- **Comportamento** (schema APG del carousel senza rotazione automatica): nessun autoplay né timer; il cambio è immediato, senza effetti. Precedente e Successiva circolari (`nextIndex()` e `previousIndex()` di `lib/gallery.ts`); un punto per slide, pulsante con `aria-current` e nome « Vai alla slide N »; dopo ogni cambio una regione `role="status"` dice « Slide N di M » (vuota all'apertura della pagina); il focus resta sul pulsante premuto.
+- **Altezza**: tutte le slide stanno nella stessa cella di una griglia, quindi il carousel è alto quanto la più alta e non salta mai; quelle non attive sono `invisible`, fuori dal Tab e dai lettori di schermo.
+- **Foto (passo 6)**: ogni slide ha già `image` (oggi `null`): una foto decorativa (`alt=""`) dietro il testo, con `src`, `srcSet`, `width` e `height`, senza cambiare il componente. Prima di metterle va ricontrollato il contrasto del testo sopra la foto.
+- Il titolo della scheda del browser è « Prenota un professionista vicino a te - Griot » (`home.title`); l'anteprima dei link resta quella del sito.
 
 ## Piè di pagina e contatti
 
