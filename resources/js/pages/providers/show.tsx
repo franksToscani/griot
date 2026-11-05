@@ -1,8 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
+import type { MouseEvent } from 'react';
 import { BookingSheet } from '@/components/booking-sheet';
 import { NewTabHint } from '@/components/new-tab-hint';
 import { ProviderAvatar } from '@/components/provider-avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useTranslation } from '@/hooks/use-translation';
@@ -29,6 +31,22 @@ const externalLink = {
     className: cn('underline underline-offset-4', touchTarget),
 } as const;
 
+// The section of the services and its title: "Scegli un servizio" leads there and moves the focus to
+// the title (tabIndex={-1}), as the skip link does with the main content.
+const SERVICES_ID = 'servizi';
+const SERVICES_TITLE_ID = 'servizi-titolo';
+
+function goToServices(event: MouseEvent<HTMLAnchorElement>) {
+    const title = document.getElementById(SERVICES_TITLE_ID);
+
+    if (title !== null) {
+        event.preventDefault();
+        title.focus();
+        // Instant: the app has no smooth scrolling (prefers-reduced-motion, docs/accessibility.md).
+        title.scrollIntoView();
+    }
+}
+
 export default function ProvidersShow({
     provider,
     bookingWindow,
@@ -36,6 +54,9 @@ export default function ProvidersShow({
 }: Props) {
     const { t } = useTranslation();
     const { whatsapp, instagram } = provider.contacts;
+    // Booking is possible on the real page only, and only with services to choose.
+    const canBook = !preview && provider.service_groups.length > 0;
+    const categories = provider.service_groups.map((group) => group.category);
 
     return (
         <>
@@ -66,28 +87,94 @@ export default function ProvidersShow({
                         : t('providers.show.back')}
                 </Link>
 
-                <header className="flex items-center gap-4">
-                    <ProviderAvatar
-                        name={provider.name}
-                        avatarUrl={provider.avatar_url}
-                        className="size-20 text-xl"
-                    />
-                    <div className="min-w-0">
-                        <h1 className="text-2xl font-semibold">
-                            {provider.name}
-                        </h1>
-                        <p className="text-muted-foreground">{provider.city}</p>
+                {/* The gallery of the provider's work (#143) will go here, above the header. */}
+
+                {/* On a phone, in a few seconds: who the provider is, what they offer, and how to go
+                    on (choose a service, or write on WhatsApp). The same order on wider screens. */}
+                <header className="flex flex-col gap-4">
+                    <div className="flex items-center gap-4">
+                        <ProviderAvatar
+                            name={provider.name}
+                            avatarUrl={provider.avatar_url}
+                            className="size-24 text-2xl"
+                        />
+                        <div className="flex min-w-0 flex-col gap-2">
+                            <h1 className="text-2xl font-semibold">
+                                {provider.name}
+                            </h1>
+                            <p className="text-muted-foreground">
+                                {provider.city}
+                            </p>
+                            {categories.length > 0 && (
+                                <ul className="flex flex-wrap gap-2">
+                                    {categories.map((category) => (
+                                        <li key={category.id}>
+                                            <Badge variant="secondary">
+                                                {category.name}
+                                            </Badge>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
                     </div>
+
+                    {provider.bio && (
+                        // Plain text: line breaks are kept by CSS, nothing is read as HTML.
+                        <p className="whitespace-pre-line">{provider.bio}</p>
+                    )}
+
+                    {/* The first actions: links, not buttons (an anchor on the page, WhatsApp in a
+                        new tab). Full width and 44px high on phones. No sticky bar: it would cover
+                        the content with zoom and the focus (WCAG 2.4.11). */}
+                    {(canBook || whatsapp?.url || instagram?.url) && (
+                        <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
+                            {canBook && (
+                                <Button asChild className="max-md:w-full">
+                                    <a
+                                        href={`#${SERVICES_ID}`}
+                                        onClick={goToServices}
+                                    >
+                                        {t('providers.show.choose_service')}
+                                    </a>
+                                </Button>
+                            )}
+                            {whatsapp?.url && (
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    className="max-md:w-full"
+                                >
+                                    <a
+                                        href={whatsapp.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        {t('providers.show.whatsapp')}
+                                        <NewTabHint />
+                                    </a>
+                                </Button>
+                            )}
+                            {instagram?.url && (
+                                <a href={instagram.url} {...externalLink}>
+                                    @{instagram.username}
+                                    <NewTabHint />
+                                </a>
+                            )}
+                        </div>
+                    )}
                 </header>
 
-                {provider.bio && (
-                    // Plain text: line breaks are kept by CSS, nothing is read as HTML.
-                    <p className="whitespace-pre-line">{provider.bio}</p>
-                )}
-
                 <div className="grid gap-6 lg:grid-cols-3">
-                    <section className="flex flex-col gap-4 lg:col-span-2">
-                        <h2 className="text-xl font-semibold">
+                    <section
+                        id={SERVICES_ID}
+                        className="flex flex-col gap-4 lg:col-span-2"
+                    >
+                        <h2
+                            id={SERVICES_TITLE_ID}
+                            tabIndex={-1}
+                            className="text-xl font-semibold"
+                        >
                             {t('providers.show.services')}
                         </h2>
                         {provider.service_groups.length === 0 ? (
@@ -96,24 +183,29 @@ export default function ProvidersShow({
                             </p>
                         ) : (
                             provider.service_groups.map((group) => (
-                                <Card key={group.category.id}>
-                                    <CardHeader>
+                                // On phones each service is a card of its own: the card of the
+                                // category keeps only its badge there. Unchanged from md up.
+                                <Card
+                                    key={group.category.id}
+                                    className="max-md:gap-3 max-md:border-0 max-md:bg-transparent max-md:py-0 max-md:shadow-none"
+                                >
+                                    <CardHeader className="max-md:px-0">
                                         <CardTitle>
                                             <Badge variant="secondary">
                                                 {group.category.name}
                                             </Badge>
                                         </CardTitle>
                                     </CardHeader>
-                                    <CardContent>
+                                    <CardContent className="max-md:px-0">
                                         <ul className="flex flex-col gap-4">
                                             {group.services.map(
                                                 (service, position) => (
                                                     <li
                                                         key={service.id}
-                                                        className="flex flex-col gap-4"
+                                                        className="flex flex-col gap-4 max-md:rounded-xl max-md:border max-md:bg-card max-md:p-4 max-md:text-card-foreground max-md:shadow-sm"
                                                     >
                                                         {position > 0 && (
-                                                            <Separator />
+                                                            <Separator className="max-md:hidden" />
                                                         )}
                                                         <ServiceItem
                                                             service={service}

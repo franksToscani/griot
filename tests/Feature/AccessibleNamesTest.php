@@ -62,10 +62,11 @@ test('every link that opens a new tab says so to screen readers, and has no open
 
     expect(acnSource('js/pages/providers/show.tsx'))
         ->toMatch("/const externalLink = \\{\\s*target: '_blank',\\s*rel: 'noopener noreferrer',/");
-    // The five links of today: privacy, WhatsApp and Instagram on the provider's page, the WhatsApp
-    // answer in the bookings list, the kit's footer links (none configured yet).
+    // The links of today: privacy; on the provider's page WhatsApp and Instagram twice (in the
+    // actions under the header, and in the contacts); the WhatsApp answer in the bookings list; the
+    // kit's footer links (none configured yet).
     sort($found);
-    expect($found)->toBe(['index.tsx', 'nav-footer.tsx', 'privacy-link.tsx', 'show.tsx', 'show.tsx']);
+    expect($found)->toBe(['index.tsx', 'nav-footer.tsx', 'privacy-link.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx']);
 });
 
 test('the new-tab notice is one translated text, hidden on screen', function () {
@@ -82,7 +83,7 @@ test('the new-tab notice is one translated text, hidden on screen', function () 
 
 test('each "Book" button carries the name of its service, after the visible verb', function () {
     expect(acnSource('js/components/booking-sheet.tsx'))
-        ->toMatch("/<Button size=\"sm\">\\s*\\{t\\('booking\\.form\\.open'\\)\\}\\s*<span className=\"sr-only\"> \\{service\\.name\\}<\\/span>\\s*<\\/Button>/");
+        ->toMatch("/<Button className=\"max-md:w-full\">\\s*\\{t\\('booking\\.form\\.open'\\)\\}\\s*<span className=\"sr-only\"> \\{service\\.name\\}<\\/span>\\s*<\\/Button>/");
 });
 
 test('the provider\'s avatar is decorative next to the name, its initials are never read', function () {

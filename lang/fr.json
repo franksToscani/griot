@@ -580,5 +580,6 @@
     "link_preview.provider.title_no_categories": ":name à :city",
     "link_preview.provider.description": "Réservez en ligne chez :name à :city.",
     "link_preview.privacy.description": "Comment Griot utilise les données des personnes qui réservent, et combien de temps il les conserve.",
-    "link_preview.image_alt": "Griot : trouvez un professionnel et réservez en ligne"
+    "link_preview.image_alt": "Griot : trouvez un professionnel et réservez en ligne",
+    "providers.show.choose_service": "Choisir une prestation"
 }
