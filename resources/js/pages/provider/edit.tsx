@@ -1,5 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
 import { useState } from 'react';
+import { GalleryForm } from '@/components/gallery-form';
 import InputError from '@/components/input-error';
 import { ProviderAvatar } from '@/components/provider-avatar';
 import { ProviderProfileFields } from '@/components/provider-profile-fields';
@@ -24,7 +25,8 @@ type Props = {
     provider: ProviderEdit;
 };
 
-// The logged-in provider edits its profile: the shared fields, plus the address of the page.
+// The logged-in provider edits its profile: the shared fields, plus the address of the page, then
+// its photo and the photos of its work.
 export default function ProviderEditPage({ provider }: Props) {
     const { t } = useTranslation();
 
@@ -93,6 +95,11 @@ export default function ProviderEditPage({ provider }: Props) {
                 <AvatarForm
                     name={provider.name}
                     avatarUrl={provider.avatar_url}
+                />
+
+                <GalleryForm
+                    photos={provider.photos}
+                    limits={provider.gallery}
                 />
             </div>
         </>

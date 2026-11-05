@@ -21,6 +21,25 @@ export type ProviderEdit = ProviderProfileValues & {
     slug: string;
     is_published: boolean;
     avatar_url: string | null;
+    photos: ProviderPhotoEdit[];
+    gallery: GalleryLimits;
+};
+
+// Shape of App\Http\Resources\ProviderPhotoEditResource: a photo of the work, in the edit page.
+export type ProviderPhotoEdit = {
+    id: number;
+    // The smallest size (400 px on the longest side).
+    url: string;
+    width: number;
+    height: number;
+    alt_text: string | null;
+    position: number;
+};
+
+// The limits of the gallery, for the texts of its card.
+export type GalleryLimits = {
+    max_photos: number;
+    min_side: number;
 };
 
 // The "publishing" prop of the dashboard: the codes of App\Profile\PublishingRequirements.

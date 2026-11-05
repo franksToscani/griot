@@ -27,6 +27,8 @@ function aceForms(): array
         'js/pages/auth/forgot-password.tsx' => 'forgot-password-form',
         'js/pages/auth/reset-password.tsx' => 'reset-password-form',
         'js/pages/auth/confirm-password.tsx' => 'confirm-password-form',
+        // The upload of a photo of the work, in the provider's profile (#143).
+        'js/components/gallery-form.tsx' => 'gallery-form',
     ];
 }
 
