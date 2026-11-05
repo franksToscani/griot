@@ -14,7 +14,7 @@ use Illuminate\Testing\TestResponse;
 
 beforeEach(function () {
     // In production both come from APP_URL (config/app.php, config/filesystems.php).
-    config(['app.url' => 'https://griot.example', 'filesystems.disks.public.url' => 'https://griot.example/storage']);
+    config(['app.url' => 'https://griot.example', 'filesystems.disks.media.url' => 'https://griot.example/storage']);
 });
 
 /**

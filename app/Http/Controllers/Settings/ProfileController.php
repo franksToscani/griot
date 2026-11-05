@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Support\MediaDisk;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class ProfileController extends Controller
 {
@@ -49,14 +52,43 @@ class ProfileController extends Controller
     public function destroy(ProfileDeleteRequest $request): RedirectResponse
     {
         $user = $request->user();
+        // Read before: the provider's row goes with the user (cascade in the database).
+        $photo = $user->provider?->avatar_path;
 
         Auth::logout();
 
         $user->delete();
 
+        // Only now, with the account gone: a deletion refused by the database (a provider with
+        // bookings, issue #133) throws above and leaves the photo where it is.
+        if ($photo !== null && $photo !== '') {
+            $this->deletePhoto($photo);
+        }
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    /**
+     * The photo of a deleted provider, removed from the media disk. A failure does not undo the
+     * deletion of the account nor reach the user: a warning in the log, with no personal data.
+     */
+    private function deletePhoto(string $path): void
+    {
+        try {
+            $deleted = MediaDisk::get()->delete($path);
+        } catch (Throwable $exception) {
+            Log::warning('The photo of a deleted provider account could not be removed from the media disk.', [
+                'exception' => $exception::class,
+            ]);
+
+            return;
+        }
+
+        if (! $deleted) {
+            Log::warning('The photo of a deleted provider account could not be removed from the media disk.');
+        }
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Models\Provider;
 use App\Models\User;
+use App\Support\MediaDisk;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -124,7 +125,7 @@ test('the edit page has exactly the eight fields of the provider', function () {
                 'instagram' => 'salone.awa',
                 'slug' => 'salone-awa',
                 'is_published' => true,
-                'avatar_url' => Storage::disk('public')->url('avatars/awa.jpg'),
+                'avatar_url' => Storage::disk(MediaDisk::NAME)->url('avatars/awa.jpg'),
             ]))
         ->assertDontSee('Barberia Kofi');
 });

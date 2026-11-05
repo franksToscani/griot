@@ -201,7 +201,7 @@ Un provider entra con il suo account e gestisce il profilo pubblico che i client
 | Utente senza profilo provider | Dopo il login va a una pagina "completa il tuo profilo" che crea il `Provider` collegato. È il caso del `Test User` del seeder e di chiunque si registri, finché la registrazione resta aperta. |
 | Pubblicazione del profilo     | `is_published` parte a `false`; si può pubblicare solo con i campi minimi compilati (nome, città, almeno un servizio e una disponibilità).                                                      |
 | Slug                          | Generato dal nome, modificabile, unico; se cambia, il vecchio indirizzo smette di funzionare.                                                                                                   |
-| Immagine del profilo          | Caricamento con limiti di formato e peso, su disco locale; l'archiviazione in produzione si decide nello Sprint 8.                                                                              |
+| Immagine del profilo          | Caricamento con limiti di formato e peso, sul disco `media`: cartella locale in sviluppo, archivio compatibile S3 in produzione (issue #61, [docs/media-storage.md](media-storage.md)).         |
 | Contatti                      | WhatsApp e Instagram facoltativi, con controllo del formato.                                                                                                                                    |
 
 **Area riservata ai provider** _Come provider voglio entrare nella mia area, per gestire la mia attività._
@@ -460,7 +460,7 @@ Griot va online in modo sicuro, prima per i provider pilota e poi per un pubblic
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Database di produzione | Da decidere qui. Render offre Postgres gestito; MySQL gestito, per quanto verificato, no; SQLite richiede un servizio a pagamento con disco persistente. Prima di scegliere, guarda i prezzi aggiornati nella pagina ufficiale di Render. |
 | Se cambiare database   | Con Postgres, test e sviluppo locale vanno allineati (almeno la CI). Conviene deciderlo prima di scrivere il resto, non il giorno del deploy.                                                                                             |
-| Immagini dei profili   | Il disco di un servizio Render è effimero: servono un disco persistente o un archivio esterno compatibile con lo storage di Laravel.                                                                                                      |
+| Immagini dei profili   | Il disco di un servizio Render è effimero: le immagini vanno sul disco `media`, un bucket compatibile S3 (Scaleway Object Storage, Parigi) con `MEDIA_DISK_DRIVER=s3`. Vedi [docs/media-storage.md](media-storage.md).                    |
 | Email in produzione    | Un servizio di invio vero, con dominio verificato per non finire nello spam.                                                                                                                                                              |
 | Registrazione          | Chiusa; i provider si creano a mano o con un comando riservato.                                                                                                                                                                           |
 | Dominio                | Un nome tuo con HTTPS; per i pilota può bastare l'indirizzo assegnato da Render.                                                                                                                                                          |
@@ -497,7 +497,8 @@ Griot va online in modo sicuro, prima per i provider pilota e poi per un pubblic
 
 **Archiviazione delle immagini** _Come provider voglio che la mia foto resti dopo un nuovo deploy._
 
-- Le foto sono salvate in uno spazio che sopravvive ai deploy (disco persistente o archivio esterno).
+- Le foto sono salvate in uno spazio che sopravvive ai deploy: il disco `media`, che in produzione è un bucket compatibile S3 (issue #61, [docs/media-storage.md](media-storage.md)).
+- Cancellando un account provider la sua foto viene tolta dal disco; se toglierla fallisce l'account resta cancellato e c'è un avviso nel log.
 - Prova: carico una foto, rilancio il deploy, la foto c'è ancora.
 
 **Email in produzione** _Come cliente e provider voglio ricevere le email, per sapere come è andata la prenotazione._

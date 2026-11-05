@@ -2,6 +2,7 @@
 
 use App\Models\Provider;
 use App\Models\User;
+use App\Support\MediaDisk;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -130,7 +131,7 @@ test('avatar_url is the photo address, or null without a photo', function () {
 
     $this->actingAs($withAvatar->user)
         ->get(route('dashboard'))
-        ->assertInertia(fn (Assert $page) => $page->where('provider.avatar_url', Storage::disk('public')->url('avatars/salone.jpg')));
+        ->assertInertia(fn (Assert $page) => $page->where('provider.avatar_url', Storage::disk(MediaDisk::NAME)->url('avatars/salone.jpg')));
 
     $this->actingAs($withoutAvatar->user)
         ->get(route('dashboard'))
