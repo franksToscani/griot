@@ -284,7 +284,8 @@ test('the edit page gets avatar_url, null without a photo', function () {
     $this->actingAs($provider->user)
         ->get(route('provider.edit'))
         ->assertInertia(fn (Assert $page) => $page
-            ->has('provider', 8)
+            // The eight fields of the profile, plus the photos of the work and their limits (#143).
+            ->has('provider', 10)
             ->where('provider.avatar_url', null));
 });
 

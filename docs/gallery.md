@@ -48,20 +48,36 @@ Tabella `provider_photos` (modello `App\Models\ProviderPhoto`, relazione `Provid
 
 ## Riduzione nel browser
 
-`resources/js/lib/resize-image.ts` è pronto ma **non ancora collegato** al form (arriva con la PR C): `targetSize()` porta il lato più lungo a 2400 px al massimo senza mai ingrandire, `resizeImage()` ridisegna la foto su un canvas come JPEG di qualità 0,85, raddrizzata. Se il browser non ci riesce invia l'originale: decide sempre il server.
+`resources/js/lib/resize-image.ts`, usato dalla scheda del profilo al momento dell'invio (mai durante il disegno della pagina): `targetSize()` porta il lato più lungo a 2400 px al massimo senza mai ingrandire, `resizeImage()` ridisegna la foto su un canvas come JPEG di qualità 0,85, raddrizzata. Se il browser non ci riesce invia l'originale: decide sempre il server.
 
 ## Cancellazione
 
 - Di una foto: `DELETE /provider/photos/{photo}` (`provider.photos.destroy`). La foto si cerca tra quelle del provider loggato, quindi la foto di un altro provider dà **404**, come per servizi e opzioni; `ProviderPhotoPolicy::delete` controlla di nuovo il proprietario. `App\Profile\DeleteProviderPhoto` cancella la riga e ricompatta le posizioni (1, 2, 3…) nella stessa transazione con `lockForUpdate`, poi toglie i file. Un file che non si riesce a togliere lascia un avviso nel log con la sola classe dell'errore, senza nomi né percorsi; la foto risulta comunque cancellata.
 - Con l'account: `ProfileController::destroy` legge i percorsi di tutte le foto **prima** di cancellare, e toglie i file **solo dopo** che la cancellazione è riuscita, come per la foto del profilo. Se il database rifiuta la cancellazione (un provider con prenotazioni, #133) le foto restano tutte. Un file che non si riesce a togliere lascia lo stesso avviso, e l'account resta cancellato.
 
+## Scheda nel profilo del provider
+
+`resources/js/components/gallery-form.tsx`, nella pagina `provider/edit` subito sotto « La tua foto ». I dati arrivano da `ProviderEditResource`: `photos` (`ProviderPhotoEditResource`: `id`, indirizzo della dimensione da 400 px, `width`, `height`, `alt_text`, `position`, in ordine; mai `name`, percorsi o `consent_at`) e `gallery` (`max_photos` dal config, `min_side` da `StoreProviderPhotoRequest`). Le Resource pubbliche non cambiano.
+
+Cosa vede il provider:
+
+- Titolo « Foto del tuo lavoro » (h2, prende il focus dopo una rimozione), una riga su cosa caricare e il contatore « N di 9 foto ».
+- Nessuna foto: un invito, nessun elenco vuoto. Altrimenti un `<ul>` (una colonna sotto 768 px, tre sopra) con la miniatura quadrata (`width`/`height`, `loading="lazy"`, `decoding="async"`), la descrizione se c'è e il pulsante « Togli ». Il testo alternativo è la descrizione del provider, o « Foto 2 di 6 ».
+- « Togli » si chiama « Togli la foto 2 di 6 » per i lettori di schermo (testo `sr-only` da `t()`). La conferma è nel Dialog del kit, con « Annulla » e « Togli la foto »; dopo la rimozione il focus va al titolo della scheda e il toast « Foto eliminata. » viene letto.
+- Il modulo: file (`accept="image/jpeg,image/png,image/webp"`: un iPhone converte HEIC in JPEG), descrizione facoltativa con il suggerimento collegato, casella del consenso e « Aggiungi la foto ». Il pulsante si attiva con un file scelto; la casella non lo blocca: se manca, l'errore del server compare accanto. Dopo un errore il focus va al primo campo sbagliato.
+- All'invio la foto viene ridotta nel browser, poi inviata; durante entrambe le fasi il pulsante è disattivato e una regione `role="status"` dice « Caricamento in corso… ». Dopo un caricamento riuscito il modulo si svuota e la foto compare in fondo all'elenco.
+- Con 9 foto il modulo sparisce e resta il messaggio « Hai raggiunto il massimo di 9 foto. Togline una per aggiungerne un'altra. ».
+- Nessun ordinamento: l'ordine è quello di caricamento. Nessun carousel, nessuna animazione.
+
+Le piccole regole (stato vuoto, aperto o pieno, testo di riserva) stanno in `resources/js/lib/gallery.ts`, provate con Node in `GalleryProfileCardTest`.
+
 ## Piano delle PR
 
-| PR  | Contenuto                                                                                                                              |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| A   | Ricodifica comune, tabella `provider_photos`, modello, configurazione                                                                  |
-| B   | Caricamento (rotta, regole, consenso, limite di 9, limite di richieste) e cancellazione dei file: di una foto e con l'account (questa) |
-| C   | Scheda « Foto del tuo lavoro » nel profilo del provider                                                                                |
-| D   | Mosaico in testa alla pagina pubblica, con immagini responsive (`srcset`, `sizes`, caricamento lento, misure fisse)                    |
-| E   | Ingrandimento accessibile (Dialog del kit: focus, Esc, ritorno del focus, foto precedente e successiva)                                |
-| F   | Ordinamento (sposta prima/dopo) e testi: testo di riserva, consenso, privacy                                                           |
+| PR  | Contenuto                                                                                                                     |
+| --- | ----------------------------------------------------------------------------------------------------------------------------- |
+| A   | Ricodifica comune, tabella `provider_photos`, modello, configurazione                                                         |
+| B   | Caricamento (rotta, regole, consenso, limite di 9, limite di richieste) e cancellazione dei file: di una foto e con l'account |
+| C   | Scheda « Foto del tuo lavoro » nel profilo del provider (questa)                                                              |
+| D   | Mosaico in testa alla pagina pubblica, con immagini responsive (`srcset`, `sizes`, caricamento lento, misure fisse)           |
+| E   | Ingrandimento accessibile (Dialog del kit: focus, Esc, ritorno del focus, foto precedente e successiva)                       |
+| F   | Ordinamento (sposta prima/dopo) e testi: testo di riserva, consenso, privacy                                                  |

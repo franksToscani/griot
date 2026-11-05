@@ -108,7 +108,7 @@ test('a user without a provider goes to the setup page', function () {
     expect(Provider::query()->count())->toBe(0);
 });
 
-test('the edit page has exactly the eight fields of the provider', function () {
+test('the edit page has exactly the eight fields of the provider, and its gallery', function () {
     $provider = ppeProvider(['is_published' => true, 'avatar_path' => 'avatars/awa.jpg']);
     ppeProvider(['name' => 'Barberia Kofi', 'slug' => 'barberia-kofi']);
 
@@ -126,6 +126,9 @@ test('the edit page has exactly the eight fields of the provider', function () {
                 'slug' => 'salone-awa',
                 'is_published' => true,
                 'avatar_url' => Storage::disk(MediaDisk::NAME)->url('avatars/awa.jpg'),
+                // The photos of the work and their limits (#143, GalleryProfileCardTest).
+                'photos' => [],
+                'gallery' => ['max_photos' => 9, 'min_side' => 800],
             ]))
         ->assertDontSee('Barberia Kofi');
 });

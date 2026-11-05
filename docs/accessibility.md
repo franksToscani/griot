@@ -59,6 +59,7 @@ Risultati del lavoro sull'issue #55: cosa è stato cambiato, come è protetto da
     - `decor` (rosso): solo un filo di 2 px sotto l'header pubblico e sotto il nome del sito. Non ha significato: mai nei badge, accanto ai campi o nei messaggi.
     - Errori, stati, `destructive` e l'avviso "Elimina account" hanno gli stessi colori di prima (`red-600`/`red-400`, `green-700`/`green-600`).
 - **Carattere**: Noto Sans variabile, incluso nel progetto (`@fontsource-variable/noto-sans`), nessun servizio esterno né durante la build né nel browser. Una pagina scarica solo il sottoinsieme latino; ɛ ɔ ŋ ṣ (latin-ext) e ẹ ọ (vietnamese) arrivano solo se un nome li contiene.
+- **Scheda « Foto del tuo lavoro »** (#143, `docs/gallery.md`): elenco come `<ul>`, « Togli » con il numero della foto in testo `sr-only`, conferma nel Dialog del kit e focus al titolo della scheda dopo la rimozione, attesa del caricamento in `role="status"`, errori collegati ai campi e focus sul primo sbagliato (è nell'elenco di `AccessibleErrorsTest`).
 - **Errori dei moduli**: un solo annuncio per errore. Gli errori di un campo si leggono col focus e `aria-describedby`; solo quelli senza campo usano `role="alert"`.
 
 ## 4. Test automatici
