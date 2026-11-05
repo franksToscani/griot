@@ -581,5 +581,14 @@
     "link_preview.provider.description": "Book online with :name in :city.",
     "link_preview.privacy.description": "How Griot uses the data of the people who book, and how long it keeps it.",
     "link_preview.image_alt": "Griot: find a professional and book online",
-    "providers.show.choose_service": "Choose a service"
+    "providers.show.choose_service": "Choose a service",
+    "booking.form.slot_period.morning": "Morning",
+    "booking.form.slot_period.afternoon": "Afternoon",
+    "booking.form.slot_period.evening": "Evening",
+    "booking.form.contact_question": "Can't find a time that suits you?",
+    "booking.form.contact_link": "Message on WhatsApp",
+    "booking.form.contact_message": "Hello :provider, I saw your page on Griot and I'd like to book :service, but I can't find a time that suits me. Can you help me?",
+    "booking.confirmation.contact_question": "Any questions?",
+    "booking.confirmation.contact_link": "Message the professional on WhatsApp",
+    "booking.confirmation.contact_message": "Hello, I have a question about my booking of :service for :when."
 }

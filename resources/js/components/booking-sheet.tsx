@@ -7,6 +7,7 @@ import {
     CustomerFields,
 } from '@/components/booking-fields';
 import InputError from '@/components/input-error';
+import { NewTabHint } from '@/components/new-tab-hint';
 import { PrivacyLink } from '@/components/privacy-link';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,18 +22,30 @@ import { Spinner } from '@/components/ui/spinner';
 import { useFreeSlots } from '@/hooks/use-free-slots';
 import { useTranslation } from '@/hooks/use-translation';
 import { focusFirstInvalid } from '@/lib/form-a11y';
+import { touchTarget } from '@/lib/touch-target';
+import { cn } from '@/lib/utils';
+import { whatsappLink } from '@/lib/whatsapp';
 import { slots as slotsRoute } from '@/routes/providers';
 import { store } from '@/routes/providers/bookings';
 import type { BookingWindow, Service } from '@/types';
 
 type Props = {
     providerSlug: string;
+    providerName: string;
     service: Service;
     bookingWindow: BookingWindow;
+    // The provider's chat (https://wa.me/<digits>), null without a valid number.
+    whatsappUrl: string | null;
 };
 
 // A panel to book one service: options, day, time and the customer's details.
-export function BookingSheet({ providerSlug, service, bookingWindow }: Props) {
+export function BookingSheet({
+    providerSlug,
+    providerName,
+    service,
+    bookingWindow,
+    whatsappUrl,
+}: Props) {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
     const [optionIds, setOptionIds] = useState<number[]>([]);
@@ -152,6 +165,36 @@ export function BookingSheet({ providerSlug, service, bookingWindow }: Props) {
                                 onPick={setStartsAt}
                                 startsAtError={errors.starts_at}
                             />
+
+                            {/* No time that suits (#140): the provider on WhatsApp, always shown when
+                                there is a number, right under the times ("Nessun orario libero…"
+                                included). The text names the provider and the service only: never
+                                the customer's data, never a private link. */}
+                            {whatsappUrl !== null && (
+                                <div className="grid gap-1 text-sm">
+                                    <p className="text-muted-foreground">
+                                        {t('booking.form.contact_question')}
+                                    </p>
+                                    <a
+                                        href={whatsappLink(
+                                            whatsappUrl,
+                                            t('booking.form.contact_message', {
+                                                provider: providerName,
+                                                service: service.name,
+                                            }),
+                                        )}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={cn(
+                                            'w-fit underline underline-offset-4',
+                                            touchTarget,
+                                        )}
+                                    >
+                                        {t('booking.form.contact_link')}
+                                        <NewTabHint />
+                                    </a>
+                                </div>
+                            )}
 
                             <CustomerFields
                                 nameLabelKey="booking.form.name"

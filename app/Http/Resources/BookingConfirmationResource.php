@@ -35,6 +35,9 @@ class BookingConfirmationResource extends JsonResource
                 'name' => $this->provider->name,
                 'city' => $this->provider->city,
                 'slug' => $this->provider->slug,
+                // The provider's chat for a question (#140), the same address as on the provider's
+                // page; only while the booking is still on (pending or confirmed).
+                'whatsapp_url' => in_array($this->status, [BookingStatus::Pending, BookingStatus::Confirmed], true) ? $this->provider->whatsappUrl() : null,
             ],
             'service' => [
                 'name' => $this->service->name,

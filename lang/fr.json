@@ -581,5 +581,14 @@
     "link_preview.provider.description": "Réservez en ligne chez :name à :city.",
     "link_preview.privacy.description": "Comment Griot utilise les données des personnes qui réservent, et combien de temps il les conserve.",
     "link_preview.image_alt": "Griot : trouvez un professionnel et réservez en ligne",
-    "providers.show.choose_service": "Choisir une prestation"
+    "providers.show.choose_service": "Choisir une prestation",
+    "booking.form.slot_period.morning": "Matin",
+    "booking.form.slot_period.afternoon": "Après-midi",
+    "booking.form.slot_period.evening": "Soir",
+    "booking.form.contact_question": "Vous ne trouvez pas de créneau qui vous convient ?",
+    "booking.form.contact_link": "Écrire sur WhatsApp",
+    "booking.form.contact_message": "Bonjour :provider, j'ai vu votre page sur Griot et je voudrais réserver :service, mais je ne trouve pas de créneau qui me convient. Pouvez-vous m'aider ?",
+    "booking.confirmation.contact_question": "Une question ?",
+    "booking.confirmation.contact_link": "Écrire au professionnel sur WhatsApp",
+    "booking.confirmation.contact_message": "Bonjour, j'ai une question sur ma réservation de :service pour :when."
 }

@@ -8,6 +8,8 @@ export type BookingConfirmation = {
         name: string;
         city: string;
         slug: string;
+        // https://wa.me/<digits>, only for a pending or confirmed booking with a valid number.
+        whatsapp_url: string | null;
     };
     service: {
         name: string;

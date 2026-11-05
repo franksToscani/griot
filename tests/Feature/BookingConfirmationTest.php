@@ -70,7 +70,8 @@ test('a valid link shows the booking', function () {
             ->where('can_cancel', true)
             ->where('booking', [
                 'status' => 'pending',
-                'provider' => ['name' => 'Salone Awa', 'city' => 'Bologna', 'slug' => $booking->provider->slug],
+                // The provider's chat for a question (issue #140): the address of the provider's page.
+                'provider' => ['name' => 'Salone Awa', 'city' => 'Bologna', 'slug' => $booking->provider->slug, 'whatsapp_url' => $booking->provider->whatsappUrl()],
                 'service' => ['name' => 'Treccine', 'price' => '90.00'],
                 'options' => [
                     ['name' => 'Extension', 'extra_price' => '20.00'],

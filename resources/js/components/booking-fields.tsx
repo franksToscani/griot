@@ -14,6 +14,7 @@ import {
     priceToCents,
 } from '@/lib/format';
 import { errorId, fieldA11y } from '@/lib/form-a11y';
+import { groupSlotsByPeriod } from '@/lib/slot-groups';
 import { cn } from '@/lib/utils';
 import type { BookingWindow, FreeSlot, Service } from '@/types';
 
@@ -238,23 +239,46 @@ export function BookingDayAndTimes({
                         aria-describedby={
                             timeError ? errorId('booking-day') : undefined
                         }
-                        className="flex flex-wrap gap-2"
+                        className="grid gap-3"
                     >
-                        {slots.map((slot) => (
-                            <Button
-                                key={slot.start}
-                                type="button"
-                                size="sm"
-                                variant={
-                                    slot.start === startsAt
-                                        ? 'default'
-                                        : 'outline'
-                                }
-                                aria-pressed={slot.start === startsAt}
-                                onClick={() => onPick(slot.start)}
-                            >
-                                {slot.time}
-                            </Button>
+                        {/* By part of the day (#141), one group each, named by its title: a line of
+                            text, not a heading, so the page's headings keep their order. One group
+                            only keeps its title too. Same buttons, same Tab order as before. */}
+                        {groupSlotsByPeriod(slots).map((group) => (
+                            <div key={group.period} className="grid gap-1.5">
+                                <p
+                                    id={`booking-times-${group.period}`}
+                                    className="text-xs font-medium text-muted-foreground"
+                                >
+                                    {t(
+                                        `booking.form.slot_period.${group.period}`,
+                                    )}
+                                </p>
+                                <div
+                                    role="group"
+                                    aria-labelledby={`booking-times-${group.period}`}
+                                    className="flex flex-wrap gap-2"
+                                >
+                                    {group.slots.map((slot) => (
+                                        <Button
+                                            key={slot.start}
+                                            type="button"
+                                            size="sm"
+                                            variant={
+                                                slot.start === startsAt
+                                                    ? 'default'
+                                                    : 'outline'
+                                            }
+                                            aria-pressed={
+                                                slot.start === startsAt
+                                            }
+                                            onClick={() => onPick(slot.start)}
+                                        >
+                                            {slot.time}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </div>
                         ))}
                     </div>
                 )}

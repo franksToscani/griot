@@ -581,5 +581,14 @@
     "link_preview.provider.description": "Prenota online da :name a :city.",
     "link_preview.privacy.description": "Come Griot usa i dati di chi prenota e per quanto tempo li conserva.",
     "link_preview.image_alt": "Griot: trova un professionista e prenota online",
-    "providers.show.choose_service": "Scegli un servizio"
+    "providers.show.choose_service": "Scegli un servizio",
+    "booking.form.slot_period.morning": "Mattina",
+    "booking.form.slot_period.afternoon": "Pomeriggio",
+    "booking.form.slot_period.evening": "Sera",
+    "booking.form.contact_question": "Non trovi un orario adatto?",
+    "booking.form.contact_link": "Scrivi su WhatsApp",
+    "booking.form.contact_message": "Ciao :provider, ho visto la tua pagina su Griot e vorrei prenotare :service, ma non trovo un orario adatto. Puoi aiutarmi?",
+    "booking.confirmation.contact_question": "Hai un dubbio?",
+    "booking.confirmation.contact_link": "Scrivi al professionista su WhatsApp",
+    "booking.confirmation.contact_message": "Ciao, ho una domanda sulla mia prenotazione di :service per :when."
 }
