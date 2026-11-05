@@ -623,5 +623,11 @@
     "provider.gallery.submit": "Aggiungi la foto",
     "provider.gallery.uploading": "Caricamento in corso…",
     "providers.show.photos": "Foto del lavoro",
-    "providers.show.photo_alt": "Lavoro di :provider, foto :number di :total"
+    "providers.show.photo_alt": "Lavoro di :provider, foto :number di :total",
+    "providers.show.open_photo": "(apri la foto :number di :total ingrandita)",
+    "providers.show.see_all": "Vedi tutte le foto (:count)",
+    "providers.show.lightbox.title": "Foto :number di :total",
+    "providers.show.lightbox.keys": "Usa le frecce sinistra e destra della tastiera per passare da una foto all'altra.",
+    "providers.show.lightbox.previous": "Foto precedente",
+    "providers.show.lightbox.next": "Foto successiva"
 }

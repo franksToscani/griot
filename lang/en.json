@@ -623,5 +623,11 @@
     "provider.gallery.submit": "Add the photo",
     "provider.gallery.uploading": "Uploading…",
     "providers.show.photos": "Photos of the work",
-    "providers.show.photo_alt": "Work by :provider, photo :number of :total"
+    "providers.show.photo_alt": "Work by :provider, photo :number of :total",
+    "providers.show.open_photo": "(open photo :number of :total enlarged)",
+    "providers.show.see_all": "See all photos (:count)",
+    "providers.show.lightbox.title": "Photo :number of :total",
+    "providers.show.lightbox.keys": "Use the left and right arrow keys to move from one photo to another.",
+    "providers.show.lightbox.previous": "Previous photo",
+    "providers.show.lightbox.next": "Next photo"
 }

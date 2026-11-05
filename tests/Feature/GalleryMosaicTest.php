@@ -261,26 +261,38 @@ test('the large photo loads at once and first, the others lazily; srcset, sizes,
         ->toContain('sizes={tile.sizes}')
         ->toContain('width={photo.width}')
         ->toContain('height={photo.height}')
-        ->toMatch("/\\{\\.\\.\\.\\(first\\s*\\?\\s*\\{ loading: 'eager', fetchPriority: 'high' \\}\\s*:\\s*\\{ loading: 'lazy', decoding: 'async' \\}\\)\\}/");
+        ->toMatch("/\\{\\.\\.\\.\\(first\\s*\\?\\s*\\{\\s*loading: 'eager',\\s*fetchPriority: 'high',?\\s*\\}\\s*:\\s*\\{ loading: 'lazy', decoding: 'async' \\}\\)\\}/");
     expect($source)->toContain('const first = index === 0;');
     // fetchPriority only once, on the first; no loading or decoding written elsewhere.
     expect(substr_count($source, 'fetchPriority'))->toBe(1)
         ->and(substr_count($source, 'loading:'))->toBe(2)
         ->and(substr_count($source, '<img'))->toBe(1);
     // The space of each photo is kept: an aspect ratio on phones, a 2:1 box from 768 px up.
-    expect($source)->toContain("'size-full rounded-md bg-muted object-cover forced-colors:border'")
+    expect($img[0])->toContain('className="size-full rounded-md bg-muted object-cover forced-colors:border"');
+    expect($source)
         ->toContain('md:aspect-[2/1] md:grid-cols-4 md:grid-rows-2')
         ->toContain("alone: 'col-span-2 aspect-[4/3]")
         ->toContain("large: 'col-span-2 aspect-[4/3]")
         ->toContain("tile.wideOnly && 'max-md:hidden'");
 });
 
-test('nothing to press, nothing that moves, nothing sticky', function () {
+test('each photo shown is a button that opens the zoom; nothing else to press, nothing that moves, nothing sticky', function () {
     $source = gmoSource();
 
+    // A real button (PR E), one per tile, named by the photo's alternative text and then by
+    // what it does, in sr-only text from t().
+    expect(substr_count($source, '<button'))->toBe(1);
     expect($source)
-        ->not->toMatch('/<(button|a|Link|Button)\b/')
-        ->not->toMatch('/on[A-Z][a-zA-Z]*=/')
+        ->toMatch('/<button\s+key=\{photo\.id\}\s+type="button"\s+aria-haspopup="dialog"\s+onClick=\{\(event\) => open\(event, index\)\}/')
+        ->toMatch("/alt=\{photoAlt\([\s\S]*?\/>\s*<span className=\"sr-only\">\s*\{' '\}\s*\{t\('providers\.show\.open_photo', \{\s*number: index \+ 1,\s*total: photos\.length,?\s*\}\)\}\s*<\/span>\s*<\/button>/")
+        // A visible focus, an outline in forced colours, and no hidden tile in the Tab order.
+        ->toMatch("/'overflow-hidden rounded-md outline-none [^']*focus-visible:ring-\[3px\][^']*focus-visible:outline-hidden forced-colors:border'/")
+        ->toContain("tile.wideOnly && 'max-md:hidden'");
+
+    // Still no link, no tab index of its own, no movement.
+    expect($source)
+        ->not->toMatch('/<(a|Link)\b/')
+        ->not->toContain('href')
         ->not->toContain('tabIndex')
         ->not->toContain('sticky')
         ->not->toContain('fixed')
