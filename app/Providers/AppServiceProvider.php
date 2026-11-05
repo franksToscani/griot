@@ -85,8 +85,8 @@ class AppServiceProvider extends ServiceProvider
                 $exception->redirectTo(route('bookings.show', ['booking' => (string) $request->route('booking')]));
             }
 
-            // The photo form lives on the edit page: back there, whatever the "previous" address is.
-            if ($field === 'avatar') {
+            // The photo forms live on the edit page: back there, whatever the "previous" address is.
+            if ($field === 'avatar' || $field === 'photo') {
                 $exception->redirectTo(route('provider.edit'));
             }
 
@@ -140,6 +140,12 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('provider-avatar', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_avatar_per_minute'))
             ->by('user:'.$request->user()?->id)
             ->response($tooMany('avatar')));
+
+        // The gallery: uploads and removals together, per logged-in user. Each upload decodes
+        // a photo and writes three sizes.
+        RateLimiter::for('provider-photos', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_photos_per_minute'))
+            ->by('user:'.$request->user()?->id)
+            ->response($tooMany('photo')));
 
         // Shared by provider.publish and provider.unpublish: same limiter name and same key, so the
         // two routes count together (the counter key is the limiter name plus the user).

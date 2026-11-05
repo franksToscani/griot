@@ -34,16 +34,34 @@ Tabella `provider_photos` (modello `App\Models\ProviderPhoto`, relazione `Provid
 
 - Le dimensioni prodotte non sono salvate: `ProviderPhoto::sizes()` le ricava da `width`, `height` e dalla configurazione, così un indirizzo non punta mai a un file che non c'è.
 - `pathFor()`, `paths()` e `urlFor()` danno i percorsi e gli indirizzi tramite `App\Support\MediaDisk`.
-- Il massimo di 9 e l'ordine li garantisce il codice (PR B), in una transazione con `lockForUpdate` sul provider, come per le disponibilità.
-- Oggi i file non vengono tolti: con la cancellazione dell'account spariscono solo le righe, per la cascata del database. La cancellazione dei file arriva con la PR B.
+- Il massimo di 9 e l'ordine li garantisce il codice, in una transazione con `lockForUpdate` sul provider, come per le disponibilità.
+
+## Caricamento
+
+`POST /provider/photos` (`provider.photos.store`), solo per il provider loggato, sempre nella propria galleria: un id nel corpo della richiesta è ignorato.
+
+- Regole (`StoreProviderPhotoRequest`): JPG, PNG o WebP, al massimo 2 MB e 4000 px per lato, almeno 800 px sul lato più lungo; `consent` obbligatorio (`accepted`); `alt_text` facoltativo, al massimo 150 caratteri, spazi tolti, vuoto diventa `null`.
+- `App\Profile\StoreProviderPhoto` ricodifica la foto **prima** della transazione (il lavoro lento non tiene il lock), poi blocca il provider con `lockForUpdate`, controlla il massimo di 9, scrive le dimensioni sul disco e crea la riga: nome casuale di 40 caratteri, `width`/`height` della dimensione più grande, `position` = ultima + 1, `consent_at` = adesso.
+- Se qualcosa fallisce a metà (galleria piena, scrittura di una dimensione, database) i file già scritti vengono tolti e la riga non resta: la transazione la annulla.
+- Errori per il provider, sul campo `photo` e di ritorno a `provider.edit`: galleria piena (`GalleryFull`), foto illeggibile (`InvalidAvatar`), una dimensione non scritta (`PhotoNotStored`, segnalata anche con `report()`, il provider vede un messaggio generico).
+- Limite di richieste `provider-photos`: 20 al minuto per utente (`booking.rate_limit_photos_per_minute`), comune a caricamento e cancellazione. Oltre il limite si torna al profilo con un errore sul campo `photo`, come per la foto del profilo.
+
+## Riduzione nel browser
+
+`resources/js/lib/resize-image.ts` è pronto ma **non ancora collegato** al form (arriva con la PR C): `targetSize()` porta il lato più lungo a 2400 px al massimo senza mai ingrandire, `resizeImage()` ridisegna la foto su un canvas come JPEG di qualità 0,85, raddrizzata. Se il browser non ci riesce invia l'originale: decide sempre il server.
+
+## Cancellazione
+
+- Di una foto: `DELETE /provider/photos/{photo}` (`provider.photos.destroy`). La foto si cerca tra quelle del provider loggato, quindi la foto di un altro provider dà **404**, come per servizi e opzioni; `ProviderPhotoPolicy::delete` controlla di nuovo il proprietario. `App\Profile\DeleteProviderPhoto` cancella la riga e ricompatta le posizioni (1, 2, 3…) nella stessa transazione con `lockForUpdate`, poi toglie i file. Un file che non si riesce a togliere lascia un avviso nel log con la sola classe dell'errore, senza nomi né percorsi; la foto risulta comunque cancellata.
+- Con l'account: `ProfileController::destroy` legge i percorsi di tutte le foto **prima** di cancellare, e toglie i file **solo dopo** che la cancellazione è riuscita, come per la foto del profilo. Se il database rifiuta la cancellazione (un provider con prenotazioni, #133) le foto restano tutte. Un file che non si riesce a togliere lascia lo stesso avviso, e l'account resta cancellato.
 
 ## Piano delle PR
 
-| PR  | Contenuto                                                                                                                     |
-| --- | ----------------------------------------------------------------------------------------------------------------------------- |
-| A   | Ricodifica comune, tabella `provider_photos`, modello, configurazione (questa)                                                |
-| B   | Caricamento (rotta, regole, consenso, limite di 9, limite di richieste) e cancellazione dei file: di una foto e con l'account |
-| C   | Scheda « Foto del tuo lavoro » nel profilo del provider                                                                       |
-| D   | Mosaico in testa alla pagina pubblica, con immagini responsive (`srcset`, `sizes`, caricamento lento, misure fisse)           |
-| E   | Ingrandimento accessibile (Dialog del kit: focus, Esc, ritorno del focus, foto precedente e successiva)                       |
-| F   | Ordinamento (sposta prima/dopo) e testi: testo di riserva, consenso, privacy                                                  |
+| PR  | Contenuto                                                                                                                              |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| A   | Ricodifica comune, tabella `provider_photos`, modello, configurazione                                                                  |
+| B   | Caricamento (rotta, regole, consenso, limite di 9, limite di richieste) e cancellazione dei file: di una foto e con l'account (questa) |
+| C   | Scheda « Foto del tuo lavoro » nel profilo del provider                                                                                |
+| D   | Mosaico in testa alla pagina pubblica, con immagini responsive (`srcset`, `sizes`, caricamento lento, misure fisse)                    |
+| E   | Ingrandimento accessibile (Dialog del kit: focus, Esc, ritorno del focus, foto precedente e successiva)                                |
+| F   | Ordinamento (sposta prima/dopo) e testi: testo di riserva, consenso, privacy                                                           |

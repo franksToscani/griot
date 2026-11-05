@@ -590,5 +590,18 @@
     "booking.form.contact_message": "Ciao :provider, ho visto la tua pagina su Griot e vorrei prenotare :service, ma non trovo un orario adatto. Puoi aiutarmi?",
     "booking.confirmation.contact_question": "Hai un dubbio?",
     "booking.confirmation.contact_link": "Scrivi al professionista su WhatsApp",
-    "booking.confirmation.contact_message": "Ciao, ho una domanda sulla mia prenotazione di :service per :when."
+    "booking.confirmation.contact_message": "Ciao, ho una domanda sulla mia prenotazione di :service per :when.",
+    "provider.photos.saved": "Foto aggiunta.",
+    "provider.photos.deleted": "Foto eliminata.",
+    "provider.photos.consent": "Le persone riconoscibili in questa foto hanno accettato che venga pubblicata.",
+    "provider.validation.photo_required": "Scegli una foto.",
+    "provider.validation.photo_invalid": "Il file non è una foto valida: usa un'immagine JPG, PNG o WebP.",
+    "provider.validation.photo_max": "La foto è troppo pesante: al massimo 2 MB.",
+    "provider.validation.photo_dimensions": "La foto può avere al massimo 4000 pixel per lato.",
+    "provider.validation.photo_too_small": "La foto è troppo piccola: almeno :min pixel sul lato più lungo.",
+    "provider.validation.photo_unreadable": "Non riesco a leggere la foto. Prova con un altro file.",
+    "provider.validation.photo_consent": "Conferma il consenso delle persone nella foto.",
+    "provider.validation.photo_alt_max": "La descrizione può avere al massimo :max caratteri.",
+    "provider.validation.gallery_full": "Hai già :max foto: eliminane una per aggiungerne un'altra.",
+    "provider.validation.photo_not_saved": "Non è stato possibile salvare la foto. Riprova."
 }

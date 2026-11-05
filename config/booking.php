@@ -113,6 +113,9 @@ return [
     // Photo uploads of a logged-in provider, per user (not per IP).
     'rate_limit_avatar_per_minute' => 10,
 
+    // Gallery uploads and removals of a logged-in provider together, per user (not per IP).
+    'rate_limit_photos_per_minute' => 20,
+
     // Publish and unpublish of a logged-in provider together, per user (not per IP).
     'rate_limit_publish_per_minute' => 10,
 

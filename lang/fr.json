@@ -590,5 +590,18 @@
     "booking.form.contact_message": "Bonjour :provider, j'ai vu votre page sur Griot et je voudrais réserver :service, mais je ne trouve pas de créneau qui me convient. Pouvez-vous m'aider ?",
     "booking.confirmation.contact_question": "Une question ?",
     "booking.confirmation.contact_link": "Écrire au professionnel sur WhatsApp",
-    "booking.confirmation.contact_message": "Bonjour, j'ai une question sur ma réservation de :service pour :when."
+    "booking.confirmation.contact_message": "Bonjour, j'ai une question sur ma réservation de :service pour :when.",
+    "provider.photos.saved": "Photo ajoutée.",
+    "provider.photos.deleted": "Photo supprimée.",
+    "provider.photos.consent": "Les personnes reconnaissables sur cette photo ont accepté qu'elle soit publiée.",
+    "provider.validation.photo_required": "Choisissez une photo.",
+    "provider.validation.photo_invalid": "Le fichier n'est pas une photo valide : utilisez une image JPG, PNG ou WebP.",
+    "provider.validation.photo_max": "La photo est trop lourde : 2 Mo au maximum.",
+    "provider.validation.photo_dimensions": "La photo peut faire au maximum 4000 pixels de côté.",
+    "provider.validation.photo_too_small": "La photo est trop petite : au moins :min pixels sur le côté le plus long.",
+    "provider.validation.photo_unreadable": "Impossible de lire la photo. Essayez avec un autre fichier.",
+    "provider.validation.photo_consent": "Confirmez le consentement des personnes sur la photo.",
+    "provider.validation.photo_alt_max": "La description peut contenir au maximum :max caractères.",
+    "provider.validation.gallery_full": "Vous avez déjà :max photos : supprimez-en une pour en ajouter une autre.",
+    "provider.validation.photo_not_saved": "La photo n'a pas pu être enregistrée. Réessayez."
 }
