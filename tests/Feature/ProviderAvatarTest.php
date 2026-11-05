@@ -2,6 +2,7 @@
 
 use App\Models\Provider;
 use App\Models\User;
+use App\Support\MediaDisk;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -14,7 +15,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 // guesses the type from the file NAME, while the rules must look at the CONTENT.
 
 beforeEach(function () {
-    Storage::fake('public');
+    Storage::fake(MediaDisk::NAME);
     app()->setLocale('it');
     $this->pavDir = sys_get_temp_dir().'/griot-pav-'.Str::random(12);
     mkdir($this->pavDir);
@@ -78,7 +79,7 @@ test('guests, unverified users and users without a provider are sent away', func
     pavPost($unverified, ['avatar' => $file()])->assertRedirect(route('verification.notice'));
 
     pavPost(User::factory()->create(), ['avatar' => $file()])->assertRedirect(route('provider.setup'));
-    expect(Storage::disk('public')->allFiles())->toBe([]);
+    expect(Storage::disk(MediaDisk::NAME)->allFiles())->toBe([]);
 });
 
 test('a valid photo is saved under a random name, as WebP', function (string $name, string $type, int $width, int $height) {
@@ -91,9 +92,9 @@ test('a valid photo is saved under a random name, as WebP', function (string $na
 
     $path = $provider->fresh()->avatar_path;
     expect($path)->toMatch('#^avatars/[A-Za-z0-9]{40}\.webp$#')->not->toContain(pathinfo($name, PATHINFO_FILENAME));
-    expect(Storage::disk('public')->allFiles())->toBe([$path]);
-    expect(getimagesizefromstring((string) Storage::disk('public')->get($path))['mime'])->toBe('image/webp');
-    expect($provider->fresh()->avatarUrl())->toBe(Storage::disk('public')->url($path));
+    expect(Storage::disk(MediaDisk::NAME)->allFiles())->toBe([$path]);
+    expect(getimagesizefromstring((string) Storage::disk(MediaDisk::NAME)->get($path))['mime'])->toBe('image/webp');
+    expect($provider->fresh()->avatarUrl())->toBe(Storage::disk(MediaDisk::NAME)->url($path));
 })->with([
     'JPEG 800x600' => ['mia-foto.jpg', 'jpeg', 800, 600],
     'PNG 300x300' => ['mia-foto.png', 'png', 300, 300],
@@ -109,8 +110,8 @@ test('a second photo replaces the first, which is deleted from the disk', functi
     $second = $provider->fresh()->avatar_path;
 
     expect($second)->not->toBe($first);
-    Storage::disk('public')->assertMissing($first);
-    expect(Storage::disk('public')->allFiles())->toBe([$second]);
+    Storage::disk(MediaDisk::NAME)->assertMissing($first);
+    expect(Storage::disk(MediaDisk::NAME)->allFiles())->toBe([$second]);
 });
 
 test('files that are not a valid photo are refused with nothing saved', function (Closure $data) {
@@ -118,7 +119,7 @@ test('files that are not a valid photo are refused with nothing saved', function
 
     pavPost($provider->user, $data())->assertSessionHasErrors(['avatar' => PAV_INVALID]);
 
-    expect(Storage::disk('public')->allFiles())->toBe([]);
+    expect(Storage::disk(MediaDisk::NAME)->allFiles())->toBe([]);
     expect($provider->fresh()->avatar_path)->toBeNull();
 })->with([
     // All of these are stopped by "mimes", which reads the real type of the content.
@@ -137,7 +138,7 @@ test('no file at all asks to choose a photo', function () {
 
     pavPost($provider->user, [])->assertSessionHasErrors(['avatar' => 'Scegli una foto.']);
 
-    expect(Storage::disk('public')->allFiles())->toBe([]);
+    expect(Storage::disk(MediaDisk::NAME)->allFiles())->toBe([]);
     expect($provider->fresh()->avatar_path)->toBeNull();
 });
 
@@ -151,7 +152,7 @@ test('a JPEG that passes the rules but cannot be decoded gets the unreadable mes
     pavPost($provider->user, ['avatar' => pavUpload('rotta.jpg', $headerOnly)])
         ->assertSessionHasErrors(['avatar' => 'Non riesco a leggere la foto. Prova con un altro file.']);
 
-    expect(Storage::disk('public')->allFiles())->toBe([]);
+    expect(Storage::disk(MediaDisk::NAME)->allFiles())->toBe([]);
     expect($provider->fresh()->avatar_path)->toBeNull();
 });
 
@@ -176,7 +177,7 @@ test('dimensions between 200 and 4000 pixels per side', function (int $width, in
         expect($provider->fresh()->avatar_path)->not->toBeNull();
     } else {
         $response->assertSessionHasErrors(['avatar' => 'La foto deve essere tra 200 e 4000 pixel per lato.']);
-        expect(Storage::disk('public')->allFiles())->toBe([]);
+        expect(Storage::disk(MediaDisk::NAME)->allFiles())->toBe([]);
     }
 })->with([
     '199x200' => [199, 200, false],
@@ -200,7 +201,7 @@ test('the name of the uploaded file never enters the path', function (string $na
     pavPost($provider->user, ['avatar' => pavUpload($name, pavImageBytes(300, 300, 'png'))])->assertSessionHasNoErrors();
 
     expect($provider->fresh()->avatar_path)->toMatch('#^avatars/[A-Za-z0-9]{40}\.webp$#');
-    expect(Storage::disk('public')->allFiles())->toHaveCount(1);
+    expect(Storage::disk(MediaDisk::NAME)->allFiles())->toHaveCount(1);
 })->with(['../../x.png', 'a b.png', 'evil.php.png']);
 
 test('a file over the PHP limit gets the weight message, not an error page', function (int $error) {
@@ -246,14 +247,14 @@ test('user_id, is_published, slug and avatar_path in the body are ignored', func
 });
 
 test('the photo of another provider is not touched', function () {
-    Storage::disk('public')->put('avatars/di-un-altro.webp', 'altro');
+    Storage::disk(MediaDisk::NAME)->put('avatars/di-un-altro.webp', 'altro');
     $other = Provider::factory()->create(['avatar_path' => 'avatars/di-un-altro.webp']);
     $provider = Provider::factory()->create();
 
     pavPost($provider->user, ['avatar' => pavUpload('foto.jpg', pavImageBytes(300, 300))])->assertSessionHasNoErrors();
 
     expect($other->fresh()->avatar_path)->toBe('avatars/di-un-altro.webp');
-    Storage::disk('public')->assertExists('avatars/di-un-altro.webp');
+    Storage::disk(MediaDisk::NAME)->assertExists('avatars/di-un-altro.webp');
 });
 
 test('the 11th upload in a minute of the same user is refused', function () {
@@ -291,7 +292,7 @@ test('the dashboard and the public page show the new photo', function () {
     $provider = Provider::factory()->published()->create();
 
     pavPost($provider->user, ['avatar' => pavUpload('foto.jpg', pavImageBytes(300, 300))])->assertSessionHasNoErrors();
-    $url = Storage::disk('public')->url($provider->fresh()->avatar_path);
+    $url = Storage::disk(MediaDisk::NAME)->url($provider->fresh()->avatar_path);
 
     $this->actingAs($provider->user)->get(route('dashboard'))
         ->assertInertia(fn (Assert $page) => $page->where('provider.avatar_url', $url));
@@ -300,7 +301,7 @@ test('the dashboard and the public page show the new photo', function () {
 });
 
 test('the number of queries does not depend on the previous photo', function () {
-    Storage::disk('public')->put('avatars/vecchia.webp', 'vecchia');
+    Storage::disk(MediaDisk::NAME)->put('avatars/vecchia.webp', 'vecchia');
     $withPhoto = Provider::factory()->create(['avatar_path' => 'avatars/vecchia.webp']);
     $withoutPhoto = Provider::factory()->create(['avatar_path' => null]);
     $uploads = [pavUpload('a.jpg', pavImageBytes(300, 300)), pavUpload('b.jpg', pavImageBytes(300, 300))];

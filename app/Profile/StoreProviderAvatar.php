@@ -3,9 +3,9 @@
 namespace App\Profile;
 
 use App\Models\Provider;
+use App\Support\MediaDisk;
 use GdImage;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
@@ -34,7 +34,7 @@ final class StoreProviderAvatar
     {
         $contents = $this->encode($file);
 
-        $disk = Storage::disk('public');
+        $disk = MediaDisk::get();
         // A random name and the extension of the format chosen here: never the user's file name.
         $path = 'avatars/'.Str::random(40).'.webp';
         $oldPath = $provider->avatar_path;
@@ -44,7 +44,7 @@ final class StoreProviderAvatar
         // written is deleted: the provider never points to a missing file.
         if (! $disk->put($path, $contents)) {
             // A problem of the disk, not of the user's file: it propagates as an error.
-            throw new RuntimeException('The avatar could not be written to the public disk.');
+            throw new RuntimeException('The avatar could not be written to the media disk.');
         }
 
         $provider->avatar_path = $path;

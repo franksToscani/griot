@@ -3,6 +3,7 @@
 use App\Models\Provider;
 use App\Profile\InvalidAvatar;
 use App\Profile\StoreProviderAvatar;
+use App\Support\MediaDisk;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
@@ -12,7 +13,7 @@ use Illuminate\Support\Str;
 // guesses the type from the file NAME, a real upload from the CONTENT, which is what matters here.
 
 beforeEach(function () {
-    Storage::fake('public');
+    Storage::fake(MediaDisk::NAME);
     // The uploads of each test live in their own temporary folder, outside the repository.
     $this->spaDir = sys_get_temp_dir().'/griot-spa-'.Str::random(12);
     mkdir($this->spaDir);
@@ -81,7 +82,7 @@ function spaJpegWithExif(string $jpeg, string $description, int $orientation = 1
  */
 function spaSavedSize(Provider $provider): array
 {
-    $info = getimagesizefromstring((string) Storage::disk('public')->get((string) $provider->avatar_path));
+    $info = getimagesizefromstring((string) Storage::disk(MediaDisk::NAME)->get((string) $provider->avatar_path));
 
     return [$info[0], $info[1], $info[2]];
 }
@@ -93,7 +94,7 @@ test('a valid file is stored and the provider returned with the new path', funct
 
     expect($result)->toBe($provider);
     expect($provider->fresh()->avatar_path)->toBe($provider->avatar_path)->toMatch('#^avatars/[A-Za-z0-9]{40}\.webp$#');
-    Storage::disk('public')->assertExists($provider->avatar_path);
+    Storage::disk(MediaDisk::NAME)->assertExists($provider->avatar_path);
 });
 
 test('the image is rewritten as WebP, at most 512 on the long side, never enlarged', function (int $width, int $height, string $type, int $savedWidth, int $savedHeight) {
@@ -124,7 +125,7 @@ test('a transparent PNG stays transparent in the WebP', function () {
 
     app(StoreProviderAvatar::class)->store($provider, spaUpload('trasparente.png', $png));
 
-    $saved = imagecreatefromstring((string) Storage::disk('public')->get($provider->avatar_path));
+    $saved = imagecreatefromstring((string) Storage::disk(MediaDisk::NAME)->get($provider->avatar_path));
     expect(imagecolorat($saved, 10, 10) >> 24)->toBe(127);
 });
 
@@ -139,7 +140,7 @@ test('the EXIF block and the comment of the original are not in the saved file',
     $provider = Provider::factory()->create();
     app(StoreProviderAvatar::class)->store($provider, $upload);
 
-    $saved = (string) Storage::disk('public')->get($provider->avatar_path);
+    $saved = (string) Storage::disk(MediaDisk::NAME)->get($provider->avatar_path);
     expect($saved)
         ->not->toContain('GRIOT-EXIF-SEGRETO')
         ->not->toContain('GRIOT-COMMENTO-SEGRETO')
@@ -167,13 +168,13 @@ test('the old file is deleted only after the new one is saved', function () {
     $first = $provider->avatar_path;
     $store->store($provider, spaUpload('seconda.jpg', spaImageBytes(300, 300)));
 
-    Storage::disk('public')->assertMissing($first);
-    Storage::disk('public')->assertExists($provider->avatar_path);
-    expect(Storage::disk('public')->allFiles())->toBe([$provider->avatar_path]);
+    Storage::disk(MediaDisk::NAME)->assertMissing($first);
+    Storage::disk(MediaDisk::NAME)->assertExists($provider->avatar_path);
+    expect(Storage::disk(MediaDisk::NAME)->allFiles())->toBe([$provider->avatar_path]);
 });
 
 test('if the database save fails, the old photo and the old path stay and the new file is removed', function () {
-    Storage::disk('public')->put('avatars/vecchia.webp', 'vecchia');
+    Storage::disk(MediaDisk::NAME)->put('avatars/vecchia.webp', 'vecchia');
     $provider = Provider::factory()->create(['avatar_path' => 'avatars/vecchia.webp']);
     // Removed in afterEach; Provider has no listeners of its own.
     Provider::updating(fn () => throw new RuntimeException('Database non disponibile'));
@@ -183,17 +184,17 @@ test('if the database save fails, the old photo and the old path stay and the ne
 
     expect($provider->avatar_path)->toBe('avatars/vecchia.webp');
     expect($provider->fresh()->avatar_path)->toBe('avatars/vecchia.webp');
-    expect(Storage::disk('public')->allFiles())->toBe(['avatars/vecchia.webp']);
+    expect(Storage::disk(MediaDisk::NAME)->allFiles())->toBe(['avatars/vecchia.webp']);
 });
 
 test('if the disk refuses to write, nothing changes', function () {
-    $disk = Storage::disk('public');
+    $disk = Storage::disk(MediaDisk::NAME);
     $disk->put('avatars/vecchia.webp', 'vecchia');
     $provider = Provider::factory()->create(['avatar_path' => 'avatars/vecchia.webp']);
     // The same fake disk, except that put() answers false.
     $refusing = Mockery::mock($disk)->makePartial();
     $refusing->shouldReceive('put')->andReturn(false);
-    Storage::set('public', $refusing);
+    Storage::set(MediaDisk::NAME, $refusing);
 
     expect(fn () => app(StoreProviderAvatar::class)->store($provider, spaUpload('nuova.jpg', spaImageBytes(300, 300))))
         ->toThrow(RuntimeException::class, 'could not be written');
@@ -213,7 +214,7 @@ test('a file GD cannot read throws InvalidAvatar and writes nothing', function (
         ->toThrow(InvalidAvatar::class);
 
     expect($provider->fresh()->avatar_path)->toBeNull();
-    expect(Storage::disk('public')->allFiles())->toBe([]);
+    expect(Storage::disk(MediaDisk::NAME)->allFiles())->toBe([]);
 });
 
 test('InvalidAvatar has technical messages without personal data', function () {
