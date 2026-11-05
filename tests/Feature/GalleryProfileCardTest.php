@@ -292,7 +292,8 @@ test('the texts of the card exist in Italian, French and English, with the same 
     // Every key the card uses, and the one of the consent from PR B.
     // In gallery.ts the card's fallback is the default key of photoAlt() (PR D added the public one).
     preg_match_all("/(?:t\\(\\s*|fallbackKey: string = )'([a-z_.]+)'/", gpcSource().gpcSource('js/lib/gallery.ts'), $used);
-    $keys = array_values(array_unique($used[1]));
+    // Only the card's own (provider.*): gallery.ts also holds the public page's (providers.*).
+    $keys = array_values(array_unique(array_filter($used[1], fn (string $key) => str_starts_with($key, 'provider.'))));
     expect($keys)->toContain('provider.photos.consent', 'provider.gallery.fallback_alt')
         ->and(count($keys))->toBe(19);
 

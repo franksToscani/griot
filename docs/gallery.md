@@ -81,8 +81,21 @@ Le piccole regole (stato vuoto, aperto o pieno, testo di riserva) stanno in `res
     - sotto 768 px: la grande a tutta larghezza in 4:3, sotto al massimo due miniature quadrate a metà larghezza. Con 2 foto la miniatura resta a metà larghezza (stessa misura del caso con 3), così la pagina non scende troppo. Al massimo 3 foto; la quarta e la quinta sono nascoste con `max-md:hidden` e, caricate in modo lento, il browser non le scarica.
 - Immagini: `srcset` con tutte le varianti (`srcSet()`, spazi e virgole degli indirizzi scritti come `%20` e `%2C`), `sizes` secondo il posto (la grande `(min-width: 768px) 50vw, 100vw`, sola `100vw`, le piccole `(min-width: 768px) 25vw, 50vw`, `50vw` quando occupano metà riquadro), `src` di riserva la variante più grande fino a 800 px (`fallbackSrc()`). `width` e `height` veri; le celle hanno il loro rapporto e `object-cover`, quindi la pagina non salta. La prima foto `loading="eager"` e `fetchpriority="high"`, le altre `loading="lazy"` e `decoding="async"`.
 - Testo alternativo: quello del provider, nella sua lingua; senza, « Lavoro di :provider, foto :number di :total » (`photoAlt()` con la chiave `providers.show.photo_alt`; nella scheda del profilo resta « Foto 2 di 6 »).
-- Accessibilità: nessun titolo (il mosaico viene prima dell'h1), un gruppo `role="group"` con il nome sr-only « Foto del lavoro ». Le foto non sono pulsanti né link e non prendono il focus: l'ordine del Tab è quello di prima. Nessuna animazione, nessuno zoom al passaggio del mouse, niente sticky; con i colori forzati un bordo sottile.
-- **Con la PR E**: oggi si vedono solo le prime 5 foto (3 su telefono); le altre restano invisibili finché arrivano l'ingrandimento e « Vedi tutte le foto ».
+- Accessibilità: nessun titolo (il mosaico viene prima dell'h1), un gruppo `role="group"` con il nome sr-only « Foto del lavoro ». Ogni foto mostrata è un `<button>` che apre l'ingrandimento (sezione seguente); le foto nascoste sotto 768 px sono `display: none` e quindi fuori dal Tab. Nessuna animazione, nessuno zoom al passaggio del mouse, niente sticky; con i colori forzati un bordo sottile su pulsanti e foto.
+- Le foto che non entrano nel mosaico (oltre la quinta, oltre la terza su telefono) si vedono nell'ingrandimento, da « Vedi tutte le foto ».
+
+## Ingrandimento e « Vedi tutte le foto »
+
+`resources/js/components/photo-lightbox.tsx`, aperto dal mosaico (`provider-mosaic.tsx`).
+
+- **Apertura**: ogni foto del mosaico è un `<button>` (`aria-haspopup="dialog"`) che apre l'ingrandimento su quella foto. Il suo nome è il testo alternativo della foto più un testo sr-only da `t()`: « Box braids lunghe (apri la foto 2 di 6 ingrandita) ». « Vedi tutte le foto (N) », pulsante del kit sotto il mosaico, apre sulla prima foto; compare solo quando qualche foto non è nel mosaico a quella larghezza (`seeAllPhotos()`: con 4 o 5 foto solo sotto 768 px, con 6 o più sempre).
+- **Dialog del kit**: focus intrappolato, Esc e la X chiudono. Il Dialog è uno solo per tutti i pulsanti, quindi non ha un `DialogTrigger`: chi apre si salva in un ref e in `onCloseAutoFocus` il focus torna lì (Radix da solo lo darebbe al trigger, che non c'è). All'apertura il focus va su « Foto successiva » (con una foto sola, sulla X).
+- **Contenuto**: titolo « Foto N di M » (`photoPosition()`), descrizione sr-only con l'aiuto delle frecce (con una foto sola, il testo alternativo), l'immagine con `srcset` di tutte le varianti e `sizes="100vw"`, `width`/`height` veri, `object-contain`, alta al massimo il 60% dello schermo; il Dialog non supera l'altezza dello schermo e scorre dentro (zoom al 200%).
+- **Navigazione**: « Foto precedente » e « Foto successiva », circolari (`nextIndex()`, `previousIndex()`): dall'ultima si va alla prima e viceversa, così nessun pulsante si disattiva sotto il focus. Con una foto sola non ci sono. Le frecce sinistra e destra fanno lo stesso, solo con il focus dentro il Dialog e senza tasti modificatori (Alt+sinistra resta « indietro » del browser).
+- **Annunci**: a ogni cambio una regione `role="status"` dice solo « Foto N di M »; si svuota alla chiusura, così riaprendo si legge il titolo.
+- **Caricamento**: solo la foto aperta, subito (`loading="eager"`). Le altre si scaricano quando vengono aperte: nessun precaricamento della precedente e della successiva, per non spendere banda su foto che forse nessuno guarda.
+- Nessun carousel, timer o movimento: la foto cambia solo quando la persona lo chiede, senza effetti di scambio.
+- **Tab**: tra « Tutti i professionisti » e « Scegli un servizio » ora ci sono le foto del mosaico (fino a 5, 3 su telefono) e, se c'è, « Vedi tutte le foto »: al massimo 6 fermate in più. Il link « Salta al contenuto » porta al `<main>`, che comincia comunque con il mosaico.
 
 ## Piano delle PR
 
@@ -91,6 +104,6 @@ Le piccole regole (stato vuoto, aperto o pieno, testo di riserva) stanno in `res
 | A   | Ricodifica comune, tabella `provider_photos`, modello, configurazione                                                         |
 | B   | Caricamento (rotta, regole, consenso, limite di 9, limite di richieste) e cancellazione dei file: di una foto e con l'account |
 | C   | Scheda « Foto del tuo lavoro » nel profilo del provider                                                                       |
-| D   | Mosaico in testa alla pagina pubblica, con immagini responsive (`srcset`, `sizes`, caricamento lento, misure fisse) (questa)  |
-| E   | Ingrandimento accessibile (Dialog del kit: focus, Esc, ritorno del focus, foto precedente e successiva)                       |
+| D   | Mosaico in testa alla pagina pubblica, con immagini responsive (`srcset`, `sizes`, caricamento lento, misure fisse)           |
+| E   | Ingrandimento accessibile (Dialog del kit: focus, Esc, ritorno del focus, foto precedente e successiva) (questa)              |
 | F   | Ordinamento (sposta prima/dopo) e testi: testo di riserva, consenso, privacy                                                  |

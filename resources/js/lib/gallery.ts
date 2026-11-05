@@ -35,7 +35,7 @@ export function photoAlt(
 }
 
 // How many photos the mosaic shows: from 768 px up the large one and up to 4 small ones, below it
-// the large one and up to 2. The others wait for the zoom (PR E).
+// the large one and up to 2. The others are reached in the zoom, through "Vedi tutte le foto".
 export const MOSAIC_WIDE = 5;
 export const MOSAIC_NARROW = 3;
 
@@ -99,6 +99,41 @@ export function mosaicTiles(count: number): MosaicTile[] {
     }
 
     return tiles;
+}
+
+// When "Vedi tutte le foto" is shown: only when some photos are not in the mosaic at that width.
+// "narrow": below 768 px only (4 or 5 photos), "always": at every width (6 or more), "never":
+// every photo is already in the mosaic.
+export type SeeAllPhotos = 'never' | 'narrow' | 'always';
+
+export function seeAllPhotos(count: number): SeeAllPhotos {
+    const photos = Math.max(0, Math.floor(count));
+    const { wide, narrow } = mosaicLayout(photos);
+
+    if (photos > wide) {
+        return 'always';
+    }
+
+    return photos > narrow ? 'narrow' : 'never';
+}
+
+// The next and the previous photo in the zoom, going round: after the last comes the first and
+// before the first the last, so no button is ever disabled under the focus.
+export function nextIndex(index: number, total: number): number {
+    return total > 0 ? (index + 1) % total : 0;
+}
+
+export function previousIndex(index: number, total: number): number {
+    return total > 0 ? (index - 1 + total) % total : 0;
+}
+
+// "Foto 2 di 6": the title of the zoom, and what is announced when the photo changes.
+export function photoPosition(
+    t: TranslateFn,
+    index: number,
+    total: number,
+): string {
+    return t('providers.show.lightbox.title', { number: index + 1, total });
 }
 
 // The srcset of a photo: every size that exists, smallest first, as "address width". A space or a

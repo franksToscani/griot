@@ -60,7 +60,7 @@ Risultati del lavoro sull'issue #55: cosa è stato cambiato, come è protetto da
     - Errori, stati, `destructive` e l'avviso "Elimina account" hanno gli stessi colori di prima (`red-600`/`red-400`, `green-700`/`green-600`).
 - **Carattere**: Noto Sans variabile, incluso nel progetto (`@fontsource-variable/noto-sans`), nessun servizio esterno né durante la build né nel browser. Una pagina scarica solo il sottoinsieme latino; ɛ ɔ ŋ ṣ (latin-ext) e ẹ ọ (vietnamese) arrivano solo se un nome li contiene.
 - **Scheda « Foto del tuo lavoro »** (#143, `docs/gallery.md`): elenco come `<ul>`, « Togli » con il numero della foto in testo `sr-only`, conferma nel Dialog del kit e focus al titolo della scheda dopo la rimozione, attesa del caricamento in `role="status"`, errori collegati ai campi e focus sul primo sbagliato (è nell'elenco di `AccessibleErrorsTest`).
-- **Mosaico delle foto del lavoro** (#143, `docs/gallery.md`): prima dell'h1, quindi senza titoli; gruppo `role="group"` con nome sr-only da `t()`. Solo da guardare finché non arriva l'ingrandimento: niente pulsanti, link o focus, l'ordine del Tab non cambia.
+- **Mosaico e ingrandimento delle foto del lavoro** (#143, `docs/gallery.md`): mosaico prima dell'h1, quindi senza titoli, in un gruppo `role="group"` con nome sr-only da `t()`; ogni foto è un `<button>` col testo alternativo più « (apri la foto N di M ingrandita) ». L'ingrandimento è il Dialog del kit: titolo « Foto N di M », precedente e successiva circolari, frecce della tastiera, cambio annunciato in `role="status"`, focus restituito a chi l'ha aperto.
 - **Errori dei moduli**: un solo annuncio per errore. Gli errori di un campo si leggono col focus e `aria-describedby`; solo quelli senza campo usano `role="alert"`.
 
 ## 4. Test automatici
