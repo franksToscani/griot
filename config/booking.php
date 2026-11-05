@@ -126,4 +126,21 @@ return [
     // slots are read again at every change of day or options, so the number is generous.
     'rate_limit_provider_bookings_per_minute' => 60,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Gallery of the provider's work (issue #143, docs/gallery.md)
+    |--------------------------------------------------------------------------
+    |
+    | At most this many photos per provider. Each photo is kept as WebP in a
+    | few sizes (the longest side, in pixels), never enlarged: a size longer
+    | than the photo is not made. The smallest is always there.
+    |
+    */
+
+    'gallery' => [
+        'max_photos' => 9,
+        'sizes' => [400, 800, 1600],
+        'quality' => 82,
+    ],
+
 ];

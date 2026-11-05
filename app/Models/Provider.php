@@ -184,6 +184,16 @@ class Provider extends Model
     }
 
     /**
+     * Get the photos of the provider's work (issue #143), in their order: position, then id.
+     *
+     * @return HasMany<ProviderPhoto, $this>
+     */
+    public function photos(): HasMany
+    {
+        return $this->hasMany(ProviderPhoto::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
      * Get the weekly availabilities of the provider.
      *
      * @return HasMany<Availability, $this>
