@@ -16,6 +16,8 @@ declare module '@inertiajs/core' {
             // The languages of the selector, from config/app.php (available_locales).
             locales: { code: string; name: string }[];
             translations: Record<string, string>;
+            // The site's contacts for the footer (config/contact.php): null when not configured.
+            contact: { email: string | null; whatsapp_url: string | null };
             [key: string]: unknown;
         };
     }

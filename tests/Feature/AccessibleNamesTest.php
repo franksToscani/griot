@@ -65,9 +65,9 @@ test('every link that opens a new tab says so to screen readers, and has no open
     // The links of today: privacy; on the provider's page WhatsApp and Instagram twice (in the
     // actions under the header, and in the contacts); WhatsApp in the booking form and on the
     // booking's page (#140); the WhatsApp answer in the bookings list; the kit's footer links
-    // (none configured yet).
+    // (none configured yet); the site's WhatsApp in the footer of the public pages (#144).
     sort($found);
-    expect($found)->toBe(['booking-sheet.tsx', 'index.tsx', 'nav-footer.tsx', 'privacy-link.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx']);
+    expect($found)->toBe(['booking-sheet.tsx', 'index.tsx', 'nav-footer.tsx', 'privacy-link.tsx', 'public-layout.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx']);
 });
 
 test('the new-tab notice is one translated text, hidden on screen', function () {

@@ -643,5 +643,9 @@
     "home.steps.confirm.title": "Ricevi la conferma",
     "home.steps.confirm.text": "Il professionista risponde alla tua richiesta: lo vedi nella pagina della prenotazione e, se hai lasciato l'email, ti arriva anche lì.",
     "home.featured.title": "Professionisti in evidenza",
-    "home.featured.in_city": ", a :city"
+    "home.featured.in_city": ", a :city",
+    "footer.contact.label": "Contatti di Griot",
+    "footer.contact.email": "Scrivici",
+    "footer.contact.whatsapp": "WhatsApp",
+    "footer.contact.whatsapp_message": "Ciao, ho una domanda su Griot."
 }

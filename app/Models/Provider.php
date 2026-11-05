@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\MediaDisk;
+use App\Support\WhatsApp;
 use Database\Factories\ProviderFactory;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
@@ -141,17 +142,8 @@ class Provider extends Model
      */
     public function whatsappUrl(): ?string
     {
-        $number = trim($this->whatsapp ?? '');
-
-        if (! str_starts_with($number, '+') && ! str_starts_with($number, '00')) {
-            return null;
-        }
-
-        // wa.me wants the country code without "+" or "00".
-        $digits = preg_replace('/\D/', '', $number) ?? '';
-        $digits = str_starts_with($number, '00') ? substr($digits, 2) : $digits;
-
-        return $digits !== '' ? 'https://wa.me/'.$digits : null;
+        // The same rule as the site's own number (App\Support\WhatsApp).
+        return WhatsApp::url($this->whatsapp);
     }
 
     /**

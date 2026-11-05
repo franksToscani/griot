@@ -643,5 +643,9 @@
     "home.steps.confirm.title": "Get the confirmation",
     "home.steps.confirm.text": "The professional answers your request: you see it on the page of the booking and, if you left your email, you get it there too.",
     "home.featured.title": "Featured professionals",
-    "home.featured.in_city": ", in :city"
+    "home.featured.in_city": ", in :city",
+    "footer.contact.label": "Contact Griot",
+    "footer.contact.email": "Email us",
+    "footer.contact.whatsapp": "WhatsApp",
+    "footer.contact.whatsapp_message": "Hello, I have a question about Griot."
 }

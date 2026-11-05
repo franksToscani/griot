@@ -17,8 +17,8 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 | ----- | ------------------------------------------------------------------- | --------- |
 | 1     | `providers.published_at` per ordinare i provider per pubblicazione  | fatto     |
 | 2     | Pagina `home` su `/`: blocco introduttivo, categorie, come funziona | fatto     |
-| 3     | Professionisti in evidenza                                          | questa PR |
-| 4     | Piè di pagina con i contatti da configurazione                      |           |
+| 3     | Professionisti in evidenza                                          | fatto     |
+| 4     | Piè di pagina con i contatti da configurazione                      | questa PR |
 | 5     | Carousel con riquadri colorati                                      |           |
 | 6     | Foto vere da archivio (`docs/photos.md`, decisione #142)            |           |
 
@@ -38,6 +38,18 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 - Fila condivisa `components/home/scroll-row.tsx`: una `<section>` con il suo h2, una regione `role="region"` con `aria-labelledby` sul titolo e `tabIndex={0}`, e il `<ul>` con `snap-x` (vedi `docs/accessibility.md`). La usano le categorie e i professionisti in evidenza.
 - « Come funziona » (h2): un `<ol>` di tre passi, ognuno con un h3 e una frase.
 - Anteprima dei link: `LinkPreview::publicPage()` senza titolo, quindi « Griot », la descrizione del sito e l'immagine predefinita; pagina indicizzabile.
+
+## Piè di pagina e contatti
+
+Il footer è quello del layout pubblico (`resources/js/layouts/public-layout.tsx`), quindi vale per tutte le pagine pubbliche: home, elenco, pagina di un provider, privacy, pagina di una prenotazione.
+
+- Il link alla privacy c'è sempre.
+- I contatti del gestore vengono da `config/contact.php`, che legge solo l'ambiente: `CONTACT_EMAIL` e `CONTACT_WHATSAPP` (formato internazionale con `+` o `00`, per esempio `+39…`). Non sono il contatto della privacy (`PRIVACY_CONTACT_EMAIL`), che serve alle richieste sui dati personali.
+- `App\Support\SiteContact` li pulisce: un'email che non passa `filter_var` o un numero senza `+` o `00` diventano `null`, senza errore. Arrivano al frontend nella prop condivisa `contact` (`email`, `whatsapp_url`), una closure in `HandleInertiaRequests`.
+- Il link WhatsApp usa la stessa regola dei provider, scritta una volta in `App\Support\WhatsApp::url()` (anche `Provider::whatsappUrl()` la usa), e un messaggio già scritto e generico (`footer.contact.whatsapp_message`, « Ciao, ho una domanda su Griot. ») aggiunto con `whatsappLink()`.
+- Nel footer: « Scrivici » (`mailto:`) e « WhatsApp » (nuova scheda, con l'avviso per i lettori di schermo), ognuno solo se configurato, in un gruppo con nome sr-only (« Contatti di Griot »). Nessun titolo: il footer è in tutte le pagine e non deve cambiare l'ordine dei loro titoli.
+- Senza configurazione resta solo la privacy, come prima, e nessun gruppo vuoto.
+- **In produzione** le due variabili vanno impostate nel servizio di hosting (sul server di Render, come le altre variabili): senza, il footer non mostra nessun contatto. Nessun contatto vero va scritto nella repo, nemmeno in `.env.example`.
 
 ## Decisioni
 
