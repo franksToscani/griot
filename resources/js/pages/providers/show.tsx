@@ -3,6 +3,7 @@ import type { MouseEvent } from 'react';
 import { BookingSheet } from '@/components/booking-sheet';
 import { NewTabHint } from '@/components/new-tab-hint';
 import { ProviderAvatar } from '@/components/provider-avatar';
+import { ProviderMosaic } from '@/components/provider-mosaic';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -87,7 +88,13 @@ export default function ProvidersShow({
                         : t('providers.show.back')}
                 </Link>
 
-                {/* The gallery of the provider's work (#143) will go here, above the header. */}
+                {/* The photos of the provider's work (#143), above the header; none, no space. */}
+                {provider.photos.length > 0 && (
+                    <ProviderMosaic
+                        photos={provider.photos}
+                        providerName={provider.name}
+                    />
+                )}
 
                 {/* On a phone, in a few seconds: who the provider is, what they offer, and how to go
                     on (choose a service, or write on WhatsApp). The same order on wider screens. */}

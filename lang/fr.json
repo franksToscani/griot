@@ -621,5 +621,7 @@
     "provider.gallery.alt_label": "Description de la photo (facultative)",
     "provider.gallery.alt_help": "Pour les personnes qui ne voient pas la photo : décrivez en quelques mots ce qu'elle montre, par exemple « Longues tresses avec des perles dorées ».",
     "provider.gallery.submit": "Ajouter la photo",
-    "provider.gallery.uploading": "Envoi en cours…"
+    "provider.gallery.uploading": "Envoi en cours…",
+    "providers.show.photos": "Photos du travail",
+    "providers.show.photo_alt": "Travail de :provider, photo :number sur :total"
 }

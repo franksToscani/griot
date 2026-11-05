@@ -32,7 +32,8 @@ test('the page goes: header, actions, services, then hours and contacts', functi
     $source = ppmSource();
 
     $order = [
-        'gallery place' => '{/* The gallery of the provider\'s work (#143) will go here, above the header. */}',
+        // The mosaic of the work (#143, GalleryMosaicTest), above the header.
+        'mosaic' => '<ProviderMosaic',
         'header' => '<header className="flex flex-col gap-4">',
         'name' => '<h1 className="text-2xl font-semibold">',
         'city' => '{provider.city}',

@@ -93,6 +93,22 @@ export type ProviderProfile = {
     };
     service_groups: ServiceGroup[];
     opening_hours: OpeningDay[];
+    photos: ProviderPhotoPublic[];
+};
+
+// Shape of App\Http\Resources\ProviderPhotoPublicResource: a photo of the work, in the mosaic.
+export type ProviderPhotoPublic = {
+    id: number;
+    width: number;
+    height: number;
+    alt_text: string | null;
+    // The sizes that exist, smallest first: the real width of each and its address.
+    variants: PhotoVariant[];
+};
+
+export type PhotoVariant = {
+    width: number;
+    url: string;
 };
 
 // One item of "slots" in the free slots endpoint: the start in UTC and the provider's local time.

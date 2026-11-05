@@ -80,6 +80,17 @@ class ProviderPhoto extends Model
     }
 
     /**
+     * The width in pixels of one size, as the encoder makes it: the longest side brought to $side,
+     * never enlarged. For a portrait photo each size is narrower than its side.
+     */
+    public function widthFor(int $side): int
+    {
+        $longest = max($this->width, $this->height);
+
+        return max(1, (int) round($this->width * min(1, $side / $longest)));
+    }
+
+    /**
      * The public address of one size.
      */
     public function urlFor(int $side): string

@@ -9,8 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * A provider as shown on its public page. It expects services (with category and options)
- * and availabilities to be already loaded.
+ * A provider as shown on its public page. It expects services (with category and options),
+ * availabilities and photos to be already loaded (Provider::withPublicProfile()).
  *
  * @mixin Provider
  */
@@ -39,6 +39,8 @@ class ProviderProfileResource extends JsonResource
             ],
             'service_groups' => $this->serviceGroups($request),
             'opening_hours' => $this->openingHours($request),
+            // The photos of the work for the mosaic (#143), in their order.
+            'photos' => ProviderPhotoPublicResource::collection($this->photos)->resolve($request),
         ];
     }
 

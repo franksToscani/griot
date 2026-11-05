@@ -100,18 +100,19 @@ test('the photos are read with one query, however many there are', function () {
     expect($count($many))->toBe($count($none));
 });
 
-test('the public page of the provider does not change: no photos, no gallery address', function () {
+test('the public page never gets the card\'s data: no limits, no position, no consent', function () {
     $provider = Provider::factory()->published()->create();
-    $photo = ProviderPhoto::factory()->for($provider)->create();
+    ProviderPhoto::factory()->for($provider)->create();
 
+    // Its own photos come with PR D (GalleryMosaicTest), without the fields of this card.
     $this->get(route('providers.show', $provider->slug))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('providers/show')
-            ->missing('provider.photos')
-            ->missing('provider.gallery'))
-        ->assertDontSee('gallery/')
-        ->assertDontSee($photo->name);
+            ->missing('provider.gallery')
+            ->missing('provider.photos.0.url')
+            ->missing('provider.photos.0.position')
+            ->missing('provider.photos.0.consent_at'));
 });
 
 // ---------------------------------------------------------------------------------------------
@@ -289,7 +290,8 @@ test('the texts of the card exist in Italian, French and English, with the same 
     };
 
     // Every key the card uses, and the one of the consent from PR B.
-    preg_match_all("/t\\(\\s*'([a-z_.]+)'/", gpcSource().gpcSource('js/lib/gallery.ts'), $used);
+    // In gallery.ts the card's fallback is the default key of photoAlt() (PR D added the public one).
+    preg_match_all("/(?:t\\(\\s*|fallbackKey: string = )'([a-z_.]+)'/", gpcSource().gpcSource('js/lib/gallery.ts'), $used);
     $keys = array_values(array_unique($used[1]));
     expect($keys)->toContain('provider.photos.consent', 'provider.gallery.fallback_alt')
         ->and(count($keys))->toBe(19);

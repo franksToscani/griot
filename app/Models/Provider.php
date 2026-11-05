@@ -78,8 +78,8 @@ class Provider extends Model
     }
 
     /**
-     * Load what the public page shows: active services with category and options, and the weekly
-     * availabilities, in a fixed order and with one query per relation.
+     * Load what the public page shows: active services with category and options, the weekly
+     * availabilities and the photos of the work, in a fixed order and with one query per relation.
      *
      * @param  Builder<Provider>  $query
      */
@@ -92,6 +92,8 @@ class Provider extends Model
             // Only the options offered to new customers; the bookings keep the hidden ones.
             'services.options' => fn ($options) => $options->active()->orderBy('id'),
             'availabilities' => fn ($availabilities) => $availabilities->orderBy('weekday')->orderBy('start_time'),
+            // The photos of the work (#143), in the order of the relation: position, then id.
+            'photos',
         ]);
     }
 
