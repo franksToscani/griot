@@ -621,5 +621,7 @@
     "provider.gallery.alt_label": "Description of the photo (optional)",
     "provider.gallery.alt_help": "For people who cannot see the photo: say in a few words what it shows, for example “Long braids with golden beads”.",
     "provider.gallery.submit": "Add the photo",
-    "provider.gallery.uploading": "Uploading…"
+    "provider.gallery.uploading": "Uploading…",
+    "providers.show.photos": "Photos of the work",
+    "providers.show.photo_alt": "Work by :provider, photo :number of :total"
 }

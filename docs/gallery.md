@@ -71,13 +71,26 @@ Cosa vede il provider:
 
 Le piccole regole (stato vuoto, aperto o pieno, testo di riserva) stanno in `resources/js/lib/gallery.ts`, provate con Node in `GalleryProfileCardTest`.
 
+## Mosaico sulla pagina pubblica
+
+`resources/js/components/provider-mosaic.tsx`, in `providers/show.tsx` tra il link per tornare indietro e la testata (anche nell'anteprima del provider). Con 0 foto non viene montato e non lascia spazio.
+
+- Dati: `ProviderProfileResource` aggiunge `photos` (`ProviderPhotoPublicResource`: `id`, `width`, `height`, `alt_text`, `variants`). `variants` sono solo le dimensioni che esistono (`ProviderPhoto::sizes()`), dalla più piccola, come larghezza vera (`widthFor()`: per una foto verticale la 400 è larga 300) e indirizzo. Mai `name` come campo, `position`, percorsi o `consent_at`. Le foto arrivano con `Provider::withPublicProfile()`: una query in tutto. Un provider non pubblicato resta un 404.
+- Disposizione (`mosaicLayout()` e `mosaicTiles()` in `resources/js/lib/gallery.ts`, provate con Node):
+    - da 768 px in su, in un riquadro 2:1 di quattro colonne e due righe: la prima foto a sinistra sulla metà; le piccole riempiono la metà destra senza buchi (una la prende tutta, due una riga ciascuna, tre una riga e due quarti, quattro un quarto ciascuna). Con una sola foto, la grande occupa tutto il riquadro. Al massimo 5 foto.
+    - sotto 768 px: la grande a tutta larghezza in 4:3, sotto al massimo due miniature quadrate a metà larghezza. Con 2 foto la miniatura resta a metà larghezza (stessa misura del caso con 3), così la pagina non scende troppo. Al massimo 3 foto; la quarta e la quinta sono nascoste con `max-md:hidden` e, caricate in modo lento, il browser non le scarica.
+- Immagini: `srcset` con tutte le varianti (`srcSet()`, spazi e virgole degli indirizzi scritti come `%20` e `%2C`), `sizes` secondo il posto (la grande `(min-width: 768px) 50vw, 100vw`, sola `100vw`, le piccole `(min-width: 768px) 25vw, 50vw`, `50vw` quando occupano metà riquadro), `src` di riserva la variante più grande fino a 800 px (`fallbackSrc()`). `width` e `height` veri; le celle hanno il loro rapporto e `object-cover`, quindi la pagina non salta. La prima foto `loading="eager"` e `fetchpriority="high"`, le altre `loading="lazy"` e `decoding="async"`.
+- Testo alternativo: quello del provider, nella sua lingua; senza, « Lavoro di :provider, foto :number di :total » (`photoAlt()` con la chiave `providers.show.photo_alt`; nella scheda del profilo resta « Foto 2 di 6 »).
+- Accessibilità: nessun titolo (il mosaico viene prima dell'h1), un gruppo `role="group"` con il nome sr-only « Foto del lavoro ». Le foto non sono pulsanti né link e non prendono il focus: l'ordine del Tab è quello di prima. Nessuna animazione, nessuno zoom al passaggio del mouse, niente sticky; con i colori forzati un bordo sottile.
+- **Con la PR E**: oggi si vedono solo le prime 5 foto (3 su telefono); le altre restano invisibili finché arrivano l'ingrandimento e « Vedi tutte le foto ».
+
 ## Piano delle PR
 
 | PR  | Contenuto                                                                                                                     |
 | --- | ----------------------------------------------------------------------------------------------------------------------------- |
 | A   | Ricodifica comune, tabella `provider_photos`, modello, configurazione                                                         |
 | B   | Caricamento (rotta, regole, consenso, limite di 9, limite di richieste) e cancellazione dei file: di una foto e con l'account |
-| C   | Scheda « Foto del tuo lavoro » nel profilo del provider (questa)                                                              |
-| D   | Mosaico in testa alla pagina pubblica, con immagini responsive (`srcset`, `sizes`, caricamento lento, misure fisse)           |
+| C   | Scheda « Foto del tuo lavoro » nel profilo del provider                                                                       |
+| D   | Mosaico in testa alla pagina pubblica, con immagini responsive (`srcset`, `sizes`, caricamento lento, misure fisse) (questa)  |
 | E   | Ingrandimento accessibile (Dialog del kit: focus, Esc, ritorno del focus, foto precedente e successiva)                       |
 | F   | Ordinamento (sposta prima/dopo) e testi: testo di riserva, consenso, privacy                                                  |

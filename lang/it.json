@@ -621,5 +621,7 @@
     "provider.gallery.alt_label": "Descrizione della foto (facoltativa)",
     "provider.gallery.alt_help": "Per chi non vede la foto: scrivi in poche parole cosa mostra, per esempio «Treccine lunghe con perline dorate».",
     "provider.gallery.submit": "Aggiungi la foto",
-    "provider.gallery.uploading": "Caricamento in corso…"
+    "provider.gallery.uploading": "Caricamento in corso…",
+    "providers.show.photos": "Foto del lavoro",
+    "providers.show.photo_alt": "Lavoro di :provider, foto :number di :total"
 }
