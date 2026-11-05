@@ -206,6 +206,8 @@ test('every lone link uses it, and only those: the links inside a sentence are l
     // The logo above the login forms.
     'login layout' => ['layouts/auth/auth-simple-layout.tsx', 1],
     'pagination' => ['components/pagination.tsx', 1],
+    // Each category of the row on the home page (#144); the main action is the kit's Button.
+    'home page' => ['pages/home.tsx', 1],
 ]);
 
 test('the lone links get it where they are', function () {

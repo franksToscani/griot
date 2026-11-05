@@ -6,6 +6,7 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Notification;
+use Inertia\Testing\AssertableInertia as Assert;
 
 // The texts of the Laravel starter kit, of Laravel and of Fortify, in Italian (issue #54, phase 1b).
 // The pages have no JavaScript test runner: the tests on the .tsx files read the source.
@@ -49,8 +50,9 @@ function kitRender(MailMessage $mail): string
 // Home
 // ---------------------------------------------------------------------------------------------
 
-test('the home page sends to the providers list, for now', function () {
-    $this->get('/')->assertRedirect(route('providers.index'));
+test('the home page is a page of its own at "/", no longer a redirect to the list', function () {
+    // Since #144 (HomePageTest): the customers' home page, with the public layout.
+    $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->component('home'));
     expect(route('home'))->toBe(url('/'));
     $this->get(route('providers.index'))->assertOk();
 });

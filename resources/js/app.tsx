@@ -22,6 +22,7 @@ void createInertiaApp({
             case name.startsWith('providers/'):
             case name.startsWith('bookings/'):
             case name === 'privacy':
+            case name === 'home':
                 return PublicLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];

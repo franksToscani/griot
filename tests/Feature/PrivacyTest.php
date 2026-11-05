@@ -85,7 +85,7 @@ test('the page is in the chosen language, with its title and lang', function (st
 ]);
 
 test('the page uses the public layout and a translated title', function () {
-    expect((string) file_get_contents(resource_path('js/app.tsx')))->toMatch("/case name\.startsWith\('bookings\/'\):\s*case name === 'privacy':\s*return PublicLayout;/");
+    expect((string) file_get_contents(resource_path('js/app.tsx')))->toMatch("/case name\.startsWith\('bookings\/'\):\s*case name === 'privacy':\s*case name === 'home':\s*return PublicLayout;/");
     expect((string) file_get_contents(resource_path('js/pages/privacy.tsx')))->toContain("<Head title={t('privacy.title')} />");
 });
 

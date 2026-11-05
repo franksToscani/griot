@@ -629,5 +629,17 @@
     "providers.show.lightbox.title": "Photo :number of :total",
     "providers.show.lightbox.keys": "Use the left and right arrow keys to move from one photo to another.",
     "providers.show.lightbox.previous": "Previous photo",
-    "providers.show.lightbox.next": "Next photo"
+    "providers.show.lightbox.next": "Next photo",
+    "home.title": "Home",
+    "home.intro.title": "African know-how, near you",
+    "home.intro.text": "Beauty, tailoring, food and more: find who practises it and book online, without creating an account.",
+    "home.intro.cta": "Find a professional",
+    "home.categories.title": "Categories",
+    "home.steps.title": "How it works",
+    "home.steps.choose.title": "Choose a professional",
+    "home.steps.choose.text": "Look at the services, prices and opening hours of the one you like.",
+    "home.steps.book.title": "Book without an account",
+    "home.steps.book.text": "Pick a day and a time, and leave only your name and a contact.",
+    "home.steps.confirm.title": "Get the confirmation",
+    "home.steps.confirm.text": "The professional answers your request: you see it on the page of the booking and, if you left your email, you get it there too."
 }

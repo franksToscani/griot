@@ -629,5 +629,17 @@
     "providers.show.lightbox.title": "Foto :number di :total",
     "providers.show.lightbox.keys": "Usa le frecce sinistra e destra della tastiera per passare da una foto all'altra.",
     "providers.show.lightbox.previous": "Foto precedente",
-    "providers.show.lightbox.next": "Foto successiva"
+    "providers.show.lightbox.next": "Foto successiva",
+    "home.title": "Home",
+    "home.intro.title": "Il savoir-faire africano, vicino a te",
+    "home.intro.text": "Bellezza, sartoria, cucina e altro: trova chi lo pratica e prenota online, senza creare un account.",
+    "home.intro.cta": "Trova un professionista",
+    "home.categories.title": "Categorie",
+    "home.steps.title": "Come funziona",
+    "home.steps.choose.title": "Scegli un professionista",
+    "home.steps.choose.text": "Guarda i servizi, i prezzi e gli orari di chi ti interessa.",
+    "home.steps.book.title": "Prenota senza account",
+    "home.steps.book.text": "Scegli il giorno e l'orario e lascia solo il tuo nome e un contatto.",
+    "home.steps.confirm.title": "Ricevi la conferma",
+    "home.steps.confirm.text": "Il professionista risponde alla tua richiesta: lo vedi nella pagina della prenotazione e, se hai lasciato l'email, ti arriva anche lì."
 }

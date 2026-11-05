@@ -9,6 +9,7 @@ Cosa compare quando qualcuno condivide un link di Griot su WhatsApp, Instagram, 
 - I valori li prepara `App\Support\LinkPreview`, uno per richiesta (lo crea il middleware `NoIndexPrivatePages`).
 - **Ogni pagina è privata finché il suo controller non dice il contrario**: ha `<meta name="robots" content="noindex, nofollow">`, l'header `X-Robots-Tag: noindex, nofollow` e nessuna anteprima. Così una pagina nuova non può mostrare un nome o una foto per dimenticanza.
 - Pagine pubbliche oggi:
+    - home (#144): `publicPage()` senza titolo, quindi « Griot », la descrizione del sito e l'immagine predefinita;
     - elenco dei provider e privacy: `publicPage()`, con il titolo della pagina e la descrizione del sito o della pagina;
     - pagina di un provider pubblicato: `forProvider()`. Titolo « Nome - Categoria, Categoria a Città » (al massimo 2 categorie, poi « … »); descrizione dalla bio in testo semplice, su una riga, tagliata sulla parola a 160 caratteri con « … »; se la bio è vuota, « Prenota online da Nome a Città »; immagine: la foto del provider se c'è, altrimenti quella predefinita.
 - Tag scritti: `description`, `link rel="canonical"`, Open Graph (`og:type`, `og:site_name`, `og:title`, `og:description`, `og:url`, `og:locale`, `og:image`, `og:image:alt`, e tipo e misure solo per l'immagine predefinita) e Twitter (`summary_large_image` con l'immagine predefinita, `summary` con la foto).
