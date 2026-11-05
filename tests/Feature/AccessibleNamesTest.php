@@ -63,10 +63,11 @@ test('every link that opens a new tab says so to screen readers, and has no open
     expect(acnSource('js/pages/providers/show.tsx'))
         ->toMatch("/const externalLink = \\{\\s*target: '_blank',\\s*rel: 'noopener noreferrer',/");
     // The links of today: privacy; on the provider's page WhatsApp and Instagram twice (in the
-    // actions under the header, and in the contacts); the WhatsApp answer in the bookings list; the
-    // kit's footer links (none configured yet).
+    // actions under the header, and in the contacts); WhatsApp in the booking form and on the
+    // booking's page (#140); the WhatsApp answer in the bookings list; the kit's footer links
+    // (none configured yet).
     sort($found);
-    expect($found)->toBe(['index.tsx', 'nav-footer.tsx', 'privacy-link.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx']);
+    expect($found)->toBe(['booking-sheet.tsx', 'index.tsx', 'nav-footer.tsx', 'privacy-link.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx']);
 });
 
 test('the new-tab notice is one translated text, hidden on screen', function () {

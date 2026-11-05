@@ -194,8 +194,10 @@ test('every lone link uses it, and only those: the links inside a sentence are l
     'public layout' => ['layouts/public-layout.tsx', 4],
     // WhatsApp and Instagram (externalLink), the way back.
     'provider page' => ['pages/providers/show.tsx', 2],
-    // The provider, in the booking's details.
-    'booking page' => ['pages/bookings/show.tsx', 1],
+    // The provider, in the booking's details; WhatsApp for a question (#140).
+    'booking page' => ['pages/bookings/show.tsx', 2],
+    // WhatsApp when no time suits (#140).
+    'booking form' => ['components/booking-sheet.tsx', 1],
     // The email in the controller's details; not the one in the "contact" sentence.
     'privacy' => ['pages/privacy.tsx', 1],
     // "Forgot password"; not "sign up" in the sentence below.

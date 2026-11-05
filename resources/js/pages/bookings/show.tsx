@@ -1,6 +1,7 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import { toast } from 'sonner';
 import InputError from '@/components/input-error';
+import { NewTabHint } from '@/components/new-tab-hint';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -18,6 +19,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useTranslation } from '@/hooks/use-translation';
 import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
+import { whatsappLink } from '@/lib/whatsapp';
 import {
     centsToPrice,
     formatLongDate,
@@ -173,6 +175,35 @@ export default function BookingsShow({
                         </dl>
                     </CardContent>
                 </Card>
+
+                {/* A question for the provider (#140): pending and confirmed bookings only (the server
+                    sends no address for a cancelled one). The text names the service and the time:
+                    never the private link, never the customer's data. */}
+                {booking.provider.whatsapp_url !== null && (
+                    <div className="grid gap-1 text-sm">
+                        <p className="text-muted-foreground">
+                            {t('booking.confirmation.contact_question')}
+                        </p>
+                        <a
+                            href={whatsappLink(
+                                booking.provider.whatsapp_url,
+                                t('booking.confirmation.contact_message', {
+                                    service: booking.service.name,
+                                    when: `${date}, ${booking.local_start}`,
+                                }),
+                            )}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={cn(
+                                'w-fit underline underline-offset-4',
+                                touchTarget,
+                            )}
+                        >
+                            {t('booking.confirmation.contact_link')}
+                            <NewTabHint />
+                        </a>
+                    </div>
+                )}
 
                 {booking.status !== 'cancelled' &&
                     (can_cancel ? (

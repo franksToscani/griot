@@ -212,6 +212,13 @@ export default function ProvidersShow({
                                                             providerSlug={
                                                                 provider.slug
                                                             }
+                                                            providerName={
+                                                                provider.name
+                                                            }
+                                                            whatsappUrl={
+                                                                whatsapp?.url ??
+                                                                null
+                                                            }
                                                             bookingWindow={
                                                                 bookingWindow
                                                             }
@@ -342,11 +349,15 @@ export default function ProvidersShow({
 function ServiceItem({
     service,
     providerSlug,
+    providerName,
+    whatsappUrl,
     bookingWindow,
     preview,
 }: {
     service: Service;
     providerSlug: string;
+    providerName: string;
+    whatsappUrl: string | null;
     bookingWindow: BookingWindow;
     preview: boolean;
 }) {
@@ -403,8 +414,10 @@ function ServiceItem({
                 ) : (
                     <BookingSheet
                         providerSlug={providerSlug}
+                        providerName={providerName}
                         service={service}
                         bookingWindow={bookingWindow}
+                        whatsappUrl={whatsappUrl}
                     />
                 )}
             </div>
