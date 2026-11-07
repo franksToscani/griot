@@ -16,6 +16,11 @@ use Illuminate\Validation\Rule;
  */
 class ProviderIndexRequest extends FormRequest
 {
+    /**
+     * The longest search, in characters: a longer one is ignored, like an invalid filter.
+     */
+    public const SEARCH_MAX = 100;
+
     /** @var Collection<int, Category>|null */
     private ?Collection $categoryOptions = null;
 
@@ -41,6 +46,8 @@ class ProviderIndexRequest extends FormRequest
         return [
             'category' => ['nullable', 'string', Rule::in($this->categoryOptions()->pluck('slug'))],
             'city' => ['nullable', 'string', Rule::in($this->cityOptions())],
+            // The text of the search (scope Provider::search()). Already trimmed by TrimStrings.
+            'q' => ['nullable', 'string', 'max:'.self::SEARCH_MAX],
         ];
     }
 
@@ -55,7 +62,7 @@ class ProviderIndexRequest extends FormRequest
     /**
      * The valid filters; an invalid or missing one is null.
      *
-     * @return array{category: string|null, city: string|null}
+     * @return array{category: string|null, city: string|null, q: string|null}
      */
     public function filters(): array
     {
@@ -64,6 +71,7 @@ class ProviderIndexRequest extends FormRequest
         return [
             'category' => $this->validFilter('category', $failed),
             'city' => $this->validFilter('city', $failed),
+            'q' => $this->validFilter('q', $failed),
         ];
     }
 
@@ -93,6 +101,7 @@ class ProviderIndexRequest extends FormRequest
     private function validFilter(string $key, array $failed): ?string
     {
         $value = $this->query($key);
+        $value = is_string($value) ? trim($value) : $value;
 
         return is_string($value) && $value !== '' && ! array_key_exists($key, $failed) ? $value : null;
     }
