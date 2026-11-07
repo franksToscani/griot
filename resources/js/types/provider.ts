@@ -8,6 +8,7 @@ export type Category = {
 export type ProviderFilters = {
     category: string | null;
     city: string | null;
+    q: string | null;
 };
 
 export type ProviderFilterOptions = {

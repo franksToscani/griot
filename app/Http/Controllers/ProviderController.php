@@ -16,7 +16,8 @@ use Inertia\Response;
 class ProviderController extends Controller
 {
     /**
-     * Show the public list of published providers, optionally filtered by category and city.
+     * Show the public list of published providers, optionally filtered by category and city and
+     * searched by words (Provider::search()).
      */
     public function index(ProviderIndexRequest $request, LinkPreview $preview): Response
     {
@@ -27,6 +28,7 @@ class ProviderController extends Controller
             ->published()
             ->when($filters['category'], fn ($query, string $slug) => $query->inCategory($slug))
             ->when($filters['city'], fn ($query, string $city) => $query->inCity($city))
+            ->when($filters['q'], fn ($query, string $text) => $query->search($text))
             // Active services and their categories in two extra queries, not one per provider.
             ->with([
                 'services' => fn ($query) => $query->where('is_active', true),

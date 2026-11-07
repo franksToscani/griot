@@ -42,6 +42,22 @@ class Category extends Model
     }
 
     /**
+     * Whether a word of a search appears in the slug, in the saved name or in the name shown in
+     * the language of the request, ignoring upper and lower case. Read in PHP, not with LIKE: the
+     * shown name lives in the translation files, not in the database.
+     */
+    public function mentions(string $word): bool
+    {
+        foreach ([$this->slug, $this->name, $this->displayName()] as $text) {
+            if (mb_stripos($text, $word) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Get the services in the category.
      *
      * @return HasMany<Service, $this>

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\LikePattern;
 use App\Support\MediaDisk;
 use App\Support\WhatsApp;
 use Database\Factories\ProviderFactory;
@@ -16,6 +17,11 @@ class Provider extends Model
 {
     /** @use HasFactory<ProviderFactory> */
     use HasFactory;
+
+    /**
+     * The words of a search that count (scope search()); the others are dropped.
+     */
+    public const SEARCH_WORDS = 5;
 
     /**
      * Only the profile fields a provider writes. slug (unique), is_published (issue #37) with its
@@ -88,6 +94,45 @@ class Provider extends Model
     protected function inCity(Builder $query, string $city): void
     {
         $query->where('city', $city);
+    }
+
+    /**
+     * Only providers that match every word of a search (at most SEARCH_WORDS): each word appears
+     * in the provider's name, in the name of one of its active services, or in the category of
+     * one of its active services (slug, saved name or name in the language of the request).
+     * "%" and "_" are plain characters (App\Support\LikePattern).
+     *
+     * @param  Builder<Provider>  $query
+     */
+    #[Scope]
+    protected function search(Builder $query, string $text): void
+    {
+        $words = LikePattern::words($text, self::SEARCH_WORDS);
+
+        if ($words === []) {
+            return;
+        }
+
+        // A short table, read once: the translated names are not in the database.
+        $categories = Category::query()->get(['id', 'name', 'slug']);
+
+        foreach ($words as $word) {
+            $categoryIds = $categories->filter(fn (Category $category) => $category->mentions($word))->modelKeys();
+
+            $query->where(function (Builder $either) use ($word, $categoryIds) {
+                LikePattern::whereContains($either, 'providers.name', $word);
+
+                $either->orWhereHas('services', fn (Builder $services) => $services
+                    ->where('is_active', true)
+                    ->where(function (Builder $service) use ($word, $categoryIds) {
+                        LikePattern::whereContains($service, 'services.name', $word);
+
+                        if ($categoryIds !== []) {
+                            $service->orWhereIn($service->qualifyColumn('category_id'), $categoryIds);
+                        }
+                    }));
+            });
+        }
     }
 
     /**

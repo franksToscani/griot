@@ -7,6 +7,7 @@ import {
 } from '@/components/provider-filters';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/hooks/use-translation';
+import type { TranslateFn } from '@/hooks/use-translation';
 import { index } from '@/routes/providers';
 import type {
     Paginated,
@@ -14,6 +15,25 @@ import type {
     ProviderFilters as Filters,
     ProviderListItem,
 } from '@/types';
+
+// The text of the results: how many, or the empty state that fits (a search, other filters, none).
+function resultsText(t: TranslateFn, total: number, filters: Filters): string {
+    if (total === 1) {
+        return t('providers.list.results_one');
+    }
+
+    if (total > 1) {
+        return t('providers.list.results', { count: total });
+    }
+
+    if (filters.q !== null) {
+        return t('providers.list.empty_search');
+    }
+
+    return hasActiveFilters(filters)
+        ? t('providers.list.empty_filtered')
+        : t('providers.list.empty');
+}
 
 type Props = {
     providers: Paginated<ProviderListItem>;
@@ -39,21 +59,22 @@ export default function ProvidersIndex({
 
                 <ProviderFilters filters={filters} options={filterOptions} />
 
+                {/* Always on the page, so a new search or filter changes its text and a screen
+                    reader announces it: the number of results, or why there is none. */}
+                <p role="status" className="text-muted-foreground">
+                    {resultsText(t, providers.meta.total, filters)}
+                </p>
+
                 {providers.data.length === 0 ? (
-                    <div className="flex flex-col items-start gap-3">
-                        <p className="text-muted-foreground">
-                            {filtered
-                                ? t('providers.list.empty_filtered')
-                                : t('providers.list.empty')}
-                        </p>
-                        {filtered && (
+                    filtered && (
+                        <div>
                             <Button variant="outline" asChild>
                                 <Link href={index()}>
                                     {t('providers.filters.reset')}
                                 </Link>
                             </Button>
-                        )}
-                    </div>
+                        </div>
+                    )
                 ) : (
                     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {providers.data.map((provider) => (
