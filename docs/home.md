@@ -19,8 +19,8 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 | 2     | Pagina `home` su `/`: blocco introduttivo, categorie, come funziona | fatto     |
 | 3     | Professionisti in evidenza                                          | fatto     |
 | 4     | Piè di pagina con i contatti da configurazione                      | fatto     |
-| 5     | Carousel con riquadri colorati                                      | questa PR |
-| 6     | Foto vere da archivio (`docs/photos.md`, decisione #142)            |           |
+| 5     | Carousel con riquadri colorati                                      | fatto     |
+| 6     | Foto vere da archivio (`docs/photos.md`, decisione #142)            | questa PR |
 
 ## Cosa c'è oggi
 
@@ -48,7 +48,11 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 - **Colori**, a rotazione e solo dai token: verde (`primary`, con il pulsante chiaro `secondary` e l'anello del focus del colore del testo del riquadro), giallo (`highlight`), azzurro (`info`), bianco (`card`, con il bordo dei campi). Mai il rosso. Ogni coppia è misurata in `AccessibilityContrastTest`, che legge le classi dal componente.
 - **Comportamento** (schema APG del carousel senza rotazione automatica): nessun autoplay né timer; il cambio è immediato, senza effetti. Precedente e Successiva circolari (`nextIndex()` e `previousIndex()` di `lib/gallery.ts`); un punto per slide, pulsante con `aria-current` e nome « Vai alla slide N »; dopo ogni cambio una regione `role="status"` dice « Slide N di M » (vuota all'apertura della pagina); il focus resta sul pulsante premuto.
 - **Altezza**: tutte le slide stanno nella stessa cella di una griglia, quindi il carousel è alto quanto la più alta e non salta mai; quelle non attive sono `invisible`, fuori dal Tab e dai lettori di schermo.
-- **Foto (passo 6)**: ogni slide ha già `image` (oggi `null`): una foto decorativa (`alt=""`) dietro il testo, con `src`, `srcSet`, `width` e `height`, senza cambiare il componente. Prima di metterle va ricontrollato il contrasto del testo sopra la foto.
+- **Foto** (passo 6, `docs/photos.md`): barbiere, nails e treccine hanno una foto; le altre categorie restano un riquadro colorato intero. `slideImage()` in `lib/home-carousel.ts` cerca lo slug in `HOME_PHOTOS` (`lib/home-photos.ts`, file in `resources/images/home/` importati con Vite) e dà `null` per una categoria senza foto.
+    - Il testo non sta mai sulla foto: sotto 768 px la foto in alto (3:2) e sotto il riquadro colorato col testo e il pulsante; da 768 px in su due metà, a sinistra il riquadro, a destra la foto a tutta altezza (`object-cover`, almeno 20rem). I contrasti restano quelli dei token.
+    - La foto è decorativa (`alt=""`), con `width` e `height` veri, `srcset` delle tre varianti e `sizes="(min-width: 768px) 50vw, 100vw"`.
+    - Caricamento: la foto della prima slide subito (`loading="eager"`, `fetchpriority="high"`). Quella di un'altra slide non è nemmeno nel DOM finché la slide non viene mostrata la prima volta (`seen`), poi resta: il browser non scarica foto che nessuno ha visto. Prima che arrivi, il suo riquadro ha già la misura e il colore `bg-muted`.
+    - Aggiungere una foto: `docs/photos.md`, « Aggiungere una foto».
 - Il titolo della scheda del browser è « Prenota un professionista vicino a te - Griot » (`home.title`); l'anteprima dei link resta quella del sito.
 
 ## Piè di pagina e contatti

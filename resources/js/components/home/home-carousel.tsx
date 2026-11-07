@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/hooks/use-translation';
 import { nextIndex, previousIndex } from '@/lib/gallery';
 import { buildSlides, slidePosition } from '@/lib/home-carousel';
+import { HOME_PHOTOS } from '@/lib/home-photos';
 import type { SlideTone } from '@/lib/home-carousel';
 import { cn } from '@/lib/utils';
 import { index as providersIndex } from '@/routes/providers';
@@ -53,7 +54,10 @@ export function HomeCarousel({ categories }: { categories: Category[] }) {
     const [chosen, setChosen] = useState(0);
     // What the status line says: empty when the page opens, "Slide 2 di 7" after each change.
     const [announcement, setAnnouncement] = useState('');
-    const slides = buildSlides(t, categories);
+    // The slides already shown: only their photos are on the page. The first one at once; another
+    // one from its first visit, then it stays, so the browser never downloads a photo nobody saw.
+    const [seen, setSeen] = useState<number[]>([0]);
+    const slides = buildSlides(t, categories, HOME_PHOTOS);
     const total = slides.length;
 
     if (total === 0) {
@@ -66,6 +70,9 @@ export function HomeCarousel({ categories }: { categories: Category[] }) {
     // The focus stays on the button pressed.
     const go = (target: number) => {
         setChosen(target);
+        setSeen((shown) =>
+            shown.includes(target) ? shown : [...shown, target],
+        );
         setAnnouncement(slidePosition(t, target, total));
     };
 
@@ -92,59 +99,74 @@ export function HomeCarousel({ categories }: { categories: Category[] }) {
                             aria-roledescription={t('home.carousel.slide')}
                             aria-labelledby={slideNameId(slide.id)}
                             className={cn(
-                                'relative col-start-1 row-start-1 flex min-w-0 flex-col items-start gap-3 overflow-hidden rounded-xl p-6 md:p-10 forced-colors:border',
-                                tone.tile,
+                                'col-start-1 row-start-1 grid min-w-0 overflow-hidden rounded-xl forced-colors:border',
+                                slide.image && 'md:grid-cols-2',
                                 position !== current && 'invisible',
                             )}
                         >
-                            {/* From step 6: a photo behind the text, decorative. */}
-                            {slide.image && (
-                                <img
-                                    src={slide.image.src}
-                                    srcSet={slide.image.srcSet}
-                                    sizes="100vw"
-                                    width={slide.image.width}
-                                    height={slide.image.height}
-                                    alt=""
-                                    loading={position === 0 ? 'eager' : 'lazy'}
-                                    decoding="async"
-                                    className="absolute inset-0 size-full object-cover"
-                                />
-                            )}
-                            <p
-                                id={slideNameId(slide.id)}
-                                className="relative text-3xl font-semibold break-words"
-                            >
-                                {slide.name}
-                            </p>
-                            <p className="relative max-w-xl">
-                                {slide.sentence}
-                            </p>
-                            <p className="sr-only">
-                                {slidePosition(t, position, total)}
-                            </p>
-                            <Button
-                                asChild
-                                variant={tone.button}
+                            {/* The text and the button only on the coloured tile, never on the
+                                photo: their contrast is the one of the tokens. */}
+                            <div
                                 className={cn(
-                                    'relative max-md:w-full',
-                                    tone.ring,
+                                    'flex min-w-0 flex-col items-start gap-3 p-6 md:p-10',
+                                    tone.tile,
                                 )}
                             >
-                                <Link
-                                    href={providersIndex({
-                                        query: { category: slide.slug },
-                                    })}
+                                <p
+                                    id={slideNameId(slide.id)}
+                                    className="text-3xl font-semibold break-words"
                                 >
-                                    {t('home.carousel.cta')}
-                                    <span className="sr-only">
-                                        {' '}
-                                        {t('home.carousel.cta_which', {
-                                            category: slide.name,
+                                    {slide.name}
+                                </p>
+                                <p className="max-w-xl">{slide.sentence}</p>
+                                <p className="sr-only">
+                                    {slidePosition(t, position, total)}
+                                </p>
+                                <Button
+                                    asChild
+                                    variant={tone.button}
+                                    className={cn('max-md:w-full', tone.ring)}
+                                >
+                                    <Link
+                                        href={providersIndex({
+                                            query: { category: slide.slug },
                                         })}
-                                    </span>
-                                </Link>
-                            </Button>
+                                    >
+                                        {t('home.carousel.cta')}
+                                        <span className="sr-only">
+                                            {' '}
+                                            {t('home.carousel.cta_which', {
+                                                category: slide.name,
+                                            })}
+                                        </span>
+                                    </Link>
+                                </Button>
+                            </div>
+                            {/* The photo, decorative: above the tile on phones (3:2), the right
+                                half from 768 px up, as tall as the slide. Its box keeps the space
+                                before the photo is there. Nothing else in it. */}
+                            {slide.image && (
+                                <div className="relative order-first aspect-[3/2] bg-muted md:order-none md:aspect-auto md:min-h-80">
+                                    {seen.includes(position) && (
+                                        <img
+                                            src={slide.image.src}
+                                            srcSet={slide.image.srcSet}
+                                            sizes="(min-width: 768px) 50vw, 100vw"
+                                            width={slide.image.width}
+                                            height={slide.image.height}
+                                            alt=""
+                                            decoding="async"
+                                            {...(position === 0
+                                                ? {
+                                                      loading: 'eager',
+                                                      fetchPriority: 'high',
+                                                  }
+                                                : { loading: 'lazy' })}
+                                            className="absolute inset-0 size-full object-cover"
+                                        />
+                                    )}
+                                </div>
+                            )}
                         </div>
                     );
                 })}
