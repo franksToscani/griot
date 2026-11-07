@@ -22,7 +22,8 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 | 5     | Carousel con riquadri colorati                                      | fatto     |
 | 6     | Foto vere da archivio (`docs/photos.md`, decisione #142)            | fatto     |
 | 7     | Fascia con ricerca e carousel ridisegnato                           | fatto     |
-| 8     | Fila delle categorie con foto                                       | questa PR |
+| 8     | Fila delle categorie con foto                                       | fatto     |
+| 9     | Rifinitura grafica della fascia                                     | questa PR |
 
 ## Cosa c'è oggi
 
@@ -47,14 +48,15 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 `resources/js/components/home/home-hero.tsx`, con la ricerca in `home-search.tsx` e il carousel in `home-carousel.tsx`; i colori in `resources/js/lib/home-hero.ts`.
 
 - **A tutta larghezza**: per la home il layout pubblico lascia `<main>` senza contenitore (`FULL_WIDTH_PAGES` in `public-layout.tsx`); la pagina mette la fascia da bordo a bordo e le sezioni sotto nello stesso contenitore della testata (`max-w-6xl`, `px-4`). Niente `100vw`, che con una barra di scorrimento visibile fa scorrere la pagina di lato.
-- **Colori**: i token `hero` (verde scuro) e `hero-foreground` (bianco) di `resources/css/app.css`, gli stessi nei due temi come ruolo; non `primary`, che nel tema scuro è un verde chiaro con il testo scuro. Spigoli vivi, nessun `rounded` sulla fascia e sulle foto. Altezza minima in rem (`md:min-h-[28rem]`), quindi cresce con lo zoom; la decide il contenuto.
+- **Colori**: i token `hero` (verde scuro) e `hero-foreground` (bianco) di `resources/css/app.css`, gli stessi nei due temi come ruolo; non `primary`, che nel tema scuro è un verde chiaro con il testo scuro. Spigoli vivi, nessun `rounded` sulla fascia e sulle foto. Altezza minima e spazio verticale in rem (`md:min-h-[32rem]`, `py-12 md:py-16 lg:py-20`), quindi crescono con lo zoom; l'altezza la decide il contenuto.
 - **Colonne**: da 768 px in su due metà (a sinistra testo e ricerca, a destra il carousel); sotto, una colonna sola: prima titolo e ricerca, poi il carousel. Senza nessuna categoria con foto il carousel non c'è e la fascia ha una colonna.
-- **Testi**: l'h1 di sempre (« Il savoir-faire africano, vicino a te », `home.intro.title`) e la frase `home.intro.text`. Il pulsante « Trova un professionista » non c'è più: la ricerca fa lo stesso, e con i campi vuoti porta all'elenco completo.
+- **Testi**: l'h1 di sempre (« Il savoir-faire africano, vicino a te », `home.intro.title`), `text-3xl`, `md:text-4xl` e `lg:text-5xl` da 1024 px, con `leading-tight`, `text-balance` e al massimo `max-w-2xl`, così il titolo francese, più lungo, non lascia una parola sola su una riga; poi la frase `home.intro.text` (`md:text-lg`, `max-w-xl`). Il pulsante « Trova un professionista » non c'è più: la ricerca fa lo stesso, e con i campi vuoti porta all'elenco completo.
 - **Ricerca** (`docs/search.md`): un `<form role="search" method="get">` HTML verso `/providers` (l'indirizzo da Wayfinder, `index().url`), che funziona anche senza JavaScript e non ne usa.
-    - « Servizio o professionista »: campo `q`, `type="search"`, al massimo 100 caratteri come `ProviderIndexRequest`.
+    - « Servizio o professionista »: campo `q`, `type="search"`, al massimo 100 caratteri come `ProviderIndexRequest`. Dentro il campo una lente (`Search` di lucide, `aria-hidden`, che non intercetta i clic) e un esempio come placeholder (`home.search.placeholder`, « Treccine, barbiere, unghie… »): l'esempio non sostituisce l'etichetta, che resta visibile sopra.
     - « Città »: un `<select>` nativo `city` con « Tutte le città » (valore vuoto) e le città della prop `cities`. Nativo perché il Select di Radix ha bisogno di JavaScript e di un campo nascosto per essere inviato con un form.
     - « Cerca »: invia. Un campo vuoto arriva vuoto e l'elenco lo ignora.
     - I campi hanno lo sfondo e il testo della pagina; l'anello del focus e i pulsanti usano il bianco della fascia (con un margine di 2 px dal pulsante).
+    - Misure: campi e « Cerca » alti 44 px sui telefoni e 3rem da 768 px (`SIZE` in `home-search.tsx`), testo a dimensione normale. Da 768 px stanno su una riga (il campo di testo largo almeno 14rem, la città 11rem), che va a capo quando la colonna è stretta (tra 768 e circa 1024 px); sotto 768 px una colonna, tutto a tutta larghezza.
 
 ## Carousel
 
@@ -62,8 +64,9 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 
 - **Slide**: una per ogni categoria offerta **che ha una foto** in `HOME_PHOTOS` (oggi barbiere, nails e treccine), nell'ordine della prop `categories` (nessuna query in più). Le categorie senza foto restano nella fila « Categorie ». Nessuna slide: nessun carousel. Una sola: la slide, senza Precedente, Successiva né punti.
 - **Contenuto**: la foto (3:2, spigoli vivi), e **sotto** il nome della categoria (un `<p>`, non un titolo), una frase (`home.carousel.sentence.<slug>`, o `home.carousel.sentence.default`) e « Vedi i professionisti », che porta all'elenco filtrato (`/providers?category=slug`) e per i lettori di schermo dice anche la categoria. Il testo non sta mai sulla foto: è sul verde della fascia.
-- **Comportamento** (schema APG del carousel senza rotazione automatica): nessun autoplay né timer; il cambio è immediato, senza effetti. Precedente e Successiva circolari (`nextIndex()` e `previousIndex()` di `lib/gallery.ts`); un punto per slide, pulsante con `aria-current` e nome « Vai alla slide N »; dopo ogni cambio una regione `role="status"` dice « Slide N di M » (vuota all'apertura della pagina); il focus resta sul pulsante premuto.
-- **Altezza**: tutte le slide stanno nella stessa cella di una griglia, quindi il carousel è alto quanto la più alta e non salta mai; quelle non attive sono `invisible`, fuori dal Tab e dai lettori di schermo.
+- **Disposizione**: sotto la foto, a sinistra il testo della slide e a destra i controlli, sulla stessa riga quando c'è posto (il testo almeno 16rem), altrimenti i controlli vanno sotto. Per questo foto e testi sono due pile separate, ognuna con tutte le slide nella stessa cella: i controlli restano gli stessi per ogni slide e non diventano mai invisibili sotto il focus. Il gruppo della slide contiene il suo testo; la foto è decorativa.
+- **Comportamento** (schema APG del carousel senza rotazione automatica): nessun autoplay né timer; il cambio è immediato, senza effetti. Precedente e Successiva mostrano solo la freccia (il nome è un testo sr-only da `t()`, nessun `aria-label`), 44 px sotto 768 px e 36 px sopra; circolari (`nextIndex()` e `previousIndex()` di `lib/gallery.ts`); un punto per slide, pulsante con `aria-current` e nome « Vai alla slide N »; dopo ogni cambio una regione `role="status"` dice « Slide N di M » (vuota all'apertura della pagina); il focus resta sul pulsante premuto.
+- **Altezza**: le foto e i testi delle slide stanno ognuno nella stessa cella della sua griglia, quindi il carousel è alto quanto la slide più alta e non salta mai; quelle non attive sono `invisible`, fuori dal Tab e dai lettori di schermo.
 - **Foto** (`docs/photos.md`): `slideImage()` cerca lo slug in `HOME_PHOTOS` (`lib/home-photos.ts`, file in `resources/images/home/` importati con Vite).
     - Decorativa (`alt=""`), con `width` e `height` veri, `srcset` delle tre varianti e `sizes="(min-width: 1152px) 540px, (min-width: 768px) 50vw, 100vw"`: tutta la larghezza sui telefoni, metà fascia da 768 px, al massimo 540 px (metà del contenitore meno gli spazi).
     - Caricamento: la foto della prima slide subito (`loading="eager"`, `fetchpriority="high"`). Quella di un'altra slide non è nemmeno nel DOM finché la slide non viene mostrata la prima volta (`seen`), poi resta. Prima che arrivi, il suo riquadro ha già la misura e il colore `bg-muted`.

@@ -296,9 +296,9 @@ test('the text is never on the photo: the photo first, the text under it on the 
     $source = (string) file_get_contents(resource_path('js/components/home/home-carousel.tsx'));
 
     expect($source)
-        ->toMatch("/'col-start-1 row-start-1 flex min-w-0 flex-col gap-3',\\s*position !== current && 'invisible',/")
-        // The box of the photo holds the photo only; the text comes after it.
-        ->toMatch('/<div className="relative aspect-\[3\/2\] bg-muted">\s*\{seen\.includes\(position\) && \(\s*<img[^>]*?\/>\s*\)\}\s*<\/div>\s*(\{\/\*[^*]*\*\/\}\s*)?<div className="flex min-w-0 flex-col items-start gap-2">\s*<p\s+id=\{slideNameId\(slide\.id\)\}/')
+        // Since #144 step 9 the photos are one stack and the texts another, under it: the box of
+        // a photo holds the photo only.
+        ->toMatch("/'relative col-start-1 row-start-1 aspect-\\[3\\/2\\] bg-muted',\\s*position !== current && 'invisible',\\s*\\)\\}\\s*>\\s*\\{seen\\.includes\\(position\\) && \\(\\s*<img[^>]*?\\/>\\s*\\)\\}\\s*<\\/div>\\s*\\)\\)\\}\\s*<\\/div>[\\s\\S]*<div className=\"grid min-w-0 flex-1 basis-64\">[\\s\\S]*<p\\s+id=\\{slideNameId\\(slide\\.id\\)\\}/")
         ->not->toMatch('/\b(absolute inset-0)[^"]*"[^>]*>\s*<p/')
         ->not->toMatch('/\b(setInterval|setTimeout|requestAnimationFrame|transition|animate-|duration-|sticky)\b/');
 });

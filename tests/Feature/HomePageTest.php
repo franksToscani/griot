@@ -161,7 +161,7 @@ test('one h1, in the band at the top; an h2 per section and an h3 per step, with
         ->and($page)->toMatch('/<HomeHero[\s\S]*<CategoriesSection[\s\S]*<ScrollRow[\s\S]*<h2[\s\S]*<ol[^>]*>[\s\S]*<h3[\s\S]*<\/ol>/')
         // The row's h2 comes before its items: the cards' h3 are under it.
         ->and($row)->toMatch('/<h2 id=\{titleId\}[\s\S]*<ul[\s\S]*\{renderItem\(item\)\}/');
-    expect($intro)->toMatch("/<h1 className=\"text-3xl font-semibold break-words md:text-4xl\">\\s*\\{t\\('home\\.intro\\.title'\\)\\}\\s*<\\/h1>/");
+    expect($intro)->toMatch("/<h1 className=\"max-w-2xl text-3xl leading-tight font-semibold text-balance break-words md:text-4xl lg:text-5xl\">\\s*\\{t\\('home\\.intro\\.title'\\)\\}\\s*<\\/h1>/");
 });
 
 test('the steps are an ordered list, the categories a list in a region that scrolls sideways', function () {
@@ -236,8 +236,9 @@ test('the texts of the home page exist in Italian, French and English, with the 
 
     $keys = array_values(array_filter(array_keys($json('it')), fn (string $key) => str_starts_with($key, 'home.')));
     // 11 of the page, 2 of "Professionisti in evidenza" (#144 step 3), 17 of the carousel (step 5),
-    // 4 of the search in the band. "home.intro.cta" is gone with its button: the search does the same.
-    expect($keys)->toHaveCount(34)
+    // 4 of the search in the band and its placeholder (step 9). "home.intro.cta" is gone with its
+    // button: the search does the same.
+    expect($keys)->toHaveCount(35)
         ->and($keys)->not->toContain('home.intro.cta');
 
     // Every key the page uses, the steps and the sentences of the categories included.

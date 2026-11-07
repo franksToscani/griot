@@ -108,6 +108,13 @@ function accPairs(string $theme): array
     $pairs[] = ['home band: focus ring and dots (hero-foreground)', accSrgb($t['hero-foreground']), $hero, 3.0];
     // The focus ring of the fields is white too: against the white field it is the field's own
     // focus border (border-ring) that shows, measured above on the background.
+    // Since #144 step 9: the magnifying glass and the example in the text field (the field's own
+    // background), the chevrons of the icon-only previous and next (green on the light button,
+    // also on hover). The edge of those buttons is the light button against the green, above.
+    $pairs[] = ['home band: magnifying glass in the field (text-muted-foreground)', accSrgb($t['muted-foreground']), $background, 3.0];
+    $pairs[] = ['home band: example in the field (placeholder:text-muted-foreground)', accSrgb($t['muted-foreground']), $background, 4.5];
+    $pairs[] = ['home band: chevron of previous and next (text-hero)', $hero, accSrgb($t['hero-foreground']), 3.0];
+    $pairs[] = ['home band: chevron of previous and next on hover', $hero, accOver($t['hero-foreground'], 0.9, $t['hero']), 3.0];
 
     // The tiles of the row "Categorie" of the home page (docs/home.md), for a category without a
     // photo: no text inside (the name is under the tile, on the page), so only their shape against
@@ -156,7 +163,8 @@ test('the band of the home page uses the tokens measured above, never red', func
     preg_match_all('/(?<![\w-])(?:hover:|focus-visible:)?(?:ring-offset|bg|text|border|ring)-([a-z]+(?:-[a-z]+)*)(?:\/\d+)?(?![\w-])/', $sources, $colours);
     $tokens = array_unique($colours[1]);
     $sizes = ['xl', 'sm', 'base', '3xl', '4xl', 'lg'];
-    expect(array_values(array_diff($tokens, ['hero', 'hero-foreground', 'background', 'foreground', 'muted', 'input', ...$sizes])))->toBe([])
+    // muted-foreground: the magnifying glass on the white field (step 9); balance: how the h1 wraps.
+    expect(array_values(array_diff($tokens, ['hero', 'hero-foreground', 'background', 'foreground', 'muted', 'muted-foreground', 'input', 'balance', ...$sizes])))->toBe([])
         ->and($sources)->not->toMatch('/\b(bg|text|border)-(decor|destructive|primary|red-\d)/');
 
     // Dark green in both themes, white text: not "primary", which is light green in the dark theme.

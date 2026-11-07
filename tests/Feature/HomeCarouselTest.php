@@ -109,9 +109,13 @@ test('every slide in the same cell, the others invisible: the height never chang
     $source = hcSource();
 
     expect($source)
+        // Since #144 step 9 two stacks: the photos, then the texts next to the controls.
         ->toMatch('/<div className="grid">\s*\{slides\.map\(/')
-        // The photo, then the text under it, in one column.
-        ->toMatch("/'col-start-1 row-start-1 flex min-w-0 flex-col gap-3',\\s*position !== current && 'invisible',/")
+        ->toMatch('/<div className="grid min-w-0 flex-1 basis-64">\s*\{slides\.map\(/')
+        ->toMatch("/'relative col-start-1 row-start-1 aspect-\\[3\\/2\\] bg-muted',\\s*position !== current && 'invisible',/")
+        ->toMatch("/'col-start-1 row-start-1 flex min-w-0 flex-col items-start gap-2',\\s*position !== current && 'invisible',/")
+        ->and(substr_count($source, "position !== current && 'invisible'"))->toBe(2);
+    expect($source)
         // Hidden by visibility only: no display none, no height of its own per slide.
         ->not->toMatch('/[\s\'"]hidden[\s\'"]|\bhidden=\{/')
         ->not->toMatch('/\b(min-h|max-h|h)-\[/')
@@ -122,8 +126,9 @@ test('previous, next and the dots only with more than one slide; the change is a
     $source = hcSource();
 
     expect($source)
-        ->toMatch("/\\{total > 1 && \\(\\s*<div[^>]*>\\s*<Button\\s+type=\"button\"\\s+className=\\{HERO\\.button\\}\\s+onClick=\\{\\(\\) => go\\(previousIndex\\(current, total\\)\\)\\}\\s*>\\s*<ChevronLeft aria-hidden=\"true\" \\/>\\s*\\{t\\('home\\.carousel\\.previous'\\)\\}/")
-        ->toMatch("/onClick=\\{\\(\\) => go\\(nextIndex\\(current, total\\)\\)\\}\\s*>\\s*\\{t\\('home\\.carousel\\.next'\\)\\}/")
+        // Since #144 step 9 the chevron only, the name in an sr-only text (HomeHeroPolishTest).
+        ->toMatch("/\\{total > 1 && \\(\\s*<div[^>]*>\\s*<Button\\s+type=\"button\"\\s+size=\"icon\"\\s+className=\\{cn\\(CONTROL_SIZE, HERO\\.button\\)\\}\\s+onClick=\\{\\(\\) => go\\(previousIndex\\(current, total\\)\\)\\}\\s*>\\s*<ChevronLeft aria-hidden=\"true\" \\/>\\s*<span className=\"sr-only\">\\s*\\{t\\('home\\.carousel\\.previous'\\)\\}/")
+        ->toMatch("/onClick=\\{\\(\\) => go\\(nextIndex\\(current, total\\)\\)\\}\\s*>\\s*<ChevronRight aria-hidden=\"true\" \\/>\\s*<span className=\"sr-only\">\\s*\\{t\\('home\\.carousel\\.next'\\)\\}/")
         // A dot per slide: a button, the current one marked, a name of its own.
         ->toMatch("/<button\\s+type=\"button\"\\s+aria-current=\\{\\s*position === current\\s*\\?\\s*'true'\\s*:\\s*undefined\\s*\\}\\s+onClick=\\{\\(\\) => go\\(position\\)\\}/")
         ->toMatch("/<span className=\"sr-only\">\\s*\\{t\\('home\\.carousel\\.go_to', \\{\\s*number: position \\+ 1,?\\s*\\}\\)\\}\\s*<\\/span>/")
@@ -149,7 +154,7 @@ test('the button of a slide goes to the filtered list and says the category to s
 });
 
 test('every slide has a photo, decorative, in a box of its own mounted from the slide\'s first visit', function () {
-    expect(hcSource())->toMatch('/<div className="relative aspect-\[3\/2\] bg-muted">\s*\{seen\.includes\(position\) && \(\s*<img[\s\S]*?alt=""[\s\S]*?\/>\s*\)\}\s*<\/div>/');
+    expect(hcSource())->toMatch("/'relative col-start-1 row-start-1 aspect-\\[3\\/2\\] bg-muted',\\s*position !== current && 'invisible',\\s*\\)\\}\\s*>\\s*\\{seen\\.includes\\(position\\) && \\(\\s*<img[\\s\\S]*?alt=\"\"[\\s\\S]*?\\/>\\s*\\)\\}\\s*<\\/div>/");
     expect(hcSource('js/lib/home-carousel.ts'))
         ->toContain('image: SlideImage;')
         ->toContain('const image = slideImage(category.slug, photos);')
