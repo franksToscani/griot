@@ -6,7 +6,7 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 
 1. Testata: quella del layout pubblico (logo, lingua, accesso).
 2. Fascia verde a tutta larghezza: a sinistra l'h1, una frase e la ricerca per servizio e città; a destra il carousel delle categorie con foto (sotto, sui telefoni).
-3. Categorie: una fila di schede che si scorre di lato.
+3. Categorie: una fila sottile di schede con foto (o un riquadro colorato) che si scorre di lato.
 4. Professionisti in evidenza: provider pubblicati con almeno una foto, i più recenti per `published_at` (passo 3).
 5. Come funziona: tre passi.
 6. Piè di pagina: privacy e contatti del gestore da configurazione (passo 4).
@@ -21,15 +21,16 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 | 4     | Piè di pagina con i contatti da configurazione                      | fatto     |
 | 5     | Carousel con riquadri colorati                                      | fatto     |
 | 6     | Foto vere da archivio (`docs/photos.md`, decisione #142)            | fatto     |
-| 7     | Fascia con ricerca e carousel ridisegnato                           | questa PR |
+| 7     | Fascia con ricerca e carousel ridisegnato                           | fatto     |
+| 8     | Fila delle categorie con foto                                       | questa PR |
 
 ## Cosa c'è oggi
 
 - Rotta `home` (`/`) → `HomeController`, pagina Inertia `home` (`resources/js/pages/home.tsx`), layout pubblico (`resources/js/app.tsx`).
 - Prop `categories`: le categorie `offered()` (almeno un servizio attivo di un provider pubblicato) con `id`, `slug` e `name` tradotto (`displayName()`), ordinate sul nome mostrato, che cambia con la lingua. Una query.
 - Prop `cities`: `Provider::publishedCities()`, le città dei provider pubblicati, senza doppioni, in ordine alfabetico; la stessa lista che `ProviderIndexRequest` accetta come filtro. Una query.
-- In tutto la home fa **6 query** quando ci sono professionisti in evidenza (le categorie, le città e le 4 dei professionisti in evidenza: provider, foto, servizi, categorie dei servizi) e **4** quando non ce ne sono (provider e foto soltanto, senza servizi né categorie da caricare); mai di più con più categorie, città o provider (`HomeHeroSearchTest`). La ricerca ne aggiunge una, le città.
-- « Categorie » (h2): nella fila condivisa `ScrollRow`; ogni scheda porta all'elenco già filtrato, `index({ query: { category } })`. Senza categorie offerte la sezione non c'è.
+- In tutto la home fa **6 query** quando ci sono professionisti in evidenza (le categorie, le città e le 4 dei professionisti in evidenza: provider, foto, servizi, categorie dei servizi) e **4** quando non ce ne sono (provider e foto soltanto, senza servizi né categorie da caricare); mai di più con più categorie, città o provider (`HomeHeroSearchTest`). La ricerca ne aggiunge una, le città; le foto della fila delle categorie nessuna (sono file del frontend).
+- « Categorie » (h2): nella fila condivisa `ScrollRow`, una scheda per categoria (vedi « Fila delle categorie »). Senza categorie offerte la sezione non c'è.
 - « Professionisti in evidenza » (h2), tra le categorie e « Come funziona »: prop `featured`, scelta da `App\Home\FeaturedProviders`.
     - Chi: provider pubblicati con almeno una foto nella galleria e almeno un servizio attivo (la regola di `Category::offered()`: senza, non si prenota niente).
     - Ordine: `published_at` decrescente, a parità `id` decrescente; al massimo 8.
@@ -67,6 +68,16 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
     - Decorativa (`alt=""`), con `width` e `height` veri, `srcset` delle tre varianti e `sizes="(min-width: 1152px) 540px, (min-width: 768px) 50vw, 100vw"`: tutta la larghezza sui telefoni, metà fascia da 768 px, al massimo 540 px (metà del contenitore meno gli spazi).
     - Caricamento: la foto della prima slide subito (`loading="eager"`, `fetchpriority="high"`). Quella di un'altra slide non è nemmeno nel DOM finché la slide non viene mostrata la prima volta (`seen`), poi resta. Prima che arrivi, il suo riquadro ha già la misura e il colore `bg-muted`.
 - Il titolo della scheda del browser è « Prenota un professionista vicino a te - Griot » (`home.title`); l'anteprima dei link resta quella del sito.
+
+## Fila delle categorie
+
+`CategoriesSection` in `resources/js/pages/home.tsx`, con la scheda in `resources/js/components/home/category-card.tsx` e le regole pure in `resources/js/lib/home-categories.ts`.
+
+- **Schede**: una per categoria offerta, nell'ordine della prop `categories`, costruite da `categoryCards()`; nessuna query in più. Ogni scheda è **un solo link** all'elenco filtrato (`index({ query: { category: slug } })`), larga `w-36` (9rem), con angoli `rounded-md` come il resto del sito.
+- **Sopra**: la foto della categoria, alta `h-24` (6rem), `object-cover`. **Sotto**: il nome, sullo sfondo della pagina, quindi con il contrasto normale del testo. Il nome è il testo del link, non un titolo; non sta mai sopra la foto, quindi nessuna sfumatura scura.
+- **Foto** (`HOME_PHOTOS`, le stesse del carousel): decorativa (`alt=""`), `loading="lazy"`, `decoding="async"`, `width` e `height` veri (niente salti), `src` la variante da 640, `srcset` di tutte e `sizes="9rem"`: il browser prende la 640 anche su uno schermo a 3x.
+- **Senza foto**: al posto della foto un riquadro pieno, decorativo (`aria-hidden`), con un colore dei token a rotazione tra le categorie senza foto: verde (`bg-primary`), giallo (`bg-highlight`), azzurro (`bg-info`), bianco (`bg-card`); mai rosso. Ogni riquadro ha il bordo `border-input`: giallo, azzurro e bianco sono troppo vicini allo sfondo della pagina (sotto 3:1), il bordo no (`AccessibilityContrastTest`), e resta visibile nei colori forzati.
+- **Telefoni**: la fila scorre di lato con il dito (`snap-x`); la scheda è alta più di 44 px e larga 9rem, con `touchTarget` come ogni link isolato; scorre solo la fila, mai la pagina.
 
 ## Piè di pagina e contatti
 

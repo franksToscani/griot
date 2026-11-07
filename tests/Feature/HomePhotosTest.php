@@ -278,7 +278,9 @@ test('the photo: decorative, its real size, srcset and sizes, at once on the fir
     // most 540 px (half of the 72rem container, less the gaps).
     expect($source)->toContain("const PHOTO_SIZES = '(min-width: 1152px) 540px, (min-width: 768px) 50vw, 100vw';");
     expect((string) file_get_contents(resource_path('js/pages/home.tsx')))->toContain("import { HOME_PHOTOS } from '@/lib/home-photos';")
-        ->toContain('buildSlides(t, categories, HOME_PHOTOS)');
+        ->toContain('buildSlides(t, categories, HOME_PHOTOS)')
+        // The same photos in the row of the categories (#144 step 8, HomeCategoriesRowTest).
+        ->toContain('categoryCards(categories, HOME_PHOTOS)');
 });
 
 test('the photo of a slide is on the page only from the slide\'s first visit, then it stays', function () {

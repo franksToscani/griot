@@ -153,6 +153,8 @@ test('one h1, in the band at the top; an h2 per section and an h3 per step, with
         ->and($levels($card))->toBe(['3'])
         // The carousel (#144 step 5) has no heading: the name of a category is a paragraph.
         ->and($levels(hpSource('components/home/home-carousel.tsx')))->toBe([])
+        // Nor the cards of the categories (#144 step 8): the name is the link's text.
+        ->and($levels(hpSource('components/home/category-card.tsx')))->toBe([])
         // Nor the search: its fields have labels.
         ->and($levels(hpSource('components/home/home-search.tsx')))->toBe([])
         // The band comes first, then the sections; the h3 are inside the steps' list.
@@ -172,7 +174,7 @@ test('the steps are an ordered list, the categories a list in a region that scro
         ->toMatch('/<ol className="grid gap-4 md:grid-cols-3">\s*\{STEPS\.map\(\(step\) => \(\s*<li/')
         ->toMatch('/<h3 className="font-medium">\\s*\\{t\\(`home\\.steps\\.\\$\\{step\\}\\.title`\\)\\}/')
         // The categories go in the shared row, named by their own title.
-        ->toMatch("/<ScrollRow\\s+titleId=\\{CATEGORIES_TITLE_ID\\}\\s+title=\\{t\\('home\\.categories\\.title'\\)\\}\\s+items=\\{categories\\}/");
+        ->toMatch("/<ScrollRow\\s+titleId=\\{CATEGORIES_TITLE_ID\\}\\s+title=\\{t\\('home\\.categories\\.title'\\)\\}\\s+items=\\{categoryCards\\(categories, HOME_PHOTOS\\)\\}/");
 
     expect($row)
         // Named by the title of its section, focusable for the arrow keys; only the row scrolls.
@@ -182,10 +184,11 @@ test('the steps are an ordered list, the categories a list in a region that scro
         ->toMatch('/<section className="flex min-w-0 flex-col gap-4">/');
 });
 
-test('each category links to the list filtered on it, as a lone link with its touch target', function () {
+test('each category is a card of its own, built in the order of the prop (HomeCategoriesRowTest)', function () {
     expect(hpSource('pages/home.tsx'))
-        ->toMatch('/<Link\s+href=\{index\(\{\s*query: \{ category: category\.slug \},?\s*\}\)\}\s+className=\{cn\(\s*\'flex min-h-20 [^\']*border[^\']*outline-none[^\']*focus-visible:outline-hidden\',\s*touchTarget,\s*\)\}\s*>\s*\{category\.name\}\s*<\/Link>/')
-        ->toContain("import { index } from '@/routes/providers';");
+        ->toMatch('/renderItem=\{\(card\) => <CategoryCard card=\{card\} \/>\}/')
+        ->toContain("import { CategoryCard } from '@/components/home/category-card';")
+        ->toContain("import { categoryCards } from '@/lib/home-categories';");
 });
 
 test('the section of the categories is there only with categories', function () {
@@ -196,7 +199,8 @@ test('the section of the categories is there only with categories', function () 
 
 test('nothing written by hand: no aria-label, no category name; nothing that moves or sticks', function () {
     $sources = hpSource('pages/home.tsx').hpSource('components/home/home-hero.tsx').hpSource('components/home/home-search.tsx').hpSource('components/home/scroll-row.tsx')
-        .hpSource('components/home/featured-provider-card.tsx').hpSource('components/home/home-carousel.tsx').hpSource('lib/home-carousel.ts').hpSource('lib/home-hero.ts');
+        .hpSource('components/home/featured-provider-card.tsx').hpSource('components/home/home-carousel.tsx').hpSource('lib/home-carousel.ts').hpSource('lib/home-hero.ts')
+        .hpSource('components/home/category-card.tsx').hpSource('lib/home-categories.ts');
 
     expect($sources)
         // aria-labelledby is fine: it points to a visible title.

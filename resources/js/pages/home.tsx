@@ -1,13 +1,12 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
+import { CategoryCard } from '@/components/home/category-card';
 import { FeaturedProviderCard } from '@/components/home/featured-provider-card';
 import { HomeHero } from '@/components/home/home-hero';
 import { ScrollRow } from '@/components/home/scroll-row';
 import { useTranslation } from '@/hooks/use-translation';
 import { buildSlides } from '@/lib/home-carousel';
+import { categoryCards } from '@/lib/home-categories';
 import { HOME_PHOTOS } from '@/lib/home-photos';
-import { touchTarget } from '@/lib/touch-target';
-import { cn } from '@/lib/utils';
-import { index } from '@/routes/providers';
 import type { Category, FeaturedProvider } from '@/types';
 
 type Props = {
@@ -82,7 +81,8 @@ export default function Home({ categories, featured, cities }: Props) {
     );
 }
 
-// The categories, in the shared row that scrolls sideways (ScrollRow).
+// The categories, in the shared row that scrolls sideways (ScrollRow): a card each, with its photo
+// or a coloured tile, in the order of the prop.
 function CategoriesSection({ categories }: { categories: Category[] }) {
     const { t } = useTranslation();
 
@@ -90,21 +90,8 @@ function CategoriesSection({ categories }: { categories: Category[] }) {
         <ScrollRow
             titleId={CATEGORIES_TITLE_ID}
             title={t('home.categories.title')}
-            items={categories}
-            renderItem={(category) => (
-                // The list already filtered on the category, as the filter does.
-                <Link
-                    href={index({
-                        query: { category: category.slug },
-                    })}
-                    className={cn(
-                        'flex min-h-20 min-w-36 items-center justify-center rounded-xl border bg-card px-4 py-3 text-center font-medium text-card-foreground outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-hidden',
-                        touchTarget,
-                    )}
-                >
-                    {category.name}
-                </Link>
-            )}
+            items={categoryCards(categories, HOME_PHOTOS)}
+            renderItem={(card) => <CategoryCard card={card} />}
         />
     );
 }
