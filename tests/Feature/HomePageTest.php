@@ -59,9 +59,9 @@ test('"/" shows the home page to everyone, without a redirect', function (Closur
     'a provider' => [fn ($test) => $test->actingAs(Provider::factory()->published()->create()->user)],
 ]);
 
-test('two props of its own: the categories and the featured providers', function () {
+test('three props of its own: the categories, the featured providers and the cities of the search', function () {
     $this->get('/')->assertInertia(function (Assert $page) {
-        expect(hpOwnProps($page->toArray()['props']))->toBe(['categories', 'featured']);
+        expect(hpOwnProps($page->toArray()['props']))->toBe(['categories', 'featured', 'cities']);
     });
 });
 
@@ -134,8 +134,8 @@ test('the home page has the public layout, not the one with the side menu', func
     expect(hpSource('app.tsx'))->toMatch("/case name === 'privacy':\\s*case name === 'home':\\s*return PublicLayout;/");
 });
 
-test('one h1, in the opening block; an h2 per section and an h3 per step, without a skipped level', function () {
-    $intro = hpSource('components/home/home-intro.tsx');
+test('one h1, in the band at the top; an h2 per section and an h3 per step, without a skipped level', function () {
+    $intro = hpSource('components/home/home-hero.tsx');
     $page = hpSource('pages/home.tsx');
     // Since #144 step 3 the h2 of the rows that scroll is in the shared ScrollRow, and the h3 of a
     // featured provider in its card, which ScrollRow puts under that h2.
@@ -153,12 +153,13 @@ test('one h1, in the opening block; an h2 per section and an h3 per step, withou
         ->and($levels($card))->toBe(['3'])
         // The carousel (#144 step 5) has no heading: the name of a category is a paragraph.
         ->and($levels(hpSource('components/home/home-carousel.tsx')))->toBe([])
-        // The intro comes first, then the sections; the h3 are inside the steps' list.
-        ->and($page)->toMatch('/<HomeIntro \/>[\s\S]*<HomeCarousel[\s\S]*<CategoriesSection[\s\S]*<ScrollRow[\s\S]*<h2[\s\S]*<ol[^>]*>[\s\S]*<h3[\s\S]*<\/ol>/')
+        // Nor the search: its fields have labels.
+        ->and($levels(hpSource('components/home/home-search.tsx')))->toBe([])
+        // The band comes first, then the sections; the h3 are inside the steps' list.
+        ->and($page)->toMatch('/<HomeHero[\s\S]*<CategoriesSection[\s\S]*<ScrollRow[\s\S]*<h2[\s\S]*<ol[^>]*>[\s\S]*<h3[\s\S]*<\/ol>/')
         // The row's h2 comes before its items: the cards' h3 are under it.
         ->and($row)->toMatch('/<h2 id=\{titleId\}[\s\S]*<ul[\s\S]*\{renderItem\(item\)\}/');
-    expect($intro)->toMatch("/<h1 className=\"text-3xl font-semibold\">\\{t\\('home\\.intro\\.title'\\)\\}<\\/h1>/");
-    expect($intro)->toMatch("/<Button asChild className=\"max-md:w-full\">\\s*<Link href=\\{index\\(\\)\\}>\\{t\\('home\\.intro\\.cta'\\)\\}<\\/Link>\\s*<\\/Button>/");
+    expect($intro)->toMatch("/<h1 className=\"text-3xl font-semibold break-words md:text-4xl\">\\s*\\{t\\('home\\.intro\\.title'\\)\\}\\s*<\\/h1>/");
 });
 
 test('the steps are an ordered list, the categories a list in a region that scrolls sideways', function () {
@@ -194,8 +195,8 @@ test('the section of the categories is there only with categories', function () 
 });
 
 test('nothing written by hand: no aria-label, no category name; nothing that moves or sticks', function () {
-    $sources = hpSource('pages/home.tsx').hpSource('components/home/home-intro.tsx').hpSource('components/home/scroll-row.tsx').hpSource('components/home/featured-provider-card.tsx')
-        .hpSource('components/home/home-carousel.tsx').hpSource('lib/home-carousel.ts');
+    $sources = hpSource('pages/home.tsx').hpSource('components/home/home-hero.tsx').hpSource('components/home/home-search.tsx').hpSource('components/home/scroll-row.tsx')
+        .hpSource('components/home/featured-provider-card.tsx').hpSource('components/home/home-carousel.tsx').hpSource('lib/home-carousel.ts').hpSource('lib/home-hero.ts');
 
     expect($sources)
         // aria-labelledby is fine: it points to a visible title.
@@ -230,11 +231,13 @@ test('the texts of the home page exist in Italian, French and English, with the 
     };
 
     $keys = array_values(array_filter(array_keys($json('it')), fn (string $key) => str_starts_with($key, 'home.')));
-    // 12 of the page, 2 of "Professionisti in evidenza" (#144 step 3), 17 of the carousel (step 5).
-    expect($keys)->toHaveCount(31);
+    // 11 of the page, 2 of "Professionisti in evidenza" (#144 step 3), 17 of the carousel (step 5),
+    // 4 of the search in the band. "home.intro.cta" is gone with its button: the search does the same.
+    expect($keys)->toHaveCount(34)
+        ->and($keys)->not->toContain('home.intro.cta');
 
     // Every key the page uses, the steps and the sentences of the categories included.
-    $used = hpSource('pages/home.tsx').hpSource('components/home/home-intro.tsx').hpSource('components/home/featured-provider-card.tsx')
+    $used = hpSource('pages/home.tsx').hpSource('components/home/home-hero.tsx').hpSource('components/home/home-search.tsx').hpSource('components/home/featured-provider-card.tsx')
         .hpSource('components/home/home-carousel.tsx').hpSource('lib/home-carousel.ts');
     foreach ($keys as $key) {
         $step = preg_match('/^home\.steps\.(choose|book|confirm)\.(title|text)$/', $key, $match) === 1;
@@ -253,7 +256,7 @@ test('the texts of the home page exist in Italian, French and English, with the 
         expect(preg_match('/ [:?!;](?![a-z])/', $json('fr')[$key]))->toBe(0, "fr {$key}");
     }
 
-    expect(__('home.intro.cta', [], 'it'))->toBe('Trova un professionista')
+    expect(__('home.search.submit', [], 'it'))->toBe('Cerca')
         ->and(__('home.steps.title', [], 'it'))->toBe('Come funziona')
         ->and(__('home.intro.text', [], 'fr'))->toContain("encore\u{00A0}: trouvez");
 });

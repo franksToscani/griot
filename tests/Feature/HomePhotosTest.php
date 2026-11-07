@@ -218,7 +218,7 @@ test('docs/photos.md has a complete row for every photo of the site, and none fo
 // The pure functions, run with Node
 // ---------------------------------------------------------------------------------------------
 
-test('a category with a photo gets its sizes, smallest first; one without, or a new one, null', function () {
+test('a category with a photo gets its sizes, smallest first; one without, or a new one, null and no slide', function () {
     $script = sys_get_temp_dir().'/griot-photos-'.bin2hex(random_bytes(6)).'.mts';
     $helper = resource_path('js/lib/home-carousel.ts');
     file_put_contents($script, "import * as h from '{$helper}';
@@ -230,8 +230,8 @@ console.log(JSON.stringify({
     without: h.slideImage('barbiere', photos),
     empty: h.slideImage('vuota', photos),
     prototype: h.slideImage('constructor', photos),
-    slides: h.buildSlides(t, [{ id: 1, slug: 'treccine', name: 'T' }, { id: 2, slug: 'nuova', name: 'N' }], photos).map((s) => s.image === null),
-    noPhotos: h.buildSlides(t, [{ id: 1, slug: 'treccine', name: 'T' }]).map((s) => s.image),
+    slides: h.buildSlides(t, [{ id: 1, slug: 'treccine', name: 'T' }, { id: 2, slug: 'nuova', name: 'N' }], photos).map((s) => s.id),
+    noPhotos: h.buildSlides(t, [{ id: 1, slug: 'treccine', name: 'T' }]),
 }));\n");
 
     try {
@@ -247,8 +247,9 @@ console.log(JSON.stringify({
         'without' => null,
         'empty' => null,
         'prototype' => null,
-        'slides' => [false, true],
-        'noPhotos' => [null],
+        // The category without a photo has no slide.
+        'slides' => [1],
+        'noPhotos' => [],
     ]);
 });
 
@@ -264,7 +265,7 @@ test('the photo: decorative, its real size, srcset and sizes, at once on the fir
     expect($images[0][0])
         ->toContain('src={slide.image.src}')
         ->toContain('srcSet={slide.image.srcSet}')
-        ->toContain('sizes="(min-width: 768px) 50vw, 100vw"')
+        ->toContain('sizes={PHOTO_SIZES}')
         ->toContain('width={slide.image.width}')
         ->toContain('height={slide.image.height}')
         ->toContain('alt=""')
@@ -273,7 +274,10 @@ test('the photo: decorative, its real size, srcset and sizes, at once on the fir
         ->toContain('object-cover');
     expect(substr_count($source, 'fetchPriority'))->toBe(1)
         ->and(substr_count($source, "loading: 'eager'"))->toBe(1);
-    expect($source)->toContain("import { HOME_PHOTOS } from '@/lib/home-photos';")
+    // The width of the right column of the band: all the screen on phones, half from 768 px, at
+    // most 540 px (half of the 72rem container, less the gaps).
+    expect($source)->toContain("const PHOTO_SIZES = '(min-width: 1152px) 540px, (min-width: 768px) 50vw, 100vw';");
+    expect((string) file_get_contents(resource_path('js/pages/home.tsx')))->toContain("import { HOME_PHOTOS } from '@/lib/home-photos';")
         ->toContain('buildSlides(t, categories, HOME_PHOTOS)');
 });
 
@@ -286,15 +290,13 @@ test('the photo of a slide is on the page only from the slide\'s first visit, th
         ->not->toMatch('/setSeen\(\s*\[\s*\]|\.filter\(/');
 });
 
-test('the text is never on the photo: two halves from 768 px, the photo above on phones, the same height for all', function () {
+test('the text is never on the photo: the photo first, the text under it on the band, the same height for all', function () {
     $source = (string) file_get_contents(resource_path('js/components/home/home-carousel.tsx'));
 
     expect($source)
-        ->toMatch("/'col-start-1 row-start-1 grid min-w-0 overflow-hidden rounded-xl forced-colors:border',\\s*slide\\.image && 'md:grid-cols-2',/")
-        // The box of the photo holds the photo only.
-        ->toMatch('/\{slide\.image && \(\s*<div className="relative order-first aspect-\[3\/2\] bg-muted md:order-none md:aspect-auto md:min-h-80">\s*\{seen\.includes\(position\) && \(\s*<img[^>]*?\/>\s*\)\}\s*<\/div>\s*\)\}/')
-        // The text and the button are on the tile, with its colours.
-        ->toMatch("/<div\\s+className=\\{cn\\(\\s*'flex min-w-0 flex-col items-start gap-3 p-6 md:p-10',\\s*tone\\.tile,?\\s*\\)\\}\\s*>\\s*<p\\s+id=\\{slideNameId\\(slide\\.id\\)\\}/")
+        ->toMatch("/'col-start-1 row-start-1 flex min-w-0 flex-col gap-3',\\s*position !== current && 'invisible',/")
+        // The box of the photo holds the photo only; the text comes after it.
+        ->toMatch('/<div className="relative aspect-\[3\/2\] bg-muted">\s*\{seen\.includes\(position\) && \(\s*<img[^>]*?\/>\s*\)\}\s*<\/div>\s*(\{\/\*[^*]*\*\/\}\s*)?<div className="flex min-w-0 flex-col items-start gap-2">\s*<p\s+id=\{slideNameId\(slide\.id\)\}/')
         ->not->toMatch('/\b(absolute inset-0)[^"]*"[^>]*>\s*<p/')
         ->not->toMatch('/\b(setInterval|setTimeout|requestAnimationFrame|transition|animate-|duration-|sticky)\b/');
 });

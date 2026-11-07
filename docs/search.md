@@ -16,6 +16,8 @@ La ricerca testuale di `/providers`, insieme ai filtri per categoria e città. S
     - solo i professionisti pubblicati, come sempre nella lista.
 - L'ordine resta per nome, 12 per pagina.
 
+- La stessa ricerca parte anche dalla fascia della home (`docs/home.md`): un form HTML `GET` verso `/providers` con `q` e `city`, che funziona senza JavaScript.
+
 ## Categorie e lingua
 
 Le categorie hanno nel database lo slug e il nome italiano; il nome mostrato viene dalle chiavi `categories.{slug}` di `lang/*.json` (`Category::displayName()`). Per questo il confronto con le categorie si fa in PHP, non con LIKE: si leggono tutte le categorie (sono poche) e si tengono quelle in cui la parola compare nello slug, nel nome salvato o nel nome **nella lingua attiva** (`Category::mentions()`). Poi la query cerca i servizi attivi di quelle categorie.

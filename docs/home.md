@@ -5,7 +5,7 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 ## Struttura decisa (dall'alto in basso)
 
 1. Testata: quella del layout pubblico (logo, lingua, accesso).
-2. Carousel delle categorie, senza movimento automatico, con Precedente/Successiva e punti (passo 5).
+2. Fascia verde a tutta larghezza: a sinistra l'h1, una frase e la ricerca per servizio e città; a destra il carousel delle categorie con foto (sotto, sui telefoni).
 3. Categorie: una fila di schede che si scorre di lato.
 4. Professionisti in evidenza: provider pubblicati con almeno una foto, i più recenti per `published_at` (passo 3).
 5. Come funziona: tre passi.
@@ -20,13 +20,15 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 | 3     | Professionisti in evidenza                                          | fatto     |
 | 4     | Piè di pagina con i contatti da configurazione                      | fatto     |
 | 5     | Carousel con riquadri colorati                                      | fatto     |
-| 6     | Foto vere da archivio (`docs/photos.md`, decisione #142)            | questa PR |
+| 6     | Foto vere da archivio (`docs/photos.md`, decisione #142)            | fatto     |
+| 7     | Fascia con ricerca e carousel ridisegnato                           | questa PR |
 
 ## Cosa c'è oggi
 
 - Rotta `home` (`/`) → `HomeController`, pagina Inertia `home` (`resources/js/pages/home.tsx`), layout pubblico (`resources/js/app.tsx`).
 - Prop `categories`: le categorie `offered()` (almeno un servizio attivo di un provider pubblicato) con `id`, `slug` e `name` tradotto (`displayName()`), ordinate sul nome mostrato, che cambia con la lingua. Una query.
-- Blocco introduttivo (`components/home/home-intro.tsx`): l'unico h1, una frase e « Trova un professionista » verso `/providers`. Isolato perché il carousel possa andare sopra o al suo posto.
+- Prop `cities`: `Provider::publishedCities()`, le città dei provider pubblicati, senza doppioni, in ordine alfabetico; la stessa lista che `ProviderIndexRequest` accetta come filtro. Una query.
+- In tutto la home fa **6 query** quando ci sono professionisti in evidenza (le categorie, le città e le 4 dei professionisti in evidenza: provider, foto, servizi, categorie dei servizi) e **4** quando non ce ne sono (provider e foto soltanto, senza servizi né categorie da caricare); mai di più con più categorie, città o provider (`HomeHeroSearchTest`). La ricerca ne aggiunge una, le città.
 - « Categorie » (h2): nella fila condivisa `ScrollRow`; ogni scheda porta all'elenco già filtrato, `index({ query: { category } })`. Senza categorie offerte la sezione non c'è.
 - « Professionisti in evidenza » (h2), tra le categorie e « Come funziona »: prop `featured`, scelta da `App\Home\FeaturedProviders`.
     - Chi: provider pubblicati con almeno una foto nella galleria e almeno un servizio attivo (la regola di `Category::offered()`: senza, non si prenota niente).
@@ -39,20 +41,31 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 - « Come funziona » (h2): un `<ol>` di tre passi, ognuno con un h3 e una frase.
 - Anteprima dei link: `LinkPreview::publicPage()` senza titolo, quindi « Griot », la descrizione del sito e l'immagine predefinita; pagina indicizzabile.
 
+## Fascia in alto
+
+`resources/js/components/home/home-hero.tsx`, con la ricerca in `home-search.tsx` e il carousel in `home-carousel.tsx`; i colori in `resources/js/lib/home-hero.ts`.
+
+- **A tutta larghezza**: per la home il layout pubblico lascia `<main>` senza contenitore (`FULL_WIDTH_PAGES` in `public-layout.tsx`); la pagina mette la fascia da bordo a bordo e le sezioni sotto nello stesso contenitore della testata (`max-w-6xl`, `px-4`). Niente `100vw`, che con una barra di scorrimento visibile fa scorrere la pagina di lato.
+- **Colori**: i token `hero` (verde scuro) e `hero-foreground` (bianco) di `resources/css/app.css`, gli stessi nei due temi come ruolo; non `primary`, che nel tema scuro è un verde chiaro con il testo scuro. Spigoli vivi, nessun `rounded` sulla fascia e sulle foto. Altezza minima in rem (`md:min-h-[28rem]`), quindi cresce con lo zoom; la decide il contenuto.
+- **Colonne**: da 768 px in su due metà (a sinistra testo e ricerca, a destra il carousel); sotto, una colonna sola: prima titolo e ricerca, poi il carousel. Senza nessuna categoria con foto il carousel non c'è e la fascia ha una colonna.
+- **Testi**: l'h1 di sempre (« Il savoir-faire africano, vicino a te », `home.intro.title`) e la frase `home.intro.text`. Il pulsante « Trova un professionista » non c'è più: la ricerca fa lo stesso, e con i campi vuoti porta all'elenco completo.
+- **Ricerca** (`docs/search.md`): un `<form role="search" method="get">` HTML verso `/providers` (l'indirizzo da Wayfinder, `index().url`), che funziona anche senza JavaScript e non ne usa.
+    - « Servizio o professionista »: campo `q`, `type="search"`, al massimo 100 caratteri come `ProviderIndexRequest`.
+    - « Città »: un `<select>` nativo `city` con « Tutte le città » (valore vuoto) e le città della prop `cities`. Nativo perché il Select di Radix ha bisogno di JavaScript e di un campo nascosto per essere inviato con un form.
+    - « Cerca »: invia. Un campo vuoto arriva vuoto e l'elenco lo ignora.
+    - I campi hanno lo sfondo e il testo della pagina; l'anello del focus e i pulsanti usano il bianco della fascia (con un margine di 2 px dal pulsante).
+
 ## Carousel
 
-`resources/js/components/home/home-carousel.tsx`, subito sotto il blocco introduttivo e prima di « Categorie »; le regole pure in `resources/js/lib/home-carousel.ts`.
+`resources/js/components/home/home-carousel.tsx`, nella colonna destra della fascia; le regole pure in `resources/js/lib/home-carousel.ts`.
 
-- **Slide**: una per ogni categoria offerta, con gli stessi dati della prop `categories` (nessuna query in più). Nessuna categoria: nessun carousel. Una sola: la slide, senza Precedente, Successiva né punti.
-- **Contenuto**: il nome della categoria in grande (un `<p>`, non un titolo), una frase (`home.carousel.sentence.<slug>`, o `home.carousel.sentence.default` per una categoria che non ne ha una: una categoria nuova non rompe niente) e « Vedi i professionisti », che porta all'elenco filtrato e per i lettori di schermo dice anche la categoria.
-- **Colori**, a rotazione e solo dai token: verde (`primary`, con il pulsante chiaro `secondary` e l'anello del focus del colore del testo del riquadro), giallo (`highlight`), azzurro (`info`), bianco (`card`, con il bordo dei campi). Mai il rosso. Ogni coppia è misurata in `AccessibilityContrastTest`, che legge le classi dal componente.
+- **Slide**: una per ogni categoria offerta **che ha una foto** in `HOME_PHOTOS` (oggi barbiere, nails e treccine), nell'ordine della prop `categories` (nessuna query in più). Le categorie senza foto restano nella fila « Categorie ». Nessuna slide: nessun carousel. Una sola: la slide, senza Precedente, Successiva né punti.
+- **Contenuto**: la foto (3:2, spigoli vivi), e **sotto** il nome della categoria (un `<p>`, non un titolo), una frase (`home.carousel.sentence.<slug>`, o `home.carousel.sentence.default`) e « Vedi i professionisti », che porta all'elenco filtrato (`/providers?category=slug`) e per i lettori di schermo dice anche la categoria. Il testo non sta mai sulla foto: è sul verde della fascia.
 - **Comportamento** (schema APG del carousel senza rotazione automatica): nessun autoplay né timer; il cambio è immediato, senza effetti. Precedente e Successiva circolari (`nextIndex()` e `previousIndex()` di `lib/gallery.ts`); un punto per slide, pulsante con `aria-current` e nome « Vai alla slide N »; dopo ogni cambio una regione `role="status"` dice « Slide N di M » (vuota all'apertura della pagina); il focus resta sul pulsante premuto.
 - **Altezza**: tutte le slide stanno nella stessa cella di una griglia, quindi il carousel è alto quanto la più alta e non salta mai; quelle non attive sono `invisible`, fuori dal Tab e dai lettori di schermo.
-- **Foto** (passo 6, `docs/photos.md`): barbiere, nails e treccine hanno una foto; le altre categorie restano un riquadro colorato intero. `slideImage()` in `lib/home-carousel.ts` cerca lo slug in `HOME_PHOTOS` (`lib/home-photos.ts`, file in `resources/images/home/` importati con Vite) e dà `null` per una categoria senza foto.
-    - Il testo non sta mai sulla foto: sotto 768 px la foto in alto (3:2) e sotto il riquadro colorato col testo e il pulsante; da 768 px in su due metà, a sinistra il riquadro, a destra la foto a tutta altezza (`object-cover`, almeno 20rem). I contrasti restano quelli dei token.
-    - La foto è decorativa (`alt=""`), con `width` e `height` veri, `srcset` delle tre varianti e `sizes="(min-width: 768px) 50vw, 100vw"`.
-    - Caricamento: la foto della prima slide subito (`loading="eager"`, `fetchpriority="high"`). Quella di un'altra slide non è nemmeno nel DOM finché la slide non viene mostrata la prima volta (`seen`), poi resta: il browser non scarica foto che nessuno ha visto. Prima che arrivi, il suo riquadro ha già la misura e il colore `bg-muted`.
-    - Aggiungere una foto: `docs/photos.md`, « Aggiungere una foto».
+- **Foto** (`docs/photos.md`): `slideImage()` cerca lo slug in `HOME_PHOTOS` (`lib/home-photos.ts`, file in `resources/images/home/` importati con Vite).
+    - Decorativa (`alt=""`), con `width` e `height` veri, `srcset` delle tre varianti e `sizes="(min-width: 1152px) 540px, (min-width: 768px) 50vw, 100vw"`: tutta la larghezza sui telefoni, metà fascia da 768 px, al massimo 540 px (metà del contenitore meno gli spazi).
+    - Caricamento: la foto della prima slide subito (`loading="eager"`, `fetchpriority="high"`). Quella di un'altra slide non è nemmeno nel DOM finché la slide non viene mostrata la prima volta (`seen`), poi resta. Prima che arrivi, il suo riquadro ha già la misura e il colore `bg-muted`.
 - Il titolo della scheda del browser è « Prenota un professionista vicino a te - Griot » (`home.title`); l'anteprima dei link resta quella del sito.
 
 ## Piè di pagina e contatti
