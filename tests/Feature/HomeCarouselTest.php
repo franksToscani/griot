@@ -93,7 +93,7 @@ test('a section with a translated role and name; each slide a group named by its
         ->toMatch("/<p id=\\{LABEL_ID\\} className=\"sr-only\">\\s*\\{t\\('home\\.carousel\\.label'\\)\\}\\s*<\\/p>/")
         ->toMatch("/<div\\s+key=\\{slide\\.id\\}\\s+role=\"group\"\\s+aria-roledescription=\\{t\\('home\\.carousel\\.slide'\\)\\}\\s+aria-labelledby=\\{slideNameId\\(slide\\.id\\)\\}/")
         // The name of the category is a paragraph, not a title: the page keeps its headings.
-        ->toMatch('/<p\s+id=\{slideNameId\(slide\.id\)\}\s+className="relative text-3xl font-semibold break-words"\s*>\s*\{slide\.name\}\s*<\/p>/')
+        ->toMatch('/<p\s+id=\{slideNameId\(slide\.id\)\}\s+className="text-3xl font-semibold break-words"\s*>\s*\{slide\.name\}\s*<\/p>/')
         ->toMatch('/<p className="sr-only">\\s*\\{slidePosition\\(t, position, total\\)\\}\\s*<\\/p>/')
         ->not->toMatch('/<h[1-6]\b/')
         ->not->toMatch('/aria-label(?!ledby)/');
@@ -104,7 +104,10 @@ test('every slide in the same cell, the others invisible: the height never chang
 
     expect($source)
         ->toMatch('/<div className="grid">\s*\{slides\.map\(/')
-        ->toMatch("/'relative col-start-1 row-start-1 flex [^']*',\\s*tone\\.tile,\\s*position !== current && 'invisible',/")
+        // Step 6: the slide is a grid (the tile, and the photo when there is one); the colours are
+        // on the tile, inside it.
+        ->toMatch("/'col-start-1 row-start-1 grid [^']*',\\s*slide\\.image && 'md:grid-cols-2',\\s*position !== current && 'invisible',/")
+        ->toMatch("/'flex min-w-0 flex-col items-start gap-3 p-6 md:p-10',\\s*tone\\.tile,/")
         // Hidden by visibility only: no display none, no height of its own per slide.
         ->not->toMatch('/[\s\'"]hidden[\s\'"]|\bhidden=\{/')
         ->not->toMatch('/\b(min-h|max-h|h)-\[/')
@@ -124,7 +127,8 @@ test('previous, next and the dots only with more than one slide; the change is a
         ->not->toMatch('/\bdisabled[=}]/')
         // The status line: empty when the page opens, then "Slide N di M" after each change.
         ->toContain("const [announcement, setAnnouncement] = useState('');")
-        ->toMatch('/const go = \(target: number\) => \{\s*setChosen\(target\);\s*setAnnouncement\(slidePosition\(t, target, total\)\);\s*\};/')
+        // Since step 6 the slide is also marked as seen (its photo, HomePhotosTest).
+        ->toMatch('/const go = \(target: number\) => \{\s*setChosen\(target\);\s*setSeen\(\(shown\) =>\s*shown\.includes\(target\) \? shown : \[\.\.\.shown, target\],?\s*\);\s*setAnnouncement\(slidePosition\(t, target, total\)\);\s*\};/')
         ->toMatch('/<p role="status" className="sr-only">\s*\{announcement\}\s*<\/p>/');
 });
 
@@ -136,14 +140,16 @@ test('the dots are 44px on phones, with a visible focus', function () {
 
 test('the button of a slide goes to the filtered list and says the category to screen readers', function () {
     expect(hcSource())
-        ->toMatch("/<Button\\s+asChild\\s+variant=\\{tone\\.button\\}\\s+className=\\{cn\\(\\s*'relative max-md:w-full',\\s*tone\\.ring,?\\s*\\)\\}\\s*>\\s*<Link\\s+href=\\{providersIndex\\(\\{\\s*query: \\{ category: slide\\.slug \\},?\\s*\\}\\)\\}\\s*>\\s*\\{t\\('home\\.carousel\\.cta'\\)\\}\\s*<span className=\"sr-only\">\\s*\\{' '\\}\\s*\\{t\\('home\\.carousel\\.cta_which', \\{\\s*category: slide\\.name,?\\s*\\}\\)\\}\\s*<\\/span>\\s*<\\/Link>\\s*<\\/Button>/");
+        ->toMatch("/<Button\\s+asChild\\s+variant=\\{tone\\.button\\}\\s+className=\\{cn\\(\\s*'max-md:w-full',\\s*tone\\.ring,?\\s*\\)\\}\\s*>\\s*<Link\\s+href=\\{providersIndex\\(\\{\\s*query: \\{ category: slide\\.slug \\},?\\s*\\}\\)\\}\\s*>\\s*\\{t\\('home\\.carousel\\.cta'\\)\\}\\s*<span className=\"sr-only\">\\s*\\{' '\\}\\s*\\{t\\('home\\.carousel\\.cta_which', \\{\\s*category: slide\\.name,?\\s*\\}\\)\\}\\s*<\\/span>\\s*<\\/Link>\\s*<\\/Button>/");
 });
 
-test('ready for the photos of step 6: an optional decorative image, null today', function () {
-    expect(hcSource())->toMatch('/\{slide\.image && \(\s*<img[\s\S]*?alt=""[\s\S]*?\/>\s*\)\}/');
+test('the photo of a slide is optional and decorative: null for a category without one', function () {
+    // Since step 6 (HomePhotosTest): in a box of its own, mounted from the slide's first visit.
+    expect(hcSource())->toMatch('/\{slide\.image && \(\s*<div[^>]*>\s*\{seen\.includes\(position\) && \(\s*<img[\s\S]*?alt=""[\s\S]*?\/>\s*\)\}\s*<\/div>\s*\)\}/');
     expect(hcSource('js/lib/home-carousel.ts'))
         ->toContain('image: SlideImage | null;')
-        ->toContain('image: null,');
+        ->toContain('image: slideImage(category.slug, photos),')
+        ->toContain('photos: Record<string, HomePhoto> = {},');
 });
 
 test('nothing moves by itself, nothing sticks, no colour written by hand, no name of a category', function () {
