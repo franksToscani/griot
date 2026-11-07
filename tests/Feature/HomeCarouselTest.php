@@ -112,9 +112,12 @@ test('every slide in the same cell, the others invisible: the height never chang
         // Since #144 step 9 two stacks: the photos, then the texts next to the controls.
         ->toMatch('/<div className="grid">\s*\{slides\.map\(/')
         ->toMatch('/<div className="grid min-w-0 flex-1 basis-64">\s*\{slides\.map\(/')
-        ->toMatch("/'relative col-start-1 row-start-1 aspect-\\[3\\/2\\] bg-muted',\\s*position !== current && 'invisible',/")
-        ->toMatch("/'col-start-1 row-start-1 flex min-w-0 flex-col items-start gap-2',\\s*position !== current && 'invisible',/")
-        ->and(substr_count($source, "position !== current && 'invisible'"))->toBe(2);
+        // Since #144 step 10 the hidden ones are invisible and transparent, with a cross-fade
+        // under motion-safe: (HomeMotionTest).
+        ->toMatch("/'relative col-start-1 row-start-1 aspect-\\[3\\/2\\] bg-muted',\\s*FADE,\\s*position !== current && HIDDEN,/")
+        ->toMatch("/'col-start-1 row-start-1 flex min-w-0 flex-col items-start gap-2',\\s*FADE,\\s*position !== current && HIDDEN,/")
+        ->toContain("const HIDDEN = 'invisible opacity-0';")
+        ->and(substr_count($source, 'position !== current && HIDDEN'))->toBe(2);
     expect($source)
         // Hidden by visibility only: no display none, no height of its own per slide.
         ->not->toMatch('/[\s\'"]hidden[\s\'"]|\bhidden=\{/')
@@ -142,10 +145,10 @@ test('previous, next and the dots only with more than one slide; the change is a
 });
 
 test('the dots are 44px on phones, with a visible focus in the band\'s white', function () {
-    expect(hcSource())->toMatch("/className=\\{cn\\(\\s*'flex size-11 items-center justify-center rounded-full outline-none focus-visible:ring-\\[3px\\] focus-visible:outline-hidden md:size-8',\\s*HERO\\.ring,?\\s*\\)\\}/")
-        // Bigger when current: it shows without colour too.
-        ->toMatch("/position === current\\s*\\? cn\\(\\s*'size-3\\.5',\\s*HERO\\.dotCurrent,?\\s*\\)\\s*: 'size-2\\.5',/")
-        ->toMatch("/'rounded-full border',\\s*HERO\\.dot,/");
+    expect(hcSource())->toMatch("/className=\\{cn\\(\\s*'flex size-11 items-center justify-center rounded-full outline-none focus-visible:ring-\\[3px\\] focus-visible:outline-hidden md:size-8',\\s*HERO\\.ring,\\s*HERO\\.press,?\\s*\\)\\}/")
+        // Since #144 step 10 twice as wide when current, with a transform: it shows without colour
+        // too, and the layout never moves.
+        ->toMatch("/'size-2\\.5 rounded-full border motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out',\\s*HERO\\.dot,\\s*position === current &&\\s*cn\\(\\s*'scale-x-200',\\s*HERO\\.dotCurrent,?\\s*\\),/");
 });
 
 test('the button of a slide goes to the filtered list and says the category to screen readers', function () {
@@ -154,7 +157,7 @@ test('the button of a slide goes to the filtered list and says the category to s
 });
 
 test('every slide has a photo, decorative, in a box of its own mounted from the slide\'s first visit', function () {
-    expect(hcSource())->toMatch("/'relative col-start-1 row-start-1 aspect-\\[3\\/2\\] bg-muted',\\s*position !== current && 'invisible',\\s*\\)\\}\\s*>\\s*\\{seen\\.includes\\(position\\) && \\(\\s*<img[\\s\\S]*?alt=\"\"[\\s\\S]*?\\/>\\s*\\)\\}\\s*<\\/div>/");
+    expect(hcSource())->toMatch("/'relative col-start-1 row-start-1 aspect-\\[3\\/2\\] bg-muted',\\s*FADE,\\s*position !== current && HIDDEN,\\s*\\)\\}\\s*>\\s*\\{seen\\.includes\\(position\\) && \\(\\s*<img[\\s\\S]*?alt=\"\"[\\s\\S]*?\\/>\\s*\\)\\}\\s*<\\/div>/");
     expect(hcSource('js/lib/home-carousel.ts'))
         ->toContain('image: SlideImage;')
         ->toContain('const image = slideImage(category.slug, photos);')
@@ -166,9 +169,11 @@ test('every slide has a photo, decorative, in a box of its own mounted from the 
 test('nothing moves by itself, nothing sticks, no colour written by hand, no name of a category', function () {
     $sources = hcSource().hcSource('js/lib/home-carousel.ts');
 
+    // Since #144 step 10 the slides cross-fade, only under motion-safe: (HomeMotionTest).
+    expect(withoutMotionSafe($sources))->not->toMatch('/\b(transition|animate-|duration-|translate-)/');
     expect($sources)
         ->not->toMatch('/\b(setInterval|setTimeout|requestAnimationFrame|autoPlay|autoplay)\b/')
-        ->not->toMatch('/\b(transition|animate-|duration-|translate-|scroll-smooth)/')
+        ->not->toContain('scroll-smooth')
         ->not->toMatch('/sticky|fixed/')
         // Only the tokens: no palette colour, no hex, no rgb or oklch, no arbitrary colour.
         ->not->toMatch('/\b(bg|text|border|ring)-(red|green|blue|yellow|sky|amber|emerald|teal|gray|slate|zinc|neutral|white|black)\b/')

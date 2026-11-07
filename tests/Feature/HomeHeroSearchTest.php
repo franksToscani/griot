@@ -231,8 +231,9 @@ test('the colours of the band are its tokens only, defined in both themes', func
 test('no autoplay, no timer, no effect; nothing that moves, sticks or scrolls smoothly', function () {
     expect(hhsBand())
         ->not->toMatch('/\b(setInterval|setTimeout|requestAnimationFrame|autoPlay|autoplay)\b/')
-        ->not->toMatch('/\b(transition|animate-|duration-|translate-)/')
         ->not->toMatch('/scroll-smooth|scroll-behavior|sticky|\bfixed\b/');
+    // Since #144 step 10 the band moves, only under motion-safe: (HomeMotionTest).
+    expect(withoutMotionSafe(hhsBand()))->not->toMatch('/\b(transition|animate-|duration-|translate-)/');
 });
 
 test('the first photo at once with a high priority, the others lazy', function () {
