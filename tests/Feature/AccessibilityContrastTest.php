@@ -109,7 +109,24 @@ function accPairs(string $theme): array
     // The focus ring of the fields is white too: against the white field it is the field's own
     // focus border (border-ring) that shows, measured above on the background.
 
+    // The tiles of the row "Categorie" of the home page (docs/home.md), for a category without a
+    // photo: no text inside (the name is under the tile, on the page), so only their shape against
+    // the page counts, as for any non-text content. Their border, the same for every colour.
+    $edge = accCategoryTileEdge();
+    $pairs[] = ["category tile: its border (border-{$edge}) against the page", accSrgb($t[$edge]), $background, 3.0];
+
     return $pairs;
+}
+
+/**
+ * The token of the border of the tiles of the categories, read from lib/home-categories.ts.
+ */
+function accCategoryTileEdge(): string
+{
+    $source = (string) file_get_contents(resource_path('js/lib/home-categories.ts'));
+    expect(preg_match("/export const CATEGORY_TILE_EDGE = 'border border-([a-z-]+)';/", $source, $match))->toBe(1, 'No CATEGORY_TILE_EDGE');
+
+    return $match[1];
 }
 
 test('every colour pair reaches its WCAG threshold, in the light and in the dark theme', function (string $theme) {
@@ -147,6 +164,21 @@ test('the band of the home page uses the tokens measured above, never red', func
         ->and(accTokens('dark')['hero'][0])->toBeLessThan(0.55)
         ->and(accTokens('light')['hero-foreground'][0])->toBeGreaterThan(0.95)
         ->and(accTokens('dark')['hero-foreground'][0])->toBeGreaterThan(0.95);
+});
+
+test('without their border, the yellow, light blue and white tiles of the categories would not show on the page', function () {
+    // Why every tile has a border (docs/home.md): their own colour is below 3:1 against the
+    // background in at least one theme. The green alone would be enough.
+    foreach (['highlight', 'info', 'card'] as $tone) {
+        $light = accTokens('light');
+        $dark = accTokens('dark');
+        $lowest = min(
+            accRatio(accSrgb($light[$tone]), accSrgb($light['background'])),
+            accRatio(accSrgb($dark[$tone]), accSrgb($dark['background'])),
+        );
+
+        expect($lowest)->toBeLessThan(3.0, $tone);
+    }
 });
 
 test('the conversion gives the known ratios: black on white 21:1, a colour on itself 1:1', function () {

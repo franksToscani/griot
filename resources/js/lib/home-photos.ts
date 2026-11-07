@@ -1,7 +1,7 @@
-// The photos of the home carousel (issue #144, docs/photos.md): the WebP sizes made by
-// scripts/home-photos.php, imported with Vite (their names get a hash, so a cache never keeps an
-// old one). width and height are those of the largest size. A category that is not here has no
-// photo, and its slide stays a coloured tile.
+// The photos of the categories on the home page (issue #144, docs/photos.md): in the carousel and
+// in the row "Categorie". The WebP sizes made by scripts/home-photos.php, imported with Vite (their
+// names get a hash, so a cache never keeps an old one). width and height are those of the largest
+// size. A category that is not here has no slide, and a coloured tile in the row.
 import barbiere1280 from '../../images/home/barbiere-1280.webp';
 import barbiere1920 from '../../images/home/barbiere-1920.webp';
 import barbiere640 from '../../images/home/barbiere-640.webp';
