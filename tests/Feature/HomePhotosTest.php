@@ -298,7 +298,9 @@ test('the text is never on the photo: the photo first, the text under it on the 
     expect($source)
         // Since #144 step 9 the photos are one stack and the texts another, under it: the box of
         // a photo holds the photo only.
-        ->toMatch("/'relative col-start-1 row-start-1 aspect-\\[3\\/2\\] bg-muted',\\s*position !== current && 'invisible',\\s*\\)\\}\\s*>\\s*\\{seen\\.includes\\(position\\) && \\(\\s*<img[^>]*?\\/>\\s*\\)\\}\\s*<\\/div>\\s*\\)\\)\\}\\s*<\\/div>[\\s\\S]*<div className=\"grid min-w-0 flex-1 basis-64\">[\\s\\S]*<p\\s+id=\\{slideNameId\\(slide\\.id\\)\\}/")
+        ->toMatch("/'relative col-start-1 row-start-1 aspect-\\[3\\/2\\] bg-muted',\\s*FADE,\\s*position !== current && HIDDEN,\\s*\\)\\}\\s*>\\s*\\{seen\\.includes\\(position\\) && \\(\\s*<img[^>]*?\\/>\\s*\\)\\}\\s*<\\/div>\\s*\\)\\)\\}\\s*<\\/div>[\\s\\S]*<div className=\"grid min-w-0 flex-1 basis-64\">[\\s\\S]*<p\\s+id=\\{slideNameId\\(slide\\.id\\)\\}/")
         ->not->toMatch('/\b(absolute inset-0)[^"]*"[^>]*>\s*<p/')
-        ->not->toMatch('/\b(setInterval|setTimeout|requestAnimationFrame|transition|animate-|duration-|sticky)\b/');
+        ->not->toMatch('/\b(setInterval|setTimeout|requestAnimationFrame|sticky)\b/');
+    // Since #144 step 10 the slides cross-fade, only under motion-safe: (HomeMotionTest).
+    expect(withoutMotionSafe($source))->not->toMatch('/\b(transition|animate-|duration-)/');
 });

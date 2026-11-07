@@ -117,7 +117,9 @@ test('no aria-label written by hand, no timer, nothing that moves or scrolls smo
         // aria-labelledby is fine: it points to a text on the page.
         ->not->toMatch('/aria-label(?!ledby)/')
         ->not->toMatch('/\b(setInterval|setTimeout|requestAnimationFrame)\b/')
-        ->not->toMatch('/\b(transition|animate-|duration-|translate-)|scroll-smooth/');
+        ->not->toContain('scroll-smooth');
+    // Since #144 step 10 the band moves, only under motion-safe: (HomeMotionTest).
+    expect(withoutMotionSafe(hhpBand()))->not->toMatch('/\b(transition|animate-|duration-|translate-)/');
 });
 
 test('the example exists in Italian, French and English, without placeholders, in the right form', function () {

@@ -108,7 +108,7 @@ test('the whole card is one link to the list filtered on its category, made by W
 
 test('the name under the photo or the tile, never on it: the image first, then the name, nothing absolute', function () {
     expect(hcrCard())
-        ->toMatch('/\{card\.image !== null \? \([\s\S]*<img[^>]*\/>\s*\) : \(\s*<span[^>]*\/>\s*\)\}\s*<span className="[^"]*">\s*\{card\.name\}\s*<\/span>\s*<\/Link>$/')
+        ->toMatch('/\{card\.image !== null \? \([\s\S]*<img[^>]*\/>\s*<\/span>\s*\) : \(\s*<span[^>]*\/>\s*\)\}\s*<span className="[^"]*">\s*\{card\.name\}\s*<\/span>\s*<\/Link>$/')
         ->and(substr_count(hcrCard(), '{card.name}'))->toBe(1)
         ->and(hcrCard())->not->toMatch('/\b(absolute|inset-|bg-gradient|from-black|bg-black)/');
 });
@@ -125,7 +125,8 @@ test('the photo is decorative, lazy, with its width and height: nothing jumps', 
         ->toContain('alt=""')
         ->toContain('loading="lazy"')
         ->toContain('decoding="async"')
-        ->toMatch('/className="h-24 w-full rounded-md [^"]*object-cover"/')
+        // Since #144 step 10 it grows a little under the mouse or the focus (HomeMotionTest).
+        ->toMatch("/className=\\{cn\\(\\s*'h-24 w-full rounded-md [^']*object-cover',\\s*CARD_MOTION\\.photo,?\\s*\\)\\}/")
         ->not->toContain('eager')
         ->not->toContain('fetchPriority');
 });
@@ -147,11 +148,12 @@ test('no colour written by hand, never red: only tokens of the theme', function 
 });
 
 test('a phone can use it: a card 9rem wide, more than 44px high, a visible focus not cut by the row', function () {
-    expect(hcrCard())->toMatch("/^<Link\\s+href=[^>]*className=\\{cn\\(\\s*'group flex w-36 flex-col gap-2 rounded-md outline-none focus-visible:ring-\\[3px\\] focus-visible:ring-ring\\/50 focus-visible:outline-hidden',\\s*touchTarget,?\\s*\\)\\}/");
-    // The row keeps 4px around the cards, more than the 3px of the ring; it scrolls, the page not.
+    expect(hcrCard())->toMatch("/^<Link\\s+href=[^>]*className=\\{cn\\(\\s*'group flex w-36 flex-col gap-2 rounded-md outline-none focus-visible:ring-\\[3px\\] focus-visible:ring-ring\\/50 focus-visible:outline-hidden',\\s*touchTarget,\\s*CARD_MOTION\\.card,?\\s*\\)\\}/");
+    // The row keeps 8px around the cards: the 2px a card rises under the focus plus its 3px ring
+    // (since #144 step 10). It scrolls, the page not.
     expect(hcrSource('components/home/scroll-row.tsx'))
-        ->toContain('<ul className="flex snap-x gap-3 p-1 pb-3">')
-        ->toContain('className="shrink-0 snap-start"');
+        ->toContain('className="flex snap-x gap-3 p-2 pb-4"')
+        ->toContain('className="reveal-item shrink-0 snap-start"');
 });
 
 // ---------------------------------------------------------------------------------------------
@@ -173,7 +175,9 @@ test('no heading in the cards, no aria-label, nothing that scrolls smoothly, mov
     expect($sources)
         ->not->toMatch('/aria-label(?!ledby)/')
         ->not->toMatch('/scroll-smooth|scroll-behavior|behavior:\s*[\'"]smooth|scrollIntoView|scrollTo\(/')
-        ->not->toMatch('/\b(animate-|transition|duration-|sticky|fixed)\b/');
+        ->not->toMatch('/\b(sticky|fixed)\b/');
+    // Since #144 step 10 the cards move, only under motion-safe: (HomeMotionTest).
+    expect(withoutMotionSafe($sources))->not->toMatch('/\b(animate-|transition|duration-|translate-)/');
 });
 
 test('the home page makes no query more for the cards: 4 without featured providers, 6 with them', function () {

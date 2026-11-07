@@ -21,10 +21,18 @@ const PHOTO_SIZES = '(min-width: 1152px) 540px, (min-width: 768px) 50vw, 100vw';
 // than the kit's.
 const CONTROL_SIZE = 'size-11 md:size-9 [&_svg]:size-5';
 
+// The slides not shown: invisible (out of the Tab and of the screen readers) and transparent.
+// Without "reduce motion" the change is a 300 ms cross-fade: the opacity fades, and visibility,
+// which cannot fade, changes at the end when a slide goes and at the start when it comes, so a
+// slide that left is out of reach of the assistive technologies once the fade is over. No timer.
+const HIDDEN = 'invisible opacity-0';
+const FADE =
+    'motion-safe:transition-[opacity,visibility] motion-safe:duration-300 motion-safe:ease-out';
+
 // The carousel in the right column of the band at the top of the home page (docs/home.md,
 // docs/accessibility.md), in the pattern of the WAI-ARIA carousel without automatic rotation: the
-// slide changes only when the person asks, at once, without any change effect. One slide per
-// category with a photo: the photo, then under it the name, a sentence and the link to the list,
+// slide changes only when the person asks, with a short cross-fade (none with "reduce motion").
+// One slide per category with a photo: the photo, then under it the name, a sentence and the link to the list,
 // with the controls on their right. The photos and the texts are two stacks, so that the
 // controls can sit next to the text and stay the same for every slide: the slide's group holds
 // its text, its photo is decorative. The text is never on the photo. No title: the category's
@@ -73,7 +81,8 @@ export function HomeCarousel({ slides }: { slides: Slide[] }) {
                         key={slide.id}
                         className={cn(
                             'relative col-start-1 row-start-1 aspect-[3/2] bg-muted',
-                            position !== current && 'invisible',
+                            FADE,
+                            position !== current && HIDDEN,
                         )}
                     >
                         {seen.includes(position) && (
@@ -113,7 +122,8 @@ export function HomeCarousel({ slides }: { slides: Slide[] }) {
                             aria-labelledby={slideNameId(slide.id)}
                             className={cn(
                                 'col-start-1 row-start-1 flex min-w-0 flex-col items-start gap-2',
-                                position !== current && 'invisible',
+                                FADE,
+                                position !== current && HIDDEN,
                             )}
                         >
                             <p
@@ -168,8 +178,9 @@ export function HomeCarousel({ slides }: { slides: Slide[] }) {
                         <ul className="flex flex-wrap items-center justify-center">
                             {slides.map((slide, position) => (
                                 <li key={slide.id}>
-                                    {/* 44px on phones; the dot inside, bigger when current, so
-                                        that it shows without colour too (forced colours). */}
+                                    {/* 44px on phones; the dot inside, twice as wide when current
+                                        (a transform: the layout never moves), so that it shows
+                                        without colour too (forced colours). */}
                                     <button
                                         type="button"
                                         aria-current={
@@ -181,19 +192,19 @@ export function HomeCarousel({ slides }: { slides: Slide[] }) {
                                         className={cn(
                                             'flex size-11 items-center justify-center rounded-full outline-none focus-visible:ring-[3px] focus-visible:outline-hidden md:size-8',
                                             HERO.ring,
+                                            HERO.press,
                                         )}
                                     >
                                         <span
                                             aria-hidden="true"
                                             className={cn(
-                                                'rounded-full border',
+                                                'size-2.5 rounded-full border motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out',
                                                 HERO.dot,
-                                                position === current
-                                                    ? cn(
-                                                          'size-3.5',
-                                                          HERO.dotCurrent,
-                                                      )
-                                                    : 'size-2.5',
+                                                position === current &&
+                                                    cn(
+                                                        'scale-x-200',
+                                                        HERO.dotCurrent,
+                                                    ),
                                             )}
                                         />
                                         <span className="sr-only">

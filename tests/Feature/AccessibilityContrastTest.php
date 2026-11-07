@@ -150,7 +150,8 @@ test('the band of the home page uses the tokens measured above, never red', func
     expect($source)
         ->toContain("band: 'bg-hero text-hero-foreground',")
         ->toContain("field: 'bg-background text-foreground focus-visible:ring-hero-foreground',")
-        ->toContain("button: 'bg-hero-foreground text-hero hover:bg-hero-foreground/90 focus-visible:ring-hero-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-hero',")
+        // Since #144 step 10 the press too: a transform, no colour.
+        ->toContain('button: `bg-hero-foreground text-hero hover:bg-hero-foreground/90 focus-visible:ring-hero-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-hero ${PRESS}`,')
         ->toContain("dot: 'border-hero-foreground',")
         ->toContain("dotCurrent: 'bg-hero-foreground',")
         ->toContain("ring: 'focus-visible:ring-hero-foreground',");

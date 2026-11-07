@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from '@/hooks/use-translation';
 import { fallbackSrc, srcSet } from '@/lib/gallery';
+import { CARD_MOTION } from '@/lib/motion';
 import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
 import { show } from '@/routes/providers';
@@ -10,6 +11,8 @@ import type { FeaturedProvider } from '@/types';
 // A card of "Professionisti in evidenza" (issue #144): a link to the provider's page with the
 // cover, the name (h3, under the section's h2), the city and the categories. Its own card, not
 // the list's ProviderCard: that one has an h2 and the avatar, this one the cover and no avatar.
+// Under the mouse or the focus it rises and its cover grows inside its frame (CARD_MOTION, shared
+// with the cards of the categories).
 export function FeaturedProviderCard({
     provider,
 }: {
@@ -23,22 +26,28 @@ export function FeaturedProviderCard({
             className={cn(
                 'flex w-64 flex-col overflow-hidden rounded-xl border bg-card text-card-foreground outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-hidden',
                 touchTarget,
+                CARD_MOTION.card,
             )}
         >
             {/* Decorative: the card says whose work it is. The card is 16rem wide; the space is
                 kept while it loads. */}
             {provider.cover && (
-                <img
-                    src={fallbackSrc(provider.cover.variants)}
-                    srcSet={srcSet(provider.cover.variants)}
-                    sizes="16rem"
-                    width={provider.cover.width}
-                    height={provider.cover.height}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    className="aspect-[4/3] w-full bg-muted object-cover"
-                />
+                <div className={CARD_MOTION.frame}>
+                    <img
+                        src={fallbackSrc(provider.cover.variants)}
+                        srcSet={srcSet(provider.cover.variants)}
+                        sizes="16rem"
+                        width={provider.cover.width}
+                        height={provider.cover.height}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        className={cn(
+                            'aspect-[4/3] w-full bg-muted object-cover',
+                            CARD_MOTION.photo,
+                        )}
+                    />
+                </div>
             )}
             <div className="flex flex-col gap-2 p-4">
                 {/* The heading says the name and the city: "Trecce Sahel, a Bologna". The city

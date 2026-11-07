@@ -171,7 +171,8 @@ test('the steps are an ordered list, the categories a list in a region that scro
 
     expect($page)
         ->toContain("const STEPS = ['choose', 'book', 'confirm'] as const;")
-        ->toMatch('/<ol className="grid gap-4 md:grid-cols-3">\s*\{STEPS\.map\(\(step\) => \(\s*<li/')
+        // Since #144 step 10 the steps appear when scrolled to (HomeMotionTest).
+        ->toMatch('/<ol ref=\{steps\} className="grid gap-4 md:grid-cols-3">\s*\{STEPS\.map\(\(step, index\) => \(\s*<li/')
         ->toMatch('/<h3 className="font-medium">\\s*\\{t\\(`home\\.steps\\.\\$\\{step\\}\\.title`\\)\\}/')
         // The categories go in the shared row, named by their own title.
         ->toMatch("/<ScrollRow\\s+titleId=\\{CATEGORIES_TITLE_ID\\}\\s+title=\\{t\\('home\\.categories\\.title'\\)\\}\\s+items=\\{categoryCards\\(categories, HOME_PHOTOS\\)\\}/");
@@ -180,7 +181,8 @@ test('the steps are an ordered list, the categories a list in a region that scro
         // Named by the title of its section, focusable for the arrow keys; only the row scrolls.
         ->toMatch('/<h2 id=\{titleId\}/')
         ->toMatch('/<div\s+role="region"\s+aria-labelledby=\{titleId\}\s+tabIndex=\{0\}\s+className="overflow-x-auto [^"]*outline-none[^"]*focus-visible:ring-\[3px\][^"]*focus-visible:outline-hidden"/')
-        ->toMatch('/<ul className="flex snap-x gap-3 p-1 pb-3">\s*\{items\.map\(\(item\) => \(\s*<li key=\{item\.id\} className="shrink-0 snap-start">/')
+        // Since #144 step 10 8px around the cards, which rise under the focus, and a reveal.
+        ->toMatch('/<ul ref=\{reveal\} className="flex snap-x gap-3 p-2 pb-4">\s*\{items\.map\(\(item, index\) => \(\s*<li\s+key=\{item\.id\}\s+className="reveal-item shrink-0 snap-start"\s+style=\{revealDelay\(index\)\}\s*>/')
         ->toMatch('/<section className="flex min-w-0 flex-col gap-4">/');
 });
 
@@ -207,8 +209,9 @@ test('nothing written by hand: no aria-label, no category name; nothing that mov
         ->not->toMatch('/aria-label(?!ledby)/')
         ->not->toMatch('/scroll-smooth|scroll-behavior|behavior:\s*[\'"]smooth/')
         ->not->toContain('sticky')
-        ->not->toContain('fixed')
-        ->not->toMatch('/\b(animate-|transition|duration-)/');
+        ->not->toContain('fixed');
+    // Since #144 step 10 the home page moves, only under motion-safe: (HomeMotionTest).
+    expect(withoutMotionSafe($sources))->not->toMatch('/\b(animate-|transition|duration-|translate-)/');
 
     // Neither a slug nor a translated name of a category: they come from the server.
     foreach (['it', 'fr', 'en'] as $locale) {

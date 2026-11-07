@@ -188,3 +188,52 @@
         animation-iteration-count: infinite !important;
     }
 }
+
+/*
+ * The motion of the home page (docs/accessibility.md, "Movimento"): declared only for who has not
+ * asked for less motion, so with "reduce motion" none of it exists (and the rule above ends what
+ * is left at once). Only opacity and transform move; nothing loops.
+ */
+@media (prefers-reduced-motion: no-preference) {
+    /* The band, at the first visit: the h1 rises without ever being hidden (it is on the first
+       screen); the sentence and the search fade in while they rise, one after the other. The
+       photo does not move. */
+    @keyframes home-rise {
+        from {
+            transform: translateY(0.5rem);
+        }
+    }
+
+    @keyframes home-enter {
+        from {
+            opacity: 0;
+            transform: translateY(0.5rem);
+        }
+    }
+
+    [data-home-enter] > h1 {
+        animation: home-rise 350ms ease-out both;
+    }
+
+    [data-home-enter] > p {
+        animation: home-enter 350ms ease-out 60ms both;
+    }
+
+    [data-home-enter] > form {
+        animation: home-enter 350ms ease-out 120ms both;
+    }
+
+    /* The reveal on scroll (hooks/use-reveal.ts): data-reveal is set by JavaScript only, after
+       the mount and only out of the screen. Each item waits its --reveal-delay (lib/motion.ts). */
+    [data-reveal='hidden'] .reveal-item {
+        opacity: 0;
+        transform: translateY(0.75rem);
+    }
+
+    [data-reveal='shown'] .reveal-item {
+        transition:
+            opacity 400ms ease-out,
+            transform 400ms ease-out;
+        transition-delay: var(--reveal-delay, 0ms);
+    }
+}

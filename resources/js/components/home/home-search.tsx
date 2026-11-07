@@ -59,7 +59,7 @@ export function HomeSearch({ cities }: { cities: string[] }) {
                     name="city"
                     defaultValue=""
                     className={cn(
-                        'w-full min-w-0 rounded-md border border-input px-3 shadow-xs outline-none focus-visible:ring-[3px] focus-visible:outline-hidden max-md:min-h-11',
+                        'w-full min-w-0 rounded-md border border-input px-3 shadow-xs outline-none focus-visible:ring-[3px] focus-visible:outline-hidden motion-safe:transition-[color,box-shadow] motion-safe:duration-200 max-md:min-h-11',
                         SIZE,
                         HERO.field,
                     )}

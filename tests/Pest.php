@@ -165,3 +165,13 @@ function accRatio(array $first, array $second): float
 
     return (max($values) + 0.05) / (min($values) + 0.05);
 }
+
+/**
+ * A source without its motion-safe: classes (docs/accessibility.md, "Movimento"): what is left is
+ * what exists with "reduce motion" too, where nothing may move. The tests that forbid transition,
+ * duration-, animate- or translate- read this, so those stay forbidden outside motion-safe:.
+ */
+function withoutMotionSafe(string $source): string
+{
+    return (string) preg_replace('/(?<![\w:-])motion-safe:(?:\[[^\]]*\]|[^\s\'"`\[])+/', '', $source);
+}

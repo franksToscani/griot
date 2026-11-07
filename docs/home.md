@@ -23,7 +23,8 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 | 6     | Foto vere da archivio (`docs/photos.md`, decisione #142)            | fatto     |
 | 7     | Fascia con ricerca e carousel ridisegnato                           | fatto     |
 | 8     | Fila delle categorie con foto                                       | fatto     |
-| 9     | Rifinitura grafica della fascia                                     | questa PR |
+| 9     | Rifinitura grafica della fascia                                     | fatto     |
+| 10    | Animazioni e reattività di fascia, carousel e schede                | questa PR |
 
 ## Cosa c'è oggi
 
@@ -65,8 +66,8 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 - **Slide**: una per ogni categoria offerta **che ha una foto** in `HOME_PHOTOS` (oggi barbiere, nails e treccine), nell'ordine della prop `categories` (nessuna query in più). Le categorie senza foto restano nella fila « Categorie ». Nessuna slide: nessun carousel. Una sola: la slide, senza Precedente, Successiva né punti.
 - **Contenuto**: la foto (3:2, spigoli vivi), e **sotto** il nome della categoria (un `<p>`, non un titolo), una frase (`home.carousel.sentence.<slug>`, o `home.carousel.sentence.default`) e « Vedi i professionisti », che porta all'elenco filtrato (`/providers?category=slug`) e per i lettori di schermo dice anche la categoria. Il testo non sta mai sulla foto: è sul verde della fascia.
 - **Disposizione**: sotto la foto, a sinistra il testo della slide e a destra i controlli, sulla stessa riga quando c'è posto (il testo almeno 16rem), altrimenti i controlli vanno sotto. Per questo foto e testi sono due pile separate, ognuna con tutte le slide nella stessa cella: i controlli restano gli stessi per ogni slide e non diventano mai invisibili sotto il focus. Il gruppo della slide contiene il suo testo; la foto è decorativa.
-- **Comportamento** (schema APG del carousel senza rotazione automatica): nessun autoplay né timer; il cambio è immediato, senza effetti. Precedente e Successiva mostrano solo la freccia (il nome è un testo sr-only da `t()`, nessun `aria-label`), 44 px sotto 768 px e 36 px sopra; circolari (`nextIndex()` e `previousIndex()` di `lib/gallery.ts`); un punto per slide, pulsante con `aria-current` e nome « Vai alla slide N »; dopo ogni cambio una regione `role="status"` dice « Slide N di M » (vuota all'apertura della pagina); il focus resta sul pulsante premuto.
-- **Altezza**: le foto e i testi delle slide stanno ognuno nella stessa cella della sua griglia, quindi il carousel è alto quanto la slide più alta e non salta mai; quelle non attive sono `invisible`, fuori dal Tab e dai lettori di schermo.
+- **Comportamento** (schema APG del carousel senza rotazione automatica): nessun autoplay né timer; il cambio è una dissolvenza incrociata di 300 ms, solo senza « riduci movimento » (altrimenti immediato). Precedente e Successiva mostrano solo la freccia (il nome è un testo sr-only da `t()`, nessun `aria-label`), 44 px sotto 768 px e 36 px sopra; circolari (`nextIndex()` e `previousIndex()` di `lib/gallery.ts`); un punto per slide, pulsante con `aria-current` e nome « Vai alla slide N »; dopo ogni cambio una regione `role="status"` dice « Slide N di M » (vuota all'apertura della pagina); il focus resta sul pulsante premuto.
+- **Altezza**: le foto e i testi delle slide stanno ognuno nella stessa cella della sua griglia, quindi il carousel è alto quanto la slide più alta e non salta mai; quelle non attive sono `invisible opacity-0`, fuori dal Tab e dai lettori di schermo una volta finita la dissolvenza.
 - **Foto** (`docs/photos.md`): `slideImage()` cerca lo slug in `HOME_PHOTOS` (`lib/home-photos.ts`, file in `resources/images/home/` importati con Vite).
     - Decorativa (`alt=""`), con `width` e `height` veri, `srcset` delle tre varianti e `sizes="(min-width: 1152px) 540px, (min-width: 768px) 50vw, 100vw"`: tutta la larghezza sui telefoni, metà fascia da 768 px, al massimo 540 px (metà del contenitore meno gli spazi).
     - Caricamento: la foto della prima slide subito (`loading="eager"`, `fetchpriority="high"`). Quella di un'altra slide non è nemmeno nel DOM finché la slide non viene mostrata la prima volta (`seen`), poi resta. Prima che arrivi, il suo riquadro ha già la misura e il colore `bg-muted`.
@@ -81,6 +82,16 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 - **Foto** (`HOME_PHOTOS`, le stesse del carousel): decorativa (`alt=""`), `loading="lazy"`, `decoding="async"`, `width` e `height` veri (niente salti), `src` la variante da 640, `srcset` di tutte e `sizes="9rem"`: il browser prende la 640 anche su uno schermo a 3x.
 - **Senza foto**: al posto della foto un riquadro pieno, decorativo (`aria-hidden`), con un colore dei token a rotazione tra le categorie senza foto: verde (`bg-primary`), giallo (`bg-highlight`), azzurro (`bg-info`), bianco (`bg-card`); mai rosso. Ogni riquadro ha il bordo `border-input`: giallo, azzurro e bianco sono troppo vicini allo sfondo della pagina (sotto 3:1), il bordo no (`AccessibilityContrastTest`), e resta visibile nei colori forzati.
 - **Telefoni**: la fila scorre di lato con il dito (`snap-x`); la scheda è alta più di 44 px e larga 9rem, con `touchTarget` come ogni link isolato; scorre solo la fila, mai la pagina.
+
+## Movimento
+
+Le regole sono in `docs/accessibility.md` (« Movimento »); il codice in `hooks/use-reveal.ts`, `lib/motion.ts` e nel blocco `prefers-reduced-motion: no-preference` di `resources/css/app.css`. Nessuna query, rotta, testo o colore cambia.
+
+- **Fascia**: alla prima visita il titolo sale (senza sparire), la frase e la ricerca compaiono salendo, una dopo l'altra (`data-home-enter`, solo se `HomeHero` non era già stata mostrata da quando il browser ha caricato il sito). Il carousel e la sua foto non hanno ingresso. I pulsanti premuti si riducono al 98%.
+- **Carousel**: dissolvenza incrociata di 300 ms; il punto corrente è largo il doppio (una trasformazione).
+- **Sotto la fascia**: le schede di « Categorie » e di « Professionisti in evidenza » (in `ScrollRow`) e i passi di « Come funziona » compaiono quando si scorre fino a loro, uno dopo l'altro (`useReveal`, `revealDelay()`). Ciò che è già sullo schermo all'apertura non si nasconde mai.
+- **Schede**: sotto il mouse o con il focus salgono di 2 px con un'ombra e la foto cresce dentro la cornice (`CARD_MOTION`, condivisa). La fila tiene 8 px intorno alle schede (`p-2`), così l'anello del focus non viene tagliato.
+- Con « riduci movimento » niente di tutto questo esiste: la pagina è quella della PR precedente, con l'ombra sotto il mouse.
 
 ## Piè di pagina e contatti
 

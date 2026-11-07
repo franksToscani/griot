@@ -3,10 +3,12 @@ import { CategoryCard } from '@/components/home/category-card';
 import { FeaturedProviderCard } from '@/components/home/featured-provider-card';
 import { HomeHero } from '@/components/home/home-hero';
 import { ScrollRow } from '@/components/home/scroll-row';
+import { useReveal } from '@/hooks/use-reveal';
 import { useTranslation } from '@/hooks/use-translation';
 import { buildSlides } from '@/lib/home-carousel';
 import { categoryCards } from '@/lib/home-categories';
 import { HOME_PHOTOS } from '@/lib/home-photos';
+import { revealDelay } from '@/lib/motion';
 import type { Category, FeaturedProvider } from '@/types';
 
 type Props = {
@@ -33,6 +35,8 @@ export default function Home({ categories, featured, cities }: Props) {
     const { t } = useTranslation();
     // One slide per category with a photo; none: the band has one column.
     const slides = buildSlides(t, categories, HOME_PHOTOS);
+    // The steps appear one after the other when they are scrolled to.
+    const steps = useReveal<HTMLOListElement>();
 
     return (
         <>
@@ -60,11 +64,12 @@ export default function Home({ categories, featured, cities }: Props) {
                     <h2 className="text-xl font-semibold">
                         {t('home.steps.title')}
                     </h2>
-                    <ol className="grid gap-4 md:grid-cols-3">
-                        {STEPS.map((step) => (
+                    <ol ref={steps} className="grid gap-4 md:grid-cols-3">
+                        {STEPS.map((step, index) => (
                             <li
                                 key={step}
-                                className="flex flex-col gap-2 rounded-xl border bg-card p-4 text-card-foreground"
+                                className="reveal-item flex flex-col gap-2 rounded-xl border bg-card p-4 text-card-foreground"
+                                style={revealDelay(index)}
                             >
                                 <h3 className="font-medium">
                                     {t(`home.steps.${step}.title`)}
