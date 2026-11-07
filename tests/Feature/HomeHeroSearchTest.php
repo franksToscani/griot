@@ -154,11 +154,12 @@ test('the fields q and city, with their visible translated labels and the limit 
     $search = hhsSource('components/home/home-search.tsx');
 
     expect($search)
-        ->toMatch("/<Label htmlFor=\"home-search-q\">\\{t\\('home\\.search\\.q'\\)\\}<\\/Label>\\s*<Input\\s+id=\"home-search-q\"\\s+type=\"search\"\\s+name=\"q\"\\s+maxLength=\\{SEARCH_MAX\\}/")
+        // Since #144 step 9 the magnifying glass sits between the label and the field.
+        ->toMatch("/<Label htmlFor=\"home-search-q\">\\{t\\('home\\.search\\.q'\\)\\}<\\/Label>[\\s\\S]*?<Input\\s+id=\"home-search-q\"\\s+type=\"search\"\\s+name=\"q\"\\s+maxLength=\\{SEARCH_MAX\\}/")
         ->toMatch("/<Label htmlFor=\"home-search-city\">\\s*\\{t\\('home\\.search\\.city'\\)\\}\\s*<\\/Label>[\\s\\S]*?<select\\s+id=\"home-search-city\"\\s+name=\"city\"\\s+defaultValue=\"\"/")
         // "All cities" sends an empty value; then one option per city of the prop.
         ->toMatch("/<option value=\"\">\\s*\\{t\\('home\\.search\\.all_cities'\\)\\}\\s*<\\/option>\\s*\\{cities\\.map\\(\\(city\\) => \\(\\s*<option key=\\{city\\} value=\\{city\\}>\\s*\\{city\\}\\s*<\\/option>/")
-        ->toMatch("/<Button type=\"submit\" className=\\{cn\\('max-md:w-full', HERO\\.button\\)\\}>\\s*\\{t\\('home\\.search\\.submit'\\)\\}\\s*<\\/Button>/")
+        ->toMatch("/<Button\\s+type=\"submit\"\\s+className=\\{cn\\('px-6 max-md:w-full', SIZE, HERO\\.button\\)\\}\\s*>\\s*\\{t\\('home\\.search\\.submit'\\)\\}\\s*<\\/Button>/")
         ->not->toMatch('/aria-label(?!ledby)/');
     // The limit of ProviderIndexRequest: a longer search would be ignored.
     expect($search)->toContain('const SEARCH_MAX = '.ProviderIndexRequest::SEARCH_MAX.';');
@@ -166,9 +167,10 @@ test('the fields q and city, with their visible translated labels and the limit 
 
 test('the select looks like the kit\'s fields: 44px on phones, a visible focus, a border in forced colours', function () {
     expect(hhsSource('components/home/home-search.tsx'))
-        ->toMatch("/<select[\\s\\S]*?className=\\{cn\\(\\s*'[^']*\\bborder border-input\\b[^']*\\boutline-none\\b[^']*\\bfocus-visible:ring-\\[3px\\] focus-visible:outline-hidden\\b[^']*\\bmax-md:min-h-11\\b[^']*',\\s*HERO\\.field,?\\s*\\)\\}/")
-        // The text field is the kit's Input, 44px on phones already, with the band's focus ring.
-        ->toMatch('/name="q"\s+maxLength=\{SEARCH_MAX\}\s+className=\{HERO\.field\}/');
+        ->toMatch("/<select[\\s\\S]*?className=\\{cn\\(\\s*'[^']*\\bborder border-input\\b[^']*\\boutline-none\\b[^']*\\bfocus-visible:ring-\\[3px\\] focus-visible:outline-hidden\\b[^']*\\bmax-md:min-h-11\\b[^']*',\\s*SIZE,\\s*HERO\\.field,?\\s*\\)\\}/")
+        // The text field is the kit's Input, 44px on phones already, with the band's focus ring;
+        // since #144 step 9 the same height as the select and room for the magnifying glass.
+        ->toMatch("/name=\"q\"\\s+maxLength=\\{SEARCH_MAX\\}\\s+placeholder=\\{t\\('home\\.search\\.placeholder'\\)\\}\\s+className=\\{cn\\('pl-10', SIZE, HERO\\.field\\)\\}/");
 });
 
 // ---------------------------------------------------------------------------------------------
@@ -179,7 +181,7 @@ test('from edge to edge, square corners, a height in rem; its content in the sit
     $hero = hhsSource('components/home/home-hero.tsx');
 
     expect($hero)
-        ->toMatch('/<div className=\{HERO\.band\}>\s*<div\s+className=\{cn\(\s*\'mx-auto grid w-full max-w-6xl gap-10 px-4 py-10 md:min-h-\[28rem\] md:items-center md:py-14\',\s*slides\.length > 0 && \'md:grid-cols-2\',?\s*\)\}/')
+        ->toMatch('/<div className=\{HERO\.band\}>\s*<div\s+className=\{cn\(\s*\'mx-auto grid w-full max-w-6xl gap-10 px-4 py-12 md:min-h-\[32rem\] md:items-center md:py-16 lg:py-20\',\s*slides\.length > 0 && \'md:grid-cols-2\',?\s*\)\}/')
         // Search first, carousel after: on phones they stack in this order.
         ->toMatch('/<HomeSearch cities=\{cities\} \/>[\s\S]*<HomeCarousel slides=\{slides\} \/>/');
     // Square corners on the band and the photos; only the dots are round. No 100vw, which makes
@@ -197,7 +199,7 @@ test('from edge to edge, square corners, a height in rem; its content in the sit
 
 test('the h1 is the same, alone in the band; no heading in the search nor in the slides', function () {
     expect(hhsSource('components/home/home-hero.tsx'))
-        ->toMatch("/<h1 className=\"[^\"]*\">\\s*\\{t\\('home\\.intro\\.title'\\)\\}\\s*<\\/h1>\\s*<p className=\"max-w-xl\">\\{t\\('home\\.intro\\.text'\\)\\}<\\/p>/");
+        ->toMatch("/<h1 className=\"[^\"]*\">\\s*\\{t\\('home\\.intro\\.title'\\)\\}\\s*<\\/h1>\\s*<p className=\"max-w-xl md:text-lg\">\\s*\\{t\\('home\\.intro\\.text'\\)\\}\\s*<\\/p>/");
     expect(__('home.intro.title', [], 'it'))->toBe('Il savoir-faire africano, vicino a te');
     expect(hhsSource('components/home/home-search.tsx').hhsSource('components/home/home-carousel.tsx'))->not->toMatch('/<h[1-6]\b/');
     // The old button "Trova un professionista" and its block are gone.
@@ -207,7 +209,7 @@ test('the h1 is the same, alone in the band; no heading in the search nor in the
 
 test('the colours of the band are its tokens only, defined in both themes', function () {
     expect(hhsSource('components/home/home-hero.tsx'))->toContain('<div className={HERO.band}>');
-    expect(hhsSource('components/home/home-search.tsx'))->toContain('className={HERO.field}');
+    expect(hhsSource('components/home/home-search.tsx'))->toContain("className={cn('pl-10', SIZE, HERO.field)}");
     expect(hhsSource('components/home/home-carousel.tsx'))->toContain('HERO.button')->toContain('HERO.ring');
 
     $css = (string) file_get_contents(resource_path('css/app.css'));
@@ -256,7 +258,7 @@ test('the link of a slide goes to the list filtered on its category', function (
 // ---------------------------------------------------------------------------------------------
 
 test('the texts of the search exist in Italian, French and English', function () {
-    $keys = ['home.search.q', 'home.search.city', 'home.search.all_cities', 'home.search.submit'];
+    $keys = ['home.search.q', 'home.search.placeholder', 'home.search.city', 'home.search.all_cities', 'home.search.submit'];
 
     foreach (['it', 'fr', 'en'] as $locale) {
         $json = json_decode((string) file_get_contents(lang_path("{$locale}.json")), true, flags: JSON_THROW_ON_ERROR);
