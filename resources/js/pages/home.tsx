@@ -1,9 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
 import { FeaturedProviderCard } from '@/components/home/featured-provider-card';
-import { HomeCarousel } from '@/components/home/home-carousel';
-import { HomeIntro } from '@/components/home/home-intro';
+import { HomeHero } from '@/components/home/home-hero';
 import { ScrollRow } from '@/components/home/scroll-row';
 import { useTranslation } from '@/hooks/use-translation';
+import { buildSlides } from '@/lib/home-carousel';
+import { HOME_PHOTOS } from '@/lib/home-photos';
 import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
 import { index } from '@/routes/providers';
@@ -14,6 +15,8 @@ type Props = {
     categories: Category[];
     // "Professionisti in evidenza": at most 8, the most recently published first.
     featured: FeaturedProvider[];
+    // The cities of the published providers, for the search in the band at the top.
+    cities: string[];
 };
 
 const CATEGORIES_TITLE_ID = 'home-categories-title';
@@ -22,23 +25,21 @@ const FEATURED_TITLE_ID = 'home-featured-title';
 // The three steps of "Come funziona", in their order: the keys of their texts.
 const STEPS = ['choose', 'book', 'confirm'] as const;
 
-// The home page for the customers (issue #144, docs/home.md): the opening block, the categories,
-// the featured providers, then how it works. Headings go h1 (in HomeIntro), h2 for each section,
-// h3 for each step and each featured provider.
-export default function Home({ categories, featured }: Props) {
+// The home page for the customers (issue #144, docs/home.md): the band with the search and the
+// carousel, then the categories, the featured providers and how it works. Headings go h1 (in
+// HomeHero), h2 for each section, h3 for each step and each featured provider. The public layout
+// leaves the width to this page: the band goes from edge to edge, the sections below are in the
+// site's container.
+export default function Home({ categories, featured, cities }: Props) {
     const { t } = useTranslation();
+    // One slide per category with a photo; none: the band has one column.
+    const slides = buildSlides(t, categories, HOME_PHOTOS);
 
     return (
         <>
             <Head title={t('home.title')} />
-            <div className="flex flex-col gap-10">
-                <HomeIntro />
-
-                {/* Right under the opening block; nothing to show without categories. */}
-                {categories.length > 0 && (
-                    <HomeCarousel categories={categories} />
-                )}
-
+            <HomeHero cities={cities} slides={slides} />
+            <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10">
                 {/* No categories with something to book: no section, rather than an empty one. */}
                 {categories.length > 0 && (
                     <CategoriesSection categories={categories} />

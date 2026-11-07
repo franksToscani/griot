@@ -6,6 +6,7 @@ use App\Home\FeaturedProviders;
 use App\Http\Resources\CategoryResource;
 use App\Http\Resources\FeaturedProviderResource;
 use App\Models\Category;
+use App\Models\Provider;
 use App\Support\LinkPreview;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -38,6 +39,9 @@ class HomeController extends Controller
             'categories' => CategoryResource::collection($categories)->resolve($request),
             // "Professionisti in evidenza": at most 8, the most recently published first.
             'featured' => FeaturedProviderResource::collection($featured->get())->resolve($request),
+            // The cities of the search in the band at the top: the same list, and the same order,
+            // as the city filter of /providers (ProviderIndexRequest), so every one is accepted.
+            'cities' => Provider::publishedCities(),
         ]);
     }
 }

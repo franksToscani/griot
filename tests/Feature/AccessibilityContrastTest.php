@@ -94,57 +94,22 @@ function accPairs(string $theme): array
     $opacity = accOpacity('button', $class);
     $pairs[] = ["focus ring of a destructive button ({$opacity})", accOver($color, $opacity, $t['background']), $background, 3.0];
 
-    // The tiles of the home carousel (#144), as home-carousel.tsx colours them: the text on the
-    // tile, the edge of its button against the tile, the button's own text, its focus ring over
-    // the tile, and the edge of a tile that has a border, against the page.
-    $buttonOpacity = accOpacity('button', 'focus-visible:ring-ring/');
-    foreach (accCarouselTones() as $tone => [$surface, $text, $button, $ring, $border]) {
-        [$buttonBackground, $buttonText] = $button === 'secondary' ? ['secondary', 'secondary-foreground'] : ['primary', 'primary-foreground'];
-        $pairs[] = ["carousel tile {$tone}: text", accSrgb($t[$text]), accSrgb($t[$surface]), 4.5];
-        $pairs[] = ["carousel tile {$tone}: edge of the button ({$button})", accSrgb($t[$buttonBackground]), accSrgb($t[$surface]), 3.0];
-        $pairs[] = ["carousel tile {$tone}: text of the button ({$button})", accSrgb($t[$buttonText]), accSrgb($t[$buttonBackground]), 4.5];
-        $pairs[] = $ring === null
-            ? ["carousel tile {$tone}: focus ring of the button ({$buttonOpacity})", accOver($t['ring'], $buttonOpacity, $t[$surface]), accSrgb($t[$surface]), 3.0]
-            : ["carousel tile {$tone}: focus ring of the button ({$ring})", accSrgb($t[$ring]), accSrgb($t[$surface]), 3.0];
-        if ($border !== null) {
-            $pairs[] = ["carousel tile {$tone}: its border against the page", accSrgb($t[$border]), $background, 3.0];
-        }
-    }
+    // The green band at the top of the home page (docs/home.md), as lib/home-hero.ts colours it:
+    // the white text on the green, the edge of the fields (their own background) and of the light
+    // buttons against the green, the buttons' green text (also on hover, at 90%), the white focus
+    // ring over the green.
+    $hero = accSrgb($t['hero']);
+    $pairs[] = ['home band: text', accSrgb($t['hero-foreground']), $hero, 4.5];
+    $pairs[] = ['home band: edge of the fields (bg-background)', $background, $hero, 3.0];
+    $pairs[] = ['home band: text of the fields', accSrgb($t['foreground']), $background, 4.5];
+    $pairs[] = ['home band: edge of the buttons (bg-hero-foreground)', accSrgb($t['hero-foreground']), $hero, 3.0];
+    $pairs[] = ['home band: text of the buttons', $hero, accSrgb($t['hero-foreground']), 4.5];
+    $pairs[] = ['home band: text of the buttons on hover (hover:bg-hero-foreground/90)', $hero, accOver($t['hero-foreground'], 0.9, $t['hero']), 4.5];
+    $pairs[] = ['home band: focus ring and dots (hero-foreground)', accSrgb($t['hero-foreground']), $hero, 3.0];
+    // The focus ring of the fields is white too: against the white field it is the field's own
+    // focus border (border-ring) that shows, measured above on the background.
 
     return $pairs;
-}
-
-/**
- * The colours of the tiles of the home carousel, read from home-carousel.tsx: for each tone the
- * surface, the text, the variant of the button, the token of its own focus ring (null: the
- * button's usual one) and the token of its border (null: none).
- *
- * @return array<string, array{0: string, 1: string, 2: string, 3: string|null, 4: string|null}>
- */
-function accCarouselTones(): array
-{
-    $source = (string) file_get_contents(resource_path('js/components/home/home-carousel.tsx'));
-    preg_match_all("/(\w+): \{\s*tile: '([^']*)',\s*button: '(\w+)',\s*ring: '([^']*)',\s*\}/", $source, $entries, PREG_SET_ORDER);
-    expect($entries)->toHaveCount(4, 'The four tones of the carousel');
-
-    $tones = [];
-    foreach ($entries as [, $tone, $tile, $button, $ring]) {
-        $classes = explode(' ', $tile);
-        $surface = collect($classes)->first(fn (string $class) => str_starts_with($class, 'bg-'));
-        $text = collect($classes)->first(fn (string $class) => str_starts_with($class, 'text-'));
-        $border = collect($classes)->first(fn (string $class) => str_starts_with($class, 'border-'));
-        expect($surface)->not->toBeNull("No surface for {$tone}")->and($text)->not->toBeNull("No text colour for {$tone}");
-
-        $tones[$tone] = [
-            substr((string) $surface, 3),
-            substr((string) $text, 5),
-            $button,
-            $ring === '' ? null : str_replace('focus-visible:ring-', '', $ring),
-            $border === null ? null : substr((string) $border, 7),
-        ];
-    }
-
-    return $tones;
 }
 
 test('every colour pair reaches its WCAG threshold, in the light and in the dark theme', function (string $theme) {
@@ -155,14 +120,33 @@ test('every colour pair reaches its WCAG threshold, in the light and in the dark
     }
 })->with(['light', 'dark']);
 
-test('the tiles of the home carousel are green, yellow, light blue and white, never red', function () {
-    $tones = accCarouselTones();
+test('the band of the home page uses the tokens measured above, never red', function () {
+    $source = (string) file_get_contents(resource_path('js/lib/home-hero.ts'));
 
-    expect(array_keys($tones))->toBe(['primary', 'highlight', 'info', 'card'])
-        ->and(array_column($tones, 0))->toBe(['primary', 'highlight', 'info', 'card'])
-        ->and(array_column($tones, 1))->toBe(['primary-foreground', 'highlight-foreground', 'info-foreground', 'card-foreground']);
-    expect((string) file_get_contents(resource_path('js/components/home/home-carousel.tsx')))
-        ->not->toMatch('/\b(bg|text|border)-(decor|destructive|red-\d)/');
+    expect($source)
+        ->toContain("band: 'bg-hero text-hero-foreground',")
+        ->toContain("field: 'bg-background text-foreground focus-visible:ring-hero-foreground',")
+        ->toContain("button: 'bg-hero-foreground text-hero hover:bg-hero-foreground/90 focus-visible:ring-hero-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-hero',")
+        ->toContain("dot: 'border-hero-foreground',")
+        ->toContain("dotCurrent: 'bg-hero-foreground',")
+        ->toContain("ring: 'focus-visible:ring-hero-foreground',");
+
+    // Every colour class of the band, the carousel and the search is one of the measured tokens.
+    $sources = $source;
+    foreach (['home-hero', 'home-carousel', 'home-search'] as $component) {
+        $sources .= (string) file_get_contents(resource_path("js/components/home/{$component}.tsx"));
+    }
+    preg_match_all('/(?<![\w-])(?:hover:|focus-visible:)?(?:ring-offset|bg|text|border|ring)-([a-z]+(?:-[a-z]+)*)(?:\/\d+)?(?![\w-])/', $sources, $colours);
+    $tokens = array_unique($colours[1]);
+    $sizes = ['xl', 'sm', 'base', '3xl', '4xl', 'lg'];
+    expect(array_values(array_diff($tokens, ['hero', 'hero-foreground', 'background', 'foreground', 'muted', 'input', ...$sizes])))->toBe([])
+        ->and($sources)->not->toMatch('/\b(bg|text|border)-(decor|destructive|primary|red-\d)/');
+
+    // Dark green in both themes, white text: not "primary", which is light green in the dark theme.
+    expect(accTokens('light')['hero'][0])->toBeLessThan(0.55)
+        ->and(accTokens('dark')['hero'][0])->toBeLessThan(0.55)
+        ->and(accTokens('light')['hero-foreground'][0])->toBeGreaterThan(0.95)
+        ->and(accTokens('dark')['hero-foreground'][0])->toBeGreaterThan(0.95);
 });
 
 test('the conversion gives the known ratios: black on white 21:1, a colour on itself 1:1', function () {

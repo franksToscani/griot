@@ -13,10 +13,16 @@ import { dashboard, home, login, privacy } from '@/routes';
 // The name of the group of the site's contacts in the footer.
 const FOOTER_CONTACT_ID = 'footer-contact-label';
 
+// The pages that lay out their own width: the home page, whose first band goes from edge to edge
+// (docs/home.md). Their sections use the same container as the header and the footer.
+const FULL_WIDTH_PAGES = ['home'];
+
 // Layout for the public pages that customers see without logging in.
 export default function PublicLayout({ children }: { children: ReactNode }) {
     const { auth, contact } = usePage().props;
+    const { component } = usePage();
     const { t } = useTranslation();
+    const fullWidth = FULL_WIDTH_PAGES.includes(component);
 
     return (
         <div className="flex min-h-svh flex-col bg-background">
@@ -57,7 +63,10 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             <main
                 id={MAIN_CONTENT_ID}
                 tabIndex={-1}
-                className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 outline-none"
+                className={cn(
+                    'w-full flex-1 outline-none',
+                    !fullWidth && 'mx-auto max-w-6xl px-4 py-6',
+                )}
             >
                 {children}
             </main>

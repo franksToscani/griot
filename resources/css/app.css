@@ -61,6 +61,11 @@
     --color-info-border: var(--info-border);
     --color-decor: var(--decor);
 
+    /* The band at the top of the home page (docs/home.md): dark green with white text in both
+       themes. Not "primary": in the dark theme that is a light green with dark text. */
+    --color-hero: var(--hero);
+    --color-hero-foreground: var(--hero-foreground);
+
     --color-sidebar: var(--sidebar);
     --color-sidebar-foreground: var(--sidebar-foreground);
     --color-sidebar-primary: var(--sidebar-primary);
@@ -98,6 +103,8 @@
     --info-foreground: oklch(0.34 0.08 245);
     --info-border: oklch(0.58 0.1 240);
     --decor: oklch(0.56 0.17 30);
+    --hero: oklch(0.36 0.07 170);
+    --hero-foreground: oklch(0.99 0.005 200);
     --sidebar: oklch(0.96 0.02 225);
     --sidebar-foreground: oklch(0.2 0.025 240);
     --sidebar-primary: oklch(0.43 0.09 170);
@@ -134,6 +141,8 @@
     --info-foreground: oklch(0.94 0.03 228);
     --info-border: oklch(0.62 0.1 238);
     --decor: oklch(0.68 0.16 30);
+    --hero: oklch(0.5 0.08 170);
+    --hero-foreground: oklch(0.99 0.005 200);
     --sidebar: oklch(0.22 0.03 245);
     --sidebar-foreground: oklch(0.97 0.01 225);
     --sidebar-primary: oklch(0.8 0.11 170);
