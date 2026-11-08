@@ -6,7 +6,7 @@
 import type { HomePhoto, SlideImage } from '@/lib/home-carousel';
 import type { Category } from '@/types';
 
-// The colours of the tiles of the categories without a photo, in turn: green, yellow, light blue,
+// The colours of the tiles of the categories without a photo, in turn: brown, amber, light green,
 // white. Only the tokens of resources/css/app.css; never red. The tile holds no text (the name is
 // under it, on the page's background), so only its edge matters: CATEGORY_TILE_EDGE.
 export const CATEGORY_TONES = [
@@ -18,7 +18,7 @@ export const CATEGORY_TONES = [
 
 export type CategoryTone = (typeof CATEGORY_TONES)[number];
 
-// The edge of every tile, whatever its colour: the yellow, the light blue and the white are too
+// The edge of every tile, whatever its colour: the amber, the light green and the white are too
 // close to the page's background (below 3:1), the border is not (AccessibilityContrastTest). It
 // stays in forced colours, where the background of the tile is gone.
 export const CATEGORY_TILE_EDGE = 'border border-input';
@@ -60,7 +60,7 @@ export function categoryImage(
 }
 
 // The cards, in the order of the categories. The tones go in turn over the categories without a
-// photo only: the first tile is green, the second yellow, and so on, whatever photos are between.
+// photo only: the first tile is brown, the second amber, and so on, whatever photos are between.
 export function categoryCards(
     categories: Category[],
     photos: Record<string, HomePhoto> = {},

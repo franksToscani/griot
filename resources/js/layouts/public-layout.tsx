@@ -29,7 +29,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
         <div className="flex min-h-svh flex-col bg-background">
             <SkipLink />
             <header className="border-b-2 border-decor">
-                {/* The thin red line under the header (border-decor): decorative, it means nothing. */}
+                {/* The thin orange line under the header (border-decor): decorative, it means nothing. */}
                 <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3">
                     {/* Never squeezed: on a narrow phone the language and "log in" make room
                         ("Se connecter" goes on two lines), not the name of the site. */}
@@ -42,7 +42,10 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                     >
                         <AppLogo />
                     </Link>
-                    <div className="flex items-center gap-4">
+                    {/* With the logo as an image (28 px high, about 117 px wide on phones),
+                        a 320 px screen may not hold the language and "log in" on one row: they
+                        go one under the other, never off the screen. */}
+                    <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
                         <LocaleSwitcher />
                         <nav className="text-sm">
                             {auth.user ? (

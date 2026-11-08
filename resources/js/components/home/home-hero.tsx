@@ -6,7 +6,7 @@ import type { Slide } from '@/lib/home-carousel';
 import { HERO } from '@/lib/home-hero';
 import { cn } from '@/lib/utils';
 
-// The band at the top of the home page (docs/home.md): from edge to edge, dark green, square
+// The band at the top of the home page (docs/home.md): from edge to edge, dark brown, square
 // corners; its content in the site's container. On the left the page's one h1, a sentence and
 // the search; on the right the carousel, under them on phones. Its height and its vertical space
 // in rem, so that it grows with the zoom; the text sets it, never a set height.

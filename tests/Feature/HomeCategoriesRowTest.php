@@ -68,7 +68,7 @@ function hcrOffered(string $slug): Category
 // The cards
 // ---------------------------------------------------------------------------------------------
 
-test('one card per category, in the order of the prop: a photo, or a tile in turn green, yellow, light blue, white', function () {
+test('one card per category, in the order of the prop: a photo, or a tile in turn brown, amber, light green, white', function () {
     $cards = hcrRun("h.categoryCards([cat(5, 'couture'), cat(2, 'treccine'), cat(9, 'cucina'), cat(1, 'vuota'), cat(7, 'barbiere'), cat(3, 'altro'), cat(4, 'sartoria'), cat(8, 'constructor')], photos)");
 
     expect(array_column($cards, 'id'))->toBe([5, 2, 9, 1, 7, 3, 4, 8])

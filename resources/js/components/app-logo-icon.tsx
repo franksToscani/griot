@@ -1,25 +1,27 @@
-import type { SVGAttributes } from 'react';
+import { PIN } from '@/lib/brand';
+import { cn } from '@/lib/utils';
 
-// Griot's small mark: a "G" on a green square, drawn as a path (it does not depend on the font).
-// The same drawing as public/favicon.svg, with the colours of the theme. Decorative: the name of
-// the site is always written next to it, or given to the link that holds it.
-export default function AppLogoIcon(props: SVGAttributes<SVGElement>) {
+// Griot's small mark (docs/brand.md): the pin of the provisional logo on a brown square with
+// round corners. The brown is the band's token (bg-hero), the same in both themes; the square
+// keeps a border in forced colours, where its background is gone. Decorative: the name of the
+// site is always written next to it, or given to the link that holds it.
+export default function AppLogoIcon({ className }: { className?: string }) {
     return (
-        <svg
-            {...props}
-            viewBox="0 0 64 64"
-            xmlns="http://www.w3.org/2000/svg"
+        <span
             aria-hidden="true"
+            className={cn(
+                'flex items-center justify-center rounded-[22%] bg-hero forced-colors:border',
+                className,
+            )}
         >
-            <rect width="64" height="64" rx="14" className="fill-primary" />
-            <path
-                d="M41.9 22.1A14 14 0 1 0 46 32H33"
-                fill="none"
-                strokeWidth="7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="stroke-primary-foreground"
+            <img
+                src={PIN.src}
+                srcSet={PIN.srcSet}
+                width={PIN.width}
+                height={PIN.height}
+                alt=""
+                className="h-[64%] w-auto"
             />
-        </svg>
+        </span>
     );
 }
