@@ -8,8 +8,9 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 2. Fascia marrone a tutta larghezza: a sinistra l'h1, una frase e la ricerca per servizio e città; a destra il carousel delle categorie con foto (sotto, sui telefoni).
 3. Categorie: una fila sottile di schede con foto (o un riquadro colorato) che si scorre di lato.
 4. Professionisti in evidenza: provider pubblicati con almeno una foto, i più recenti per `published_at` (passo 3).
-5. Come funziona: tre passi.
-6. Piè di pagina: privacy e contatti del gestore da configurazione (passo 4).
+5. Come funziona: tre passi, ognuno con un'icona in un cerchio ambra e il suo numero.
+6. Fascia per i professionisti: titolo, frase e i contatti del gestore; solo se ce n'è almeno uno.
+7. Piè di pagina: privacy e contatti del gestore da configurazione (passo 4).
 
 ## Piano dei passi
 
@@ -24,7 +25,8 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 | 7     | Fascia con ricerca e carousel ridisegnato                           | fatto     |
 | 8     | Fila delle categorie con foto                                       | fatto     |
 | 9     | Rifinitura grafica della fascia                                     | fatto     |
-| 10    | Animazioni e reattività di fascia, carousel e schede                | questa PR |
+| 10    | Animazioni e reattività di fascia, carousel e schede                | fatto     |
+| 11    | « Come funziona » con icone e fascia per i professionisti           | questa PR |
 
 ## Cosa c'è oggi
 
@@ -41,7 +43,8 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
     - Scheda (`components/home/featured-provider-card.tsx`, nuova: quella dell'elenco ha un h2 e l'avatar): un link alla pagina del provider con la copertina decorativa (`alt=""`, lenta, `srcset`, `sizes="16rem"`, 4:3), il nome come h3 con la città in sr-only (« Trecce Sahel, a Bologna »), la città visibile e le categorie.
     - Nessun provider idoneo: la sezione non c'è.
 - Fila condivisa `components/home/scroll-row.tsx`: una `<section>` con il suo h2, una regione `role="region"` con `aria-labelledby` sul titolo e `tabIndex={0}`, e il `<ul>` con `snap-x` (vedi `docs/accessibility.md`). La usano le categorie e i professionisti in evidenza.
-- « Come funziona » (h2): un `<ol>` di tre passi, ognuno con un h3 e una frase.
+- « Come funziona » (h2), vedi la sezione « Come funziona » qui sotto.
+- « Sei un professionista? » (h2), vedi la sezione « Fascia per i professionisti » qui sotto.
 - Anteprima dei link: `LinkPreview::publicPage()` senza titolo, quindi « Griot », la descrizione del sito e l'immagine predefinita; pagina indicizzabile.
 
 ## Fascia in alto
@@ -92,6 +95,27 @@ Le regole sono in `docs/accessibility.md` (« Movimento »); il codice in `hooks
 - **Sotto la fascia**: le schede di « Categorie » e di « Professionisti in evidenza » (in `ScrollRow`) e i passi di « Come funziona » compaiono quando si scorre fino a loro, uno dopo l'altro (`useReveal`, `revealDelay()`). Ciò che è già sullo schermo all'apertura non si nasconde mai.
 - **Schede**: sotto il mouse o con il focus salgono di 2 px con un'ombra e la foto cresce dentro la cornice (`CARD_MOTION`, condivisa). La fila tiene 8 px intorno alle schede (`p-2`), così l'anello del focus non viene tagliato.
 - Con « riduci movimento » niente di tutto questo esiste: la pagina è quella della PR precedente, con l'ombra sotto il mouse.
+
+## Come funziona
+
+In `resources/js/pages/home.tsx`, dopo i professionisti in evidenza.
+
+- Titolo h2 « Come funziona » e sotto una barra arancio di 4 px (`bg-brand`): decorativa, senza testo e senza significato (`aria-hidden`); nei colori forzati sparisce (`forced-colors:hidden`), senza perdere niente.
+- Un `<ol>` di tre schede (`STEPS`: scegli, prenota, ricevi la conferma), con i testi di sempre (`home.steps.*`). Ogni scheda:
+    - un'icona di lucide (`Search`, `CalendarCheck`, `MailCheck`, in `STEP_ICONS`) in un cerchio ambra (`bg-highlight`, icona `text-highlight-foreground`, 9,2:1 e 11,8:1). Decorativa (`aria-hidden`); nei colori forzati il cerchio ha un bordo;
+    - un h3 che comincia con il numero del passo in parole, « Passo 1 » (`home.steps.number`): il numero è nel testo, non solo nell'icona;
+    - la frase.
+- Le schede compaiono allo scorrimento (`useReveal`, una dopo l'altra), solo senza « riduci movimento ». Non sono link: niente effetto sotto il mouse (`CARD_MOTION` resta per le schede cliccabili).
+
+## Fascia per i professionisti
+
+`resources/js/components/home/professionals-band.tsx`, l'ultima sezione del contenitore, sopra il footer.
+
+- Titolo h2 « Sei un professionista? », la frase « Sviluppa la tua attività: fatti trovare e ricevi prenotazioni. » e i modi per scrivere a Griot: « Scrivici un'email » e « Scrivici su WhatsApp » (nuova scheda, con l'avviso per i lettori di schermo), chiavi `home.pros.*`.
+- I contatti sono quelli del gestore, dalla prop condivisa `contact` (`config/contact.php`, `App\Support\SiteContact`), come nel footer: nessun indirizzo né numero nel codice. Il messaggio già scritto di WhatsApp è suo (`home.pros.whatsapp_message`), con la stessa `whatsappLink()` del footer. Senza nessun contatto configurato la fascia non c'è, nemmeno vuota.
+- Nessun invito a registrarsi: la registrazione resta chiusa ai nuovi provider (Sprint 9).
+- Marrone con testo crema (`bg-hero`, `text-hero-foreground`, gli stessi token della fascia in alto); nel tema scuro un bordo sottile (`dark:border-input`). Link sottolineati, 44 px sui telefoni (`touchTarget`), anello del focus crema.
+- Compare allo scorrimento (`useReveal`), solo senza « riduci movimento ». Nessuna query in più: la prop `contact` è già condivisa da tutte le pagine.
 
 ## Piè di pagina e contatti
 

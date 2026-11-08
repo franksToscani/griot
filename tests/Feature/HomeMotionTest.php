@@ -19,7 +19,7 @@ function hmSources(): string
     $files = [
         'js/pages/home.tsx', 'js/components/home/home-hero.tsx', 'js/components/home/home-search.tsx', 'js/components/search-fields.tsx',
         'js/components/home/home-carousel.tsx', 'js/components/home/category-card.tsx',
-        'js/components/home/featured-provider-card.tsx', 'js/components/home/scroll-row.tsx',
+        'js/components/home/featured-provider-card.tsx', 'js/components/home/scroll-row.tsx', 'js/components/home/professionals-band.tsx',
         'js/lib/home-hero.ts', 'js/lib/motion.ts', 'js/hooks/use-reveal.ts',
     ];
 
@@ -266,6 +266,7 @@ test('no real contact in the motion of the home page', function () {
     expect(hmSources().hmMotionCss())
         ->not->toMatch('/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/')
         ->not->toMatch('/(\+|00)\d[\d ]{7,}/')
-        ->not->toContain('mailto:')
+        // Only the site's own address, from the shared prop (the band for the professionals).
+        ->not->toMatch('/mailto:(?!\$\{contact\.email\})/')
         ->not->toContain('wa.me/');
 });
