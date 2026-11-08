@@ -1,6 +1,6 @@
 import type { SVGAttributes } from 'react';
 
-// Griot's small mark: a "G" on a green square, drawn as a path (it does not depend on the font).
+// Griot's small mark: a "G" on a square of the buttons' colour (primary), drawn as a path (it does not depend on the font).
 // The same drawing as public/favicon.svg, with the colours of the theme. Decorative: the name of
 // the site is always written next to it, or given to the link that holds it.
 export default function AppLogoIcon(props: SVGAttributes<SVGElement>) {

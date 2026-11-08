@@ -1,7 +1,7 @@
 {{--
     Griot's error pages. They stand on their own: no Vite, no database, no session, no Inertia, no
     JavaScript, so that a 500 or a 503 still shows them. The CSS is here, with the colours of the
-    Laguna palette (the same tokens as resources/css/app.css: ErrorPagesTest compares them), the
+    warm palette (the same tokens as resources/css/app.css: ErrorPagesTest compares them), the
     font is the system's. Never any detail of the exception.
 
     Inside the app, Inertia shows an error page in a dialog over the current page: every link has
@@ -21,26 +21,26 @@
         <style>
             :root {
                 color-scheme: light dark;
-                --background: oklch(1 0 0);
-                --foreground: oklch(0.2 0.025 240);
-                --muted-foreground: oklch(0.48 0.03 240);
-                --primary: oklch(0.43 0.09 170);
-                --primary-foreground: oklch(0.99 0.005 200);
-                --input: oklch(0.6 0.03 235);
-                --ring: oklch(0.24 0.06 170);
-                --decor: oklch(0.56 0.17 30);
+                --background: oklch(0.99 0.006 80);
+                --foreground: oklch(0.25 0.07 40);
+                --muted-foreground: oklch(0.47 0.045 50);
+                --primary: oklch(0.32 0.08 40);
+                --primary-foreground: oklch(0.985 0.012 85);
+                --input: oklch(0.58 0.045 55);
+                --ring: oklch(0.2 0.06 40);
+                --decor: oklch(0.64 0.18 50);
             }
 
             @media (prefers-color-scheme: dark) {
                 :root {
-                    --background: oklch(0.18 0.02 245);
-                    --foreground: oklch(0.97 0.01 225);
-                    --muted-foreground: oklch(0.76 0.03 230);
-                    --primary: oklch(0.8 0.11 170);
-                    --primary-foreground: oklch(0.2 0.04 200);
-                    --input: oklch(0.56 0.04 240);
-                    --ring: oklch(0.85 0.09 170);
-                    --decor: oklch(0.68 0.16 30);
+                    --background: oklch(0.17 0.025 45);
+                    --foreground: oklch(0.96 0.015 80);
+                    --muted-foreground: oklch(0.78 0.03 70);
+                    --primary: oklch(0.82 0.165 79);
+                    --primary-foreground: oklch(0.22 0.06 40);
+                    --input: oklch(0.58 0.05 60);
+                    --ring: oklch(0.82 0.165 79);
+                    --decor: oklch(0.71 0.17 55);
                 }
             }
 

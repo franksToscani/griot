@@ -219,7 +219,7 @@ test('every colour pair of the error pages reaches its WCAG threshold', function
         ['border of the other buttons (input)', accSrgb($c['input']), $background, 3.0],
         ['focus outline (ring, solid)', accSrgb($c['ring']), $background, 3.0],
         ['letter of the small mark', accSrgb($c['primary-foreground']), accSrgb($c['primary']), 3.0],
-        ['red line under the header', accSrgb($c['decor']), $background, 3.0],
+        ['orange line under the header', accSrgb($c['decor']), $background, 3.0],
     ];
 
     foreach ($pairs as [$what, $foreground, $back, $threshold]) {

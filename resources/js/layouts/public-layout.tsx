@@ -29,7 +29,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
         <div className="flex min-h-svh flex-col bg-background">
             <SkipLink />
             <header className="border-b-2 border-decor">
-                {/* The thin red line under the header (border-decor): decorative, it means nothing. */}
+                {/* The thin orange line under the header (border-decor): decorative, it means nothing. */}
                 <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3">
                     {/* Never squeezed: on a narrow phone the language and "log in" make room
                         ("Se connecter" goes on two lines), not the name of the site. */}

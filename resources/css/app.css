@@ -51,18 +51,21 @@
     --color-input: var(--input);
     --color-ring: var(--ring);
 
-    /* Yellow: only a background, always with its dark text (never yellow text on white). Light blue:
-       backgrounds for information. Red decor: a thin line under the header and the name of the
-       site, with no meaning: never on badges, fields or messages, which keep their own colours. */
+    /* Amber (highlight) and orange (brand): only backgrounds, always with their brown text (never
+       amber or orange text on cream). Light green (info): backgrounds for information. Decor: the
+       orange of the logo, darker, only as the thin line under the public header, with no meaning:
+       never on errors, badges, fields or messages, which keep their own colours. */
     --color-highlight: var(--highlight);
     --color-highlight-foreground: var(--highlight-foreground);
+    --color-brand: var(--brand);
+    --color-brand-foreground: var(--brand-foreground);
     --color-info: var(--info);
     --color-info-foreground: var(--info-foreground);
     --color-info-border: var(--info-border);
     --color-decor: var(--decor);
 
-    /* The band at the top of the home page (docs/home.md): dark green with white text in both
-       themes. Not "primary": in the dark theme that is a light green with dark text. */
+    /* The band at the top of the home page (docs/home.md): dark brown with cream text in both
+       themes. Not "primary": in the dark theme that is amber with dark text. */
     --color-hero: var(--hero);
     --color-hero-foreground: var(--hero-foreground);
 
@@ -77,80 +80,96 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.2 0.025 240);
+    /* The warm palette of the provisional logo (docs/accessibility.md, "Palette"): brown for the
+       text, the buttons and the band of the home page, on a cream background; amber and orange
+       only as backgrounds with brown text; light green for information; the reds and greens of
+       Tailwind for errors and confirmations. Every pair is measured in AccessibilityContrastTest. */
+    --background: oklch(0.99 0.006 80);
+    --foreground: oklch(0.25 0.07 40);
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.2 0.025 240);
+    --card-foreground: oklch(0.25 0.07 40);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.2 0.025 240);
-    --primary: oklch(0.43 0.09 170);
-    --primary-foreground: oklch(0.99 0.005 200);
-    --secondary: oklch(0.95 0.025 225);
-    --secondary-foreground: oklch(0.3 0.06 240);
-    --muted: oklch(0.965 0.015 225);
-    --muted-foreground: oklch(0.48 0.03 240);
-    --accent: oklch(0.93 0.035 225);
-    --accent-foreground: oklch(0.3 0.06 240);
+    --popover-foreground: oklch(0.25 0.07 40);
+    --primary: oklch(0.32 0.08 40);
+    --primary-foreground: oklch(0.985 0.012 85);
+    --secondary: oklch(0.95 0.035 80);
+    --secondary-foreground: oklch(0.3 0.08 40);
+    --muted: oklch(0.965 0.015 75);
+    --muted-foreground: oklch(0.47 0.045 50);
+    --accent: oklch(0.93 0.05 80);
+    --accent-foreground: oklch(0.3 0.08 40);
     --destructive: oklch(0.577 0.245 27.325);
     --destructive-foreground: oklch(0.577 0.245 27.325);
-    --border: oklch(0.91 0.02 225);
-    --input: oklch(0.6 0.03 235);
-    --ring: oklch(0.24 0.06 170);
+    --border: oklch(0.9 0.025 70);
+    --input: oklch(0.58 0.045 55);
+    /* Darker than primary: the kit draws the ring at 50%, which must still reach 3:1, on the
+       amber too. */
+    --ring: oklch(0.2 0.06 40);
     --radius: 0.625rem;
-    --highlight: oklch(0.93 0.1 98);
-    --highlight-foreground: oklch(0.3 0.05 80);
-    --info: oklch(0.93 0.04 228);
-    --info-foreground: oklch(0.34 0.08 245);
-    --info-border: oklch(0.58 0.1 240);
-    --decor: oklch(0.56 0.17 30);
-    --hero: oklch(0.36 0.07 170);
-    --hero-foreground: oklch(0.99 0.005 200);
-    --sidebar: oklch(0.96 0.02 225);
-    --sidebar-foreground: oklch(0.2 0.025 240);
-    --sidebar-primary: oklch(0.43 0.09 170);
-    --sidebar-primary-foreground: oklch(0.99 0.005 200);
-    --sidebar-accent: oklch(0.92 0.04 225);
-    --sidebar-accent-foreground: oklch(0.3 0.06 240);
-    --sidebar-border: oklch(0.9 0.02 225);
-    --sidebar-ring: oklch(0.24 0.06 170);
+    --highlight: oklch(0.82 0.165 79);
+    --highlight-foreground: oklch(0.25 0.07 40);
+    --brand: oklch(0.71 0.17 55);
+    --brand-foreground: oklch(0.25 0.07 40);
+    --info: oklch(0.94 0.05 150);
+    --info-foreground: oklch(0.33 0.09 150);
+    --info-border: oklch(0.55 0.13 150);
+    /* The orange of the logo, darker: a thin line still at 3:1 on the cream. */
+    --decor: oklch(0.64 0.18 50);
+    --hero: oklch(0.25 0.07 40);
+    --hero-foreground: oklch(0.985 0.012 85);
+    --sidebar: oklch(0.97 0.015 75);
+    --sidebar-foreground: oklch(0.25 0.07 40);
+    --sidebar-primary: oklch(0.32 0.08 40);
+    --sidebar-primary-foreground: oklch(0.985 0.012 85);
+    --sidebar-accent: oklch(0.93 0.045 78);
+    --sidebar-accent-foreground: oklch(0.3 0.08 40);
+    --sidebar-border: oklch(0.9 0.025 70);
+    --sidebar-ring: oklch(0.2 0.06 40);
 }
 
 .dark {
-    --background: oklch(0.18 0.02 245);
-    --foreground: oklch(0.97 0.01 225);
-    --card: oklch(0.21 0.025 245);
-    --card-foreground: oklch(0.97 0.01 225);
-    --popover: oklch(0.21 0.025 245);
-    --popover-foreground: oklch(0.97 0.01 225);
-    --primary: oklch(0.8 0.11 170);
-    --primary-foreground: oklch(0.2 0.04 200);
-    --secondary: oklch(0.29 0.04 240);
-    --secondary-foreground: oklch(0.95 0.015 225);
-    --muted: oklch(0.26 0.03 245);
-    --muted-foreground: oklch(0.76 0.03 230);
-    --accent: oklch(0.31 0.05 240);
-    --accent-foreground: oklch(0.97 0.01 225);
+    /* Dark brown background, cream text; amber for the buttons, the links of the name and the
+       focus ring, with dark brown text on it. */
+    --background: oklch(0.17 0.025 45);
+    --foreground: oklch(0.96 0.015 80);
+    --card: oklch(0.21 0.03 45);
+    --card-foreground: oklch(0.96 0.015 80);
+    --popover: oklch(0.21 0.03 45);
+    --popover-foreground: oklch(0.96 0.015 80);
+    --primary: oklch(0.82 0.165 79);
+    --primary-foreground: oklch(0.22 0.06 40);
+    --secondary: oklch(0.3 0.05 50);
+    --secondary-foreground: oklch(0.96 0.015 80);
+    --muted: oklch(0.25 0.03 45);
+    --muted-foreground: oklch(0.78 0.03 70);
+    --accent: oklch(0.32 0.06 50);
+    --accent-foreground: oklch(0.96 0.015 80);
     --destructive: oklch(0.396 0.141 25.723);
     --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.31 0.03 245);
-    --input: oklch(0.56 0.04 240);
-    --ring: oklch(0.85 0.09 170);
-    --highlight: oklch(0.34 0.07 90);
-    --highlight-foreground: oklch(0.95 0.07 98);
-    --info: oklch(0.3 0.06 240);
-    --info-foreground: oklch(0.94 0.03 228);
-    --info-border: oklch(0.62 0.1 238);
-    --decor: oklch(0.68 0.16 30);
-    --hero: oklch(0.5 0.08 170);
-    --hero-foreground: oklch(0.99 0.005 200);
-    --sidebar: oklch(0.22 0.03 245);
-    --sidebar-foreground: oklch(0.97 0.01 225);
-    --sidebar-primary: oklch(0.8 0.11 170);
-    --sidebar-primary-foreground: oklch(0.2 0.04 200);
-    --sidebar-accent: oklch(0.31 0.05 240);
-    --sidebar-accent-foreground: oklch(0.97 0.01 225);
-    --sidebar-border: oklch(0.31 0.03 245);
-    --sidebar-ring: oklch(0.85 0.09 170);
+    --border: oklch(0.32 0.035 45);
+    --input: oklch(0.58 0.05 60);
+    --ring: oklch(0.82 0.165 79);
+    /* Dark enough for the amber focus ring at 50% to reach 3:1 on it. */
+    --highlight: oklch(0.3 0.07 70);
+    --highlight-foreground: oklch(0.95 0.07 85);
+    --brand: oklch(0.71 0.17 55);
+    --brand-foreground: oklch(0.22 0.06 40);
+    /* As the amber: dark enough for the focus ring at 50%. */
+    --info: oklch(0.27 0.06 150);
+    --info-foreground: oklch(0.94 0.05 150);
+    --info-border: oklch(0.62 0.13 150);
+    --decor: oklch(0.71 0.17 55);
+    /* Close to the background: the band has a thin border above and under it (lib/home-hero.ts). */
+    --hero: oklch(0.27 0.07 40);
+    --hero-foreground: oklch(0.985 0.012 85);
+    --sidebar: oklch(0.2 0.03 45);
+    --sidebar-foreground: oklch(0.96 0.015 80);
+    --sidebar-primary: oklch(0.82 0.165 79);
+    --sidebar-primary-foreground: oklch(0.22 0.06 40);
+    --sidebar-accent: oklch(0.31 0.05 50);
+    --sidebar-accent-foreground: oklch(0.96 0.015 80);
+    --sidebar-border: oklch(0.32 0.035 45);
+    --sidebar-ring: oklch(0.82 0.165 79);
 }
 
 @layer base {

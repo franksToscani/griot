@@ -49,25 +49,30 @@ function accPairs(string $theme): array
         ['border of a field with the focus (border-ring)', accSrgb($ring), $background, 3.0],
         ['sidebar focus ring (ring-sidebar-ring)', accSrgb($t['sidebar-ring']), accSrgb($t['sidebar']), 3.0],
 
-        // The palette of the visual identity (Sprint 8): green for links and titles, the cards, the
-        // grey and blue surfaces, the yellow, the red decor, the sidebar.
+        // The warm palette of the provisional logo: brown for the text, the buttons, the links and
+        // the name of the site; the cards, the muted surfaces, the amber, the orange (brand), the
+        // light green (info), the orange decor line, the sidebar.
         ['links and the name of the site (text-primary) on the background', accSrgb($t['primary']), $background, 4.5],
         ['the name of the site in the sidebar', accSrgb($t['primary']), accSrgb($t['sidebar']), 4.5],
         ['text on the cards', accSrgb($t['card-foreground']), accSrgb($t['card']), 4.5],
         ['muted text on the grey surfaces', accSrgb($t['muted-foreground']), accSrgb($t['muted']), 4.5],
         ['active item (accent)', accSrgb($t['accent-foreground']), accSrgb($t['accent']), 4.5],
         ['outline badge: text on the background', accSrgb($t['foreground']), $background, 4.5],
-        ['text on the yellow (highlight)', accSrgb($t['highlight-foreground']), accSrgb($t['highlight']), 4.5],
-        ['text on the light blue (info)', accSrgb($t['info-foreground']), accSrgb($t['info']), 4.5],
-        ['border of the light blue (info-border)', accSrgb($t['info-border']), accSrgb($t['info']), 3.0],
-        ['red decor line on the background', accSrgb($t['decor']), $background, 3.0],
+        ['text on the amber (highlight)', accSrgb($t['highlight-foreground']), accSrgb($t['highlight']), 4.5],
+        ['text on the orange (brand)', accSrgb($t['brand-foreground']), accSrgb($t['brand']), 4.5],
+        ['text on the light green (info)', accSrgb($t['info-foreground']), accSrgb($t['info']), 4.5],
+        ['border of the light green (info-border)', accSrgb($t['info-border']), accSrgb($t['info']), 3.0],
+        ['orange decor line on the background', accSrgb($t['decor']), $background, 3.0],
+        ['buttons (primary) against the background', accSrgb($t['primary']), $background, 3.0],
         ['sidebar: text', accSrgb($t['sidebar-foreground']), accSrgb($t['sidebar']), 4.5],
         ['sidebar: active item', accSrgb($t['sidebar-accent-foreground']), accSrgb($t['sidebar-accent']), 4.5],
         ['error text on the cards', accSrgb(accTailwind($light ? 'red-600' : 'red-400')), accSrgb($t['card']), 4.5],
         ['status text on the cards', accSrgb(accTailwind($light ? 'green-700' : 'green-600')), accSrgb($t['card']), 4.5],
     ];
 
-    // The focus ring over the yellow and the light blue, as over the other surfaces.
+    // The focus ring over the amber and the light green, as over the other surfaces. Not over the
+    // orange (brand): it is only a background for brown text, never under a field or a control
+    // (the ring would not reach 3:1 there).
     foreach (['highlight', 'info'] as $surface) {
         $opacity = accOpacity('input', 'focus-visible:ring-ring/');
         $pairs[] = ["focus ring ({$opacity}) over {$surface}", accOver($ring, $opacity, $t[$surface]), accSrgb($t[$surface]), 3.0];
@@ -94,13 +99,17 @@ function accPairs(string $theme): array
     $opacity = accOpacity('button', $class);
     $pairs[] = ["focus ring of a destructive button ({$opacity})", accOver($color, $opacity, $t['background']), $background, 3.0];
 
-    // The green band at the top of the home page (docs/home.md), as lib/home-hero.ts colours it:
-    // the white text on the green, the edge of the fields (their own background) and of the light
-    // buttons against the green, the buttons' green text (also on hover, at 90%), the white focus
-    // ring over the green.
+    // The brown band at the top of the home page (docs/home.md), as lib/home-hero.ts colours it:
+    // the cream text on the brown, the edge of the fields (their border, border-input: in the dark
+    // theme the field's own background is too close to the band) and of the cream buttons against
+    // the brown, the buttons' brown text (also on hover, at 90%), the cream focus ring over the
+    // brown. In the dark theme the band's own border (border-input) against the page too.
     $hero = accSrgb($t['hero']);
     $pairs[] = ['home band: text', accSrgb($t['hero-foreground']), $hero, 4.5];
-    $pairs[] = ['home band: edge of the fields (bg-background)', $background, $hero, 3.0];
+    $pairs[] = ['home band: edge of the fields (border-input)', accSrgb($t['input']), $hero, 3.0];
+    if (! $light) {
+        $pairs[] = ['home band: its border (border-input) against the page', accSrgb($t['input']), $background, 3.0];
+    }
     $pairs[] = ['home band: text of the fields', accSrgb($t['foreground']), $background, 4.5];
     $pairs[] = ['home band: edge of the buttons (bg-hero-foreground)', accSrgb($t['hero-foreground']), $hero, 3.0];
     $pairs[] = ['home band: text of the buttons', $hero, accSrgb($t['hero-foreground']), 4.5];
@@ -109,8 +118,8 @@ function accPairs(string $theme): array
     // The focus ring of the fields is white too: against the white field it is the field's own
     // focus border (border-ring) that shows, measured above on the background.
     // Since #144 step 9: the magnifying glass and the example in the text field (the field's own
-    // background), the chevrons of the icon-only previous and next (green on the light button,
-    // also on hover). The edge of those buttons is the light button against the green, above.
+    // background), the chevrons of the icon-only previous and next (brown on the cream button,
+    // also on hover). The edge of those buttons is the cream button against the brown, above.
     $pairs[] = ['home band: magnifying glass in the field (text-muted-foreground)', accSrgb($t['muted-foreground']), $background, 3.0];
     $pairs[] = ['home band: example in the field (placeholder:text-muted-foreground)', accSrgb($t['muted-foreground']), $background, 4.5];
     $pairs[] = ['home band: chevron of previous and next (text-hero)', $hero, accSrgb($t['hero-foreground']), 3.0];
@@ -148,7 +157,7 @@ test('the band of the home page uses the tokens measured above, never red', func
     $source = (string) file_get_contents(resource_path('js/lib/home-hero.ts'));
 
     expect($source)
-        ->toContain("band: 'bg-hero text-hero-foreground',")
+        ->toContain("band: 'bg-hero text-hero-foreground dark:border-y dark:border-input',")
         ->toContain("field: 'bg-background text-foreground focus-visible:ring-hero-foreground',")
         // Since #144 step 10 the press too: a transform, no colour.
         ->toContain('button: `bg-hero-foreground text-hero hover:bg-hero-foreground/90 focus-visible:ring-hero-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-hero ${PRESS}`,')
@@ -164,20 +173,21 @@ test('the band of the home page uses the tokens measured above, never red', func
     preg_match_all('/(?<![\w-])(?:hover:|focus-visible:)?(?:ring-offset|bg|text|border|ring)-([a-z]+(?:-[a-z]+)*)(?:\/\d+)?(?![\w-])/', $sources, $colours);
     $tokens = array_unique($colours[1]);
     $sizes = ['xl', 'sm', 'base', '3xl', '4xl', 'lg'];
-    // muted-foreground: the magnifying glass on the white field (step 9); balance: how the h1 wraps.
-    expect(array_values(array_diff($tokens, ['hero', 'hero-foreground', 'background', 'foreground', 'muted', 'muted-foreground', 'input', 'balance', ...$sizes])))->toBe([])
+    // muted-foreground: the magnifying glass on the white field (step 9); balance: how the h1 wraps;
+    // y: the band's border above and under it in the dark theme (border-y, a width, no colour).
+    expect(array_values(array_diff($tokens, ['hero', 'hero-foreground', 'background', 'foreground', 'muted', 'muted-foreground', 'input', 'balance', 'y', ...$sizes])))->toBe([])
         ->and($sources)->not->toMatch('/\b(bg|text|border)-(decor|destructive|primary|red-\d)/');
 
-    // Dark green in both themes, white text: not "primary", which is light green in the dark theme.
+    // Dark brown in both themes, cream text: not "primary", which is amber in the dark theme.
     expect(accTokens('light')['hero'][0])->toBeLessThan(0.55)
         ->and(accTokens('dark')['hero'][0])->toBeLessThan(0.55)
         ->and(accTokens('light')['hero-foreground'][0])->toBeGreaterThan(0.95)
         ->and(accTokens('dark')['hero-foreground'][0])->toBeGreaterThan(0.95);
 });
 
-test('without their border, the yellow, light blue and white tiles of the categories would not show on the page', function () {
+test('without their border, the amber, light green and white tiles of the categories would not show on the page', function () {
     // Why every tile has a border (docs/home.md): their own colour is below 3:1 against the
-    // background in at least one theme. The green alone would be enough.
+    // background in at least one theme. The brown alone would be enough.
     foreach (['highlight', 'info', 'card'] as $tone) {
         $light = accTokens('light');
         $dark = accTokens('dark');
@@ -226,10 +236,15 @@ test('the delete-account warning and the appearance tabs use the colours measure
         ->not->toContain('neutral-');
 });
 
-test('the borders of cards and separators keep their light colour', function () {
-    // Decorative: no threshold. The fields (--input) have their own, darker border.
-    expect(accTokens('light')['border'])->toBe([0.91, 0.02, 225.0])
-        ->and(accTokens('dark')['border'])->toBe([0.31, 0.03, 245.0]);
+test('the borders of cards and separators stay light, much lighter than the fields\' border', function () {
+    // Decorative: no threshold. The fields (--input) have their own, darker border, at 3:1.
+    foreach (['light', 'dark'] as $theme) {
+        $t = accTokens($theme);
+        $background = accSrgb($t['background']);
+
+        expect(accRatio(accSrgb($t['border']), $background))->toBeLessThan(1.6, "border, {$theme}")
+            ->and(accRatio(accSrgb($t['input']), $background))->toBeGreaterThan(accRatio(accSrgb($t['border']), $background) * 2);
+    }
 });
 
 test('no light green-600 text is left in the pages: the status messages use green-700', function () {

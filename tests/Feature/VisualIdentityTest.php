@@ -103,7 +103,7 @@ test('errors, statuses and destructive actions keep the colours they had before 
         ->toContain('--destructive-foreground: oklch(0.637 0.237 25.331);');
 });
 
-test('the red decor is only a line under the header and under the name of the site', function () {
+test('the orange decor is only the line under the public header', function () {
     $uses = [];
     $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(resource_path('js'), FilesystemIterator::SKIP_DOTS));
 
@@ -114,7 +114,8 @@ test('the red decor is only a line under the header and under the name of the si
     }
 
     sort($uses);
-    expect($uses)->toBe(['components/app-logo.tsx', 'layouts/public-layout.tsx']);
+    // Since the warm palette, no longer under the name of the site: one line, one place.
+    expect($uses)->toBe(['layouts/public-layout.tsx']);
     expect(vidSource('resources/js/layouts/public-layout.tsx'))->toContain('<header className="border-b-2 border-decor">');
 });
 
@@ -122,16 +123,22 @@ test('the red decor is only a line under the header and under the name of the si
 // Name of the site, small mark, favicons
 // ---------------------------------------------------------------------------------------------
 
-test('the name of the site is real text, bold and green, from the app name', function () {
+test('the name of the site is real text, bold and brown (text-primary), from the app name', function () {
     expect(vidSource('resources/js/components/app-logo.tsx'))
         ->toContain('const { name } = usePage().props;')
         ->toMatch('/<span className="[^"]*\bfont-bold\b[^"]*\btext-primary\b[^"]*">\s*\{name\}\s*<\/span>/')
-        ->toMatch('/<span className="[^"]*\bborder-b-2 border-decor\b/')
+        ->not->toMatch('/\b(?:border|bg|text)-decor\b/');
+    // Brown in the light theme: dark, between red and yellow.
+    [$lightness, $chroma, $hue] = accTokens('light')['primary'];
+    expect($lightness)->toBeLessThan(0.4)
+        ->and($chroma)->toBeGreaterThan(0.04)
+        ->and($hue)->toBeGreaterThanOrEqual(30.0)->toBeLessThanOrEqual(60.0);
+    expect(vidSource('resources/js/components/app-logo.tsx'))
         // Collapsed sidebar: hidden on screen, still the name of the link.
         ->toContain('group-data-[collapsible=icon]:sr-only');
 });
 
-test('the small mark is a "G" on a green square, not the Laravel logo', function () {
+test('the small mark is a "G" on a square of the buttons\' colour (primary), not the Laravel logo', function () {
     expect(vidSource('resources/js/components/app-logo-icon.tsx'))
         ->toContain(VID_G_PATH)
         ->toContain('className="fill-primary"')

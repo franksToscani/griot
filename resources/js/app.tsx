@@ -40,7 +40,9 @@ void createInertiaApp({
         );
     },
     progress: {
-        color: '#4B5563',
+        // The brown of the buttons (--primary of the light theme): the bar is drawn by Inertia,
+        // outside the theme's classes.
+        color: '#54220F',
     },
 });
 

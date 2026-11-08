@@ -7,13 +7,15 @@ const PRESS =
     'motion-safe:transition-[color,box-shadow,scale] motion-safe:duration-150 motion-safe:active:scale-[0.98]';
 
 export const HERO = {
-    // The band: dark green, white text, square corners.
-    band: 'bg-hero text-hero-foreground',
-    // The fields: as on the rest of the site (the page's background and text, the usual border),
-    // their edge against the green is the field itself. The focus ring in the band's text colour:
-    // the usual ring would not show on green.
+    // The band: dark brown, cream text, square corners. In the dark theme, close to the page's
+    // own brown: a thin border above and under it (border-input, measured against both).
+    band: 'bg-hero text-hero-foreground dark:border-y dark:border-input',
+    // The fields: as on the rest of the site (the page's background and text, the usual border).
+    // Their edge against the band is their border (border-input): in the dark theme the field's
+    // own background is too close to the band. The focus ring in the band's text colour: the
+    // usual ring would not show on brown.
     field: 'bg-background text-foreground focus-visible:ring-hero-foreground',
-    // The buttons and the link of a slide: light on the green, green text; the focus ring is the
+    // The buttons and the link of a slide: cream on the brown, brown text; the focus ring is the
     // same light colour, two pixels away from the button so that it shows. Pressed, it shrinks.
     button: `bg-hero-foreground text-hero hover:bg-hero-foreground/90 focus-visible:ring-hero-foreground focus-visible:ring-offset-2 focus-visible:ring-offset-hero ${PRESS}`,
     // The same press for the dots of the carousel.
