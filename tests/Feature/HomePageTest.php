@@ -172,8 +172,9 @@ test('the steps are an ordered list, the categories a list in a region that scro
     expect($page)
         ->toContain("const STEPS = ['choose', 'book', 'confirm'] as const;")
         // Since #144 step 10 the steps appear when scrolled to (HomeMotionTest).
-        ->toMatch('/<ol ref=\{steps\} className="grid gap-4 md:grid-cols-3">\s*\{STEPS\.map\(\(step, index\) => \(\s*<li/')
-        ->toMatch('/<h3 className="font-medium">\\s*\\{t\\(`home\\.steps\\.\\$\\{step\\}\\.title`\\)\\}/')
+        ->toMatch('/<ol ref=\{steps\} className="grid gap-4 md:grid-cols-3">\s*\{STEPS\.map\(\(step, index\) => \{\s*const Icon = STEP_ICONS\[step\];\s*return \(\s*<li/')
+        // Since the PR of the icons the h3 starts with the number of the step (HomeHowItWorksTest).
+        ->toMatch('/<h3 className="font-medium">\\s*<span className="[^"]*">\\s*\\{t\\(\'home\\.steps\\.number\', \\{\\s*number: index \\+ 1,?\\s*\\}\\)\\}\\s*<\\/span>\\s*\\{t\\(`home\\.steps\\.\\$\\{step\\}\\.title`\\)\\}/')
         // The categories go in the shared row, named by their own title.
         ->toMatch("/<ScrollRow\\s+titleId=\\{CATEGORIES_TITLE_ID\\}\\s+title=\\{t\\('home\\.categories\\.title'\\)\\}\\s+items=\\{categoryCards\\(categories, HOME_PHOTOS\\)\\}/");
 
@@ -202,7 +203,7 @@ test('the section of the categories is there only with categories', function () 
 test('nothing written by hand: no aria-label, no category name; nothing that moves or sticks', function () {
     $sources = hpSource('pages/home.tsx').hpSource('components/home/home-hero.tsx').hpSource('components/home/home-search.tsx').hpSource('components/search-fields.tsx').hpSource('components/home/scroll-row.tsx')
         .hpSource('components/home/featured-provider-card.tsx').hpSource('components/home/home-carousel.tsx').hpSource('lib/home-carousel.ts').hpSource('lib/home-hero.ts')
-        .hpSource('components/home/category-card.tsx').hpSource('lib/home-categories.ts');
+        .hpSource('components/home/category-card.tsx').hpSource('lib/home-categories.ts').hpSource('components/home/professionals-band.tsx');
 
     expect($sources)
         // aria-labelledby is fine: it points to a visible title.
@@ -242,12 +243,13 @@ test('the texts of the home page exist in Italian, French and English, with the 
     // The 5 of the search in the band left with the list's PR B: they are the search.* keys,
     // shared with the list (HomeHeroSearchTest). "home.intro.cta" is gone with its button: the
     // search does the same.
-    expect($keys)->toHaveCount(30)
+    // 6 more since the PR of the icons: the number of a step and the band for the professionals.
+    expect($keys)->toHaveCount(36)
         ->and($keys)->not->toContain('home.search.q')
         ->and($keys)->not->toContain('home.intro.cta');
 
     // Every key the page uses, the steps and the sentences of the categories included.
-    $used = hpSource('pages/home.tsx').hpSource('components/home/home-hero.tsx').hpSource('components/home/home-search.tsx').hpSource('components/home/featured-provider-card.tsx')
+    $used = hpSource('pages/home.tsx').hpSource('components/home/home-hero.tsx').hpSource('components/home/home-search.tsx').hpSource('components/home/featured-provider-card.tsx').hpSource('components/home/professionals-band.tsx')
         .hpSource('components/home/home-carousel.tsx').hpSource('lib/home-carousel.ts');
     foreach ($keys as $key) {
         $step = preg_match('/^home\.steps\.(choose|book|confirm)\.(title|text)$/', $key, $match) === 1;
