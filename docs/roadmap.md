@@ -4,7 +4,7 @@ Oct 17, 2026 · @Franks Toscani Koudja
 
 ## Panoramica
 
-Griot mette in contatto chi cerca il savoir-faire africano (bellezza, couture, ristorazione e altro) con i professionisti che lo praticano; il piano porta l'MVP da dati di prova a un sito online in 8 sprint di una o due settimane.
+Griot mette in contatto chi cerca il savoir-faire africano (bellezza, couture, ristorazione e altro) con i professionisti che lo praticano; il piano porta l'MVP da dati di prova a un sito online in 11 sprint di una o due settimane.
 
 **Scope dell'MVP**
 
@@ -17,7 +17,7 @@ Griot mette in contatto chi cerca il savoir-faire africano (bellezza, couture, r
 **Stack**
 
 - Laravel 13, Inertia.js, React con TypeScript.
-- MySQL in locale, database di produzione da decidere nello Sprint 8.
+- MySQL in locale, database di produzione da decidere nello Sprint 9.
 - Qualità del codice: Pest (test), Pint (stile PHP), PHPStan (analisi PHP), controllo del frontend con `vp`. Il comando unico è `composer ci:check`.
 
 **Metodo di lavoro**
@@ -244,7 +244,7 @@ Un provider entra con il suo account e gestisce il profilo pubblico che i client
 
 **Da tenere presente**
 
-Finché la registrazione resta aperta (fino allo Sprint 8), chiunque può creare un account e un profilo: la prima story va scritta pensando al caso dell'utente senza provider.
+Finché la registrazione resta aperta (fino allo Sprint 9), chiunque può creare un account e un profilo: la prima story va scritta pensando al caso dell'utente senza provider.
 
 ## Sprint 5: area provider, parte 2 (servizi, opzioni e disponibilità)
 
@@ -366,7 +366,7 @@ Il provider vede le prenotazioni in arrivo, le conferma o le rifiuta e avvisa il
 **Limiti da tenere presenti**
 
 - Il telefono del cliente è testo libero, ma il link WhatsApp richiede il formato internazionale: va normalizzato (per esempio aggiungendo il prefisso +39 quando manca).
-- Il promemoria schedulato richiede che sul server giri lo scheduler di Laravel: in locale si lancia a mano, e va previsto nel deploy dello Sprint 8.
+- Il promemoria schedulato richiede che sul server giri lo scheduler di Laravel: in locale si lancia a mano, e va previsto nel deploy dello Sprint 9.
 
 ## Sprint 7: prova con utenti reali
 
@@ -450,9 +450,31 @@ Si parte con la A per i primi due o tre provider; la C diventa utile per una pro
 - Il feedback può smentire scelte date per buone, per esempio la durata massima come blocco dello slot: lascia spazio nello sprint per correggere.
 - Se non c'è ancora un sistema di traduzioni, questo sprint diventa più pesante: va saputo prima di stimare.
 
-## Sprint 8: pre-lancio
+## Sprint 8: aspetto e primo impatto
 
-Griot va online in modo sicuro, prima per i provider pilota e poi per un pubblico più ampio; a fine sprint il sito è su un indirizzo vero, la registrazione è chiusa, i controlli girano da soli su GitHub e sai cosa fare se qualcosa si rompe. Stima: 2 settimane, con possibili imprevisti di configurazione.
+Chi arriva su Griot capisce subito cosa offre e trova un professionista in pochi passi: una home con foto vere e la ricerca in primo piano, e una lista dei professionisti con schede ricche, ordinamento e filtri. **Completato.**
+
+**Home** (issue #144, [docs/home.md](home.md))
+
+- Home per i clienti con categorie e « Come funziona » (#158), data di pubblicazione dei provider per ordinarli (#157).
+- Professionisti in evidenza: provider pubblicati con foto e servizi attivi, i più recenti (#159).
+- Contatti del gestore nel footer, da configurazione, senza contatti scritti nel repo (#160).
+- Carousel delle categorie (#161) con foto reali da archivio (#162, [docs/photos.md](photos.md)).
+- Fascia in alto con il titolo e la ricerca per servizio e città (#164), rifinita nell'aspetto (#166).
+- Fila scorrevole di categorie con foto, o un riquadro colorato quando la foto manca (#165).
+- Animazioni solo senza « riduci movimento »: comparsa allo scorrimento, ingresso della fascia, dissolvenza del carousel, schede che si sollevano (#167, sezione « Movimento » di [docs/accessibility.md](accessibility.md)).
+
+**Lista dei professionisti** ([docs/providers-list.md](providers-list.md), [docs/search.md](search.md))
+
+- Ricerca testuale per nome, servizio e categoria (#163).
+- Schede ricche: copertina, città, categorie, numero di servizi e prezzo « da X € »; nella lista solo chi ha almeno un servizio attivo (#168).
+- Ordinamento per nome, più recenti e prezzo, con un ordine stabile tra le pagine (#168).
+- Barra di ricerca condivisa con la home e pannello dei filtri: categoria, prezzo massimo, « solo con foto » (#169).
+- Layout pronto per la mappa: la pagina gestisce la propria larghezza e i risultati hanno uno spazio laterale facoltativo, ancora vuoto (#169).
+
+## Sprint 9: pre-lancio
+
+Gli issue di questo sprint sono #57, #58, #59, #60 (deploy su Render), #62, #63, #64, #86 (campi di `auth.user` condivisi con le pagine), #97 (prezzo salvato sulla prenotazione), #131 (revisione del testo di `/privacy`) e #175 (audit con axe); #61 (archiviazione delle immagini) è già chiuso. Griot va online in modo sicuro, prima per i provider pilota e poi per un pubblico più ampio; a fine sprint il sito è su un indirizzo vero, la registrazione è chiusa, i controlli girano da soli su GitHub e sai cosa fare se qualcosa si rompe. Stima: 2 settimane, con possibili imprevisti di configurazione.
 
 **Decisioni da fissare all'inizio**
 
@@ -518,6 +540,12 @@ Griot va online in modo sicuro, prima per i provider pilota e poi per un pubblic
 - Un file nel repo con: come fare un deploy, come tornare a una versione precedente, dove guardare i log, come creare un provider.
 - Il `CLAUDE.md` locale aggiornato (timezone, Definition of Done, comandi veri).
 
+**Audit di accessibilità con axe** _Come gestore voglio verificare il sito con uno strumento automatico prima del lancio, per non escludere nessuno._
+
+- La verifica di [docs/accessibility.md](accessibility.md) (Playwright e axe-core, installati fuori dalla repo) ripetuta su tutte le pagine pubbliche e dell'area provider, comprese quelle nuove dello Sprint 8: home, lista con pannello dei filtri aperto, carousel.
+- Le pagine controllate in tema chiaro e scuro, a 1280 px e 375 px, con « riduci movimento » attivo e no.
+- Ogni violazione corretta oppure spiegata, con i risultati e la data scritti in [docs/accessibility.md](accessibility.md).
+
 **Attività tecniche**
 
 - Un workflow di GitHub Actions con i controlli della prima story.
@@ -531,9 +559,68 @@ Griot va online in modo sicuro, prima per i provider pilota e poi per un pubblic
 - I costi (servizio web, database, disco, processi in background) si sommano: prima del deploy, fai un conto vero con i prezzi aggiornati.
 - Da quando il sito è online, nome e telefono dei clienti sono dati reali: informativa e regola di conservazione dello Sprint 7 devono essere pronte prima.
 
+## Sprint 10: rifinitura e debiti
+
+Dopo il primo deploy si chiudono i promemoria e i debiti tecnici raccolti negli sprint precedenti, senza funzioni nuove; a fine sprint il codice è più semplice da cambiare e i piccoli difetti noti sono corretti. Al massimo 10 issue: il resto resta nel backlog senza milestone.
+
+**Rifiniture e debiti tecnici**
+
+- Rifiniture dopo lo Sprint 2 (#74): durata del seeder con `BookingDuration`, annotazioni per PHPStan, protezione di `FreeSlots` da passi o durate a 0, caratteri ammessi nel numero WhatsApp, fasce a cavallo di mezzanotte.
+- Debiti tecnici dopo lo Sprint 6 (#112): test sui sorgenti fragili, classi copiate in più pagine, regola dell'ora locale ripetuta, testi da sistemare, regole del telefono, promemoria e limitatori.
+- Pulizia dei residui dello starter kit (#115).
+- Sessione che scade dopo 120 minuti senza avviso, con la perdita di quello che il cliente ha scritto (#130).
+- Cancellare un account provider con prenotazioni: probabile errore 500 (#133).
+
+**Prenotazioni e contenuti**
+
+- Anticipo minimo di prenotazione e messaggio « contatta il professionista » (#110), da decidere con i provider.
+- Contenuti dei provider in più lingue: nomi, descrizioni, opzioni (#132), da decidere dopo i feedback.
+- Ordinamento delle foto del lavoro: « Sposta prima » e « Sposta dopo » accessibili da tastiera e con lettore di schermo (#156).
+
+**Piccoli difetti noti**
+
+- Numeri di telefono mostrati formattati.
+- Traduzioni caricate per pagina.
+- Badge di categoria duplicato.
+- Una copia JPEG dell'immagine di anteprima dei link, se il WebP non viene mostrato da WhatsApp, Instagram o Facebook ([docs/link-previews.md](link-previews.md)).
+
+## Sprint 11: mappa e posizione
+
+Chi cerca vede sulla mappa, accanto alla lista, in quale zona lavorano i professionisti, senza che nessun indirizzo preciso diventi pubblico. Issue #170-#174. Stima: da fare dopo il lancio.
+
+**Decisioni da fissare all'inizio**
+
+| Decisione                | Proposta                                                                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Servizio di mappe        | Da scegliere: costo, limiti di uso, dati inviati a terzi a ogni visita, attribuzione richiesta. Da verificare nella documentazione del servizio. |
+| Precisione mostrata      | Solo una posizione approssimata (la città o una zona), mai l'indirizzo di casa o del negozio.                                                    |
+| Origine delle coordinate | Ricavate dalla città del provider, senza chiedergli un indirizzo.                                                                                |
+
+**Posizione approssimata** _Come provider voglio che la mappa non mostri dove abito, per sentirmi al sicuro._
+
+- La mappa mostra una zona, non un punto preciso: nessun indirizzo esce mai in una risposta.
+- La regola sta in un solo posto ed è coperta da test.
+
+**Coordinate dalla città** _Come gestore voglio che ogni provider abbia una posizione senza lavoro in più per lui._
+
+- Le coordinate vengono dalla città già salvata nel profilo.
+- Una città senza coordinate non rompe niente: il provider resta nella lista, senza segnaposto.
+
+**Mappa nella lista** _Come cliente voglio vedere sulla mappa i professionisti trovati, per scegliere quello più vicino._
+
+- La mappa è l'`aside` di `ResultsLayout` ([docs/providers-list.md](providers-list.md)): accanto alla lista da 1024 px, sotto la lista sui telefoni.
+- La lista resta prima nel DOM e completa: la mappa aggiunge, non sostituisce; tutto si può fare senza mappa e da tastiera.
+- La mappa segue la ricerca, i filtri e la pagina dei risultati; nessuno sticky che copra il focus.
+- Numero di query della lista misurato prima e dopo.
+
+**Informativa privacy** _Come cliente voglio sapere quali dati vanno al servizio di mappe._
+
+- La pagina `/privacy` dice quale servizio di mappe è usato e quali dati riceve.
+- Se il servizio lo richiede, la mappa si carica solo dopo un consenso esplicito.
+
 ## Riepilogo e punti aperti
 
-Il piano vale 13-14 settimane a 10 ore a settimana, un obiettivo ambizioso con studi e lavoro: va rivisto dopo gli Sprint 1 e 2, quando ci sarà un ritmo vero.
+Il piano conta 11 sprint, a circa 10 ore a settimana, con studi e lavoro.
 
 | Sprint | Tema                                           | Durata stimata |
 | ------ | ---------------------------------------------- | -------------- |
@@ -544,7 +631,10 @@ Il piano vale 13-14 settimane a 10 ore a settimana, un obiettivo ambizioso con s
 | 5      | Area provider: servizi, opzioni, disponibilità | 1-2 settimane  |
 | 6      | Area provider: calendario e gestione           | 2 settimane    |
 | 7      | Prova con utenti reali                         | 2 settimane    |
-| 8      | Pre-lancio                                     | 2 settimane    |
+| 8      | Aspetto e primo impatto                        | completato     |
+| 9      | Pre-lancio                                     | 2 settimane    |
+| 10     | Rifinitura e debiti                            | da stimare     |
+| 11     | Mappa e posizione                              | da stimare     |
 
 **Da fare prima di andare online**
 
