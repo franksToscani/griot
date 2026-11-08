@@ -136,6 +136,27 @@ class Provider extends Model
     }
 
     /**
+     * Add cover_photo_id: the id of the provider's first photo by position (then id), or null. A
+     * correlated subquery with a limit, which Laravel writes for each database (no window
+     * function, nothing of one database only). App\Support\ProviderCovers then loads only those
+     * photos, in one query, as the relation "cover".
+     *
+     * @param  Builder<Provider>  $query
+     */
+    #[Scope]
+    protected function withCoverPhotoId(Builder $query): void
+    {
+        $query->addSelect([
+            'cover_photo_id' => ProviderPhoto::query()
+                ->select('id')
+                ->whereColumn('provider_id', 'providers.id')
+                ->orderBy('position')
+                ->orderBy('id')
+                ->limit(1),
+        ]);
+    }
+
+    /**
      * Load what the public page shows: active services with category and options, the weekly
      * availabilities and the photos of the work, in a fixed order and with one query per relation.
      *

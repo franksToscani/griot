@@ -174,7 +174,7 @@ test('the search is trimmed and kept in the props', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('providers/index')
-            ->where('filters', ['category' => null, 'city' => null, 'q' => 'sahel'])
+            ->where('filters', ['category' => null, 'city' => null, 'q' => 'sahel', 'sort' => null])
             ->has('providers.data', 1)
             ->where('providers.data.0.name', 'Trecce Sahel')
             ->where('providers.meta.total', 1)
@@ -219,7 +219,7 @@ test('the search combines with category and city', function () {
 
     $this->get(route('providers.index', ['q' => 'sahel', 'category' => 'treccine', 'city' => 'Milano']))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('filters', ['category' => 'treccine', 'city' => 'Milano', 'q' => 'sahel']));
+            ->where('filters', ['category' => 'treccine', 'city' => 'Milano', 'q' => 'sahel', 'sort' => null]));
 });
 
 test('the page links keep the search', function () {

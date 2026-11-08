@@ -197,7 +197,8 @@ test('the page does not expose internal fields', function () {
 });
 
 test('a card of the list points to the provider page', function () {
-    $provider = Provider::factory()->published()->create(['slug' => 'barberia-lagos']);
+    // With an active service: without one a provider is not listed (ProviderListCardsTest).
+    $provider = Provider::factory()->published()->has(Service::factory())->create(['slug' => 'barberia-lagos']);
 
     $this->get(route('providers.index'))
         ->assertInertia(fn (Assert $page) => $page->where('providers.data.0.slug', 'barberia-lagos'));

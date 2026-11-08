@@ -4,11 +4,12 @@ import { ProviderCard } from '@/components/provider-card';
 import {
     hasActiveFilters,
     ProviderFilters,
+    resetFilters,
 } from '@/components/provider-filters';
+import { ProviderSort } from '@/components/provider-sort';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/hooks/use-translation';
 import type { TranslateFn } from '@/hooks/use-translation';
-import { index } from '@/routes/providers';
 import type {
     Paginated,
     ProviderFilterOptions,
@@ -59,17 +60,22 @@ export default function ProvidersIndex({
 
                 <ProviderFilters filters={filters} options={filterOptions} />
 
-                {/* Always on the page, so a new search or filter changes its text and a screen
-                    reader announces it: the number of results, or why there is none. */}
-                <p role="status" className="text-muted-foreground">
-                    {resultsText(t, providers.meta.total, filters)}
-                </p>
+                <div className="flex flex-wrap items-end justify-between gap-4">
+                    {/* Always on the page, so a new search, filter or order changes its text
+                        and a screen reader announces it: the number of results, or why there
+                        is none. */}
+                    <p role="status" className="text-muted-foreground">
+                        {resultsText(t, providers.meta.total, filters)}
+                    </p>
+                    <ProviderSort filters={filters} />
+                </div>
 
                 {providers.data.length === 0 ? (
                     filtered && (
                         <div>
                             <Button variant="outline" asChild>
-                                <Link href={index()}>
+                                {/* The filters go, the order stays. */}
+                                <Link href={resetFilters(filters)}>
                                     {t('providers.filters.reset')}
                                 </Link>
                             </Button>

@@ -29,6 +29,12 @@ type Props = {
     options: ProviderFilterOptions;
 };
 
+// The list without filters, in the same order: "Azzera filtri" never resets the order.
+export function resetFilters(filters: Filters) {
+    return index({ query: { sort: filters.sort } });
+}
+
+// The order is not a filter: the default one is no filter either.
 export function hasActiveFilters(filters: Filters): boolean {
     return (
         filters.category !== null || filters.city !== null || filters.q !== null
@@ -82,6 +88,9 @@ export function ProviderFilters({ filters, options }: Props) {
                 )}
                 {filters.city !== null && (
                     <input type="hidden" name="city" value={filters.city} />
+                )}
+                {filters.sort !== null && (
+                    <input type="hidden" name="sort" value={filters.sort} />
                 )}
                 <div className="grid gap-2">
                     <Label htmlFor="filter-search">
@@ -162,7 +171,7 @@ export function ProviderFilters({ filters, options }: Props) {
 
             {hasActiveFilters(filters) && (
                 <Button variant="outline" asChild>
-                    <Link href={index()} preserveScroll>
+                    <Link href={resetFilters(filters)} preserveScroll>
                         {t('providers.filters.reset')}
                     </Link>
                 </Button>

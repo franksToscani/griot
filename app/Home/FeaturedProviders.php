@@ -3,7 +3,7 @@
 namespace App\Home;
 
 use App\Models\Provider;
-use App\Models\ProviderPhoto;
+use App\Support\ProviderCovers;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -14,9 +14,8 @@ use Illuminate\Database\Eloquent\Collection;
  * Each comes with its cover, the first photo by position, as the relation "cover".
  *
  * Four queries however many providers: the providers, their active services, the categories of
- * those, and the covers. The cover's id is picked by a correlated subquery with a limit, which
- * Laravel writes for each database (no window function, nothing of one database only); then only
- * those photos are loaded, never every photo of every provider.
+ * those, and the covers. The cover is the one of the public list too: the scope
+ * Provider::withCoverPhotoId() and App\Support\ProviderCovers.
  */
 final class FeaturedProviders
 {
@@ -34,14 +33,7 @@ final class FeaturedProviders
             ->published()
             ->whereHas('photos')
             ->whereHas('services', fn (Builder $services) => $services->where('is_active', true))
-            ->addSelect([
-                'cover_photo_id' => ProviderPhoto::query()
-                    ->select('id')
-                    ->whereColumn('provider_id', 'providers.id')
-                    ->orderBy('position')
-                    ->orderBy('id')
-                    ->limit(1),
-            ])
+            ->withCoverPhotoId()
             ->orderByDesc('published_at')
             ->orderByDesc('id')
             ->limit(self::LIMIT)
@@ -52,14 +44,7 @@ final class FeaturedProviders
             ])
             ->get();
 
-        $covers = ProviderPhoto::query()
-            ->whereIn('id', $providers->pluck('cover_photo_id')->filter()->all())
-            ->get()
-            ->keyBy('id');
-
-        foreach ($providers as $provider) {
-            $provider->setRelation('cover', $covers->get($provider->getAttribute('cover_photo_id')));
-        }
+        ProviderCovers::attach($providers);
 
         return $providers;
     }

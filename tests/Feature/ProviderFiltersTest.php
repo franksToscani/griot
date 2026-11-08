@@ -149,7 +149,7 @@ test('a filter combination without results returns an empty list and the active 
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->has('providers.data', 0)
-            ->where('filters', ['category' => 'treccine', 'city' => 'Milano', 'q' => null]));
+            ->where('filters', ['category' => 'treccine', 'city' => 'Milano', 'q' => null, 'sort' => null]));
 });
 
 test('the number of queries does not grow with the number of filtered providers', function () {
