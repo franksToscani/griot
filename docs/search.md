@@ -1,10 +1,10 @@
 # Griot: ricerca nella lista dei professionisti
 
-La ricerca testuale di `/providers`, insieme ai filtri per categoria e città. Senza account, come il resto della lista.
+La ricerca testuale di `/providers`, insieme ai filtri per categoria e città. Senza account, come il resto della lista. Chi c'è nella lista, la scheda e l'ordinamento sono in `docs/providers-list.md`.
 
 ## Come funziona
 
-- Parametro `q` nell'indirizzo (`/providers?q=trecce&city=Bologna`), quindi il link si può condividere. Si combina con `category` e `city`, e i link della paginazione lo mantengono.
+- Parametro `q` nell'indirizzo (`/providers?q=trecce&city=Bologna`), quindi il link si può condividere. Si combina con `category`, `city` e `sort`, e i link della paginazione lo mantengono.
 - Validazione in `ProviderIndexRequest`: stringa facoltativa, senza spazi all'inizio e alla fine, al massimo 100 caratteri (`SEARCH_MAX`). Vuota, troppo lunga o non valida (per esempio un array) viene ignorata senza errore, come gli altri filtri: la pagina mostra la lista senza ricerca e `filters.q` è `null`.
 - La ricerca sta nello scope `Provider::search()`:
     - il testo si divide in parole, separate da spazi; contano le prime 5 (`Provider::SEARCH_WORDS`), le altre si ignorano;
@@ -13,8 +13,8 @@ La ricerca testuale di `/providers`, insieme ai filtri per categoria e città. S
         - il nome di uno dei suoi servizi **attivi**;
         - la categoria di uno dei suoi servizi attivi;
     - maiuscole e minuscole non contano; la parola può stare dentro un'altra (« trecc » trova « Trecce Sahel »);
-    - solo i professionisti pubblicati, come sempre nella lista.
-- L'ordine resta per nome, 12 per pagina.
+    - solo i professionisti pubblicati con almeno un servizio attivo, come sempre nella lista.
+- L'ordine è quello scelto in « Ordina per » (per nome se non c'è), 12 per pagina (`docs/providers-list.md`).
 
 - La stessa ricerca parte anche dalla fascia della home (`docs/home.md`): un form HTML `GET` verso `/providers` con `q` e `city`, che funziona senza JavaScript.
 
@@ -36,11 +36,11 @@ Quindi « coiffeur » non trova « barbiere » se la lingua attiva è l'italiano
 
 `resources/js/components/provider-filters.tsx` e `resources/js/pages/providers/index.tsx`:
 
-- un `<form role="search" method="get">` con etichetta visibile (« Cerca per nome o servizio »), un campo `type="search"` e il pulsante « Cerca »; Invio dal campo invia. Senza JavaScript il browser manda `q` con categoria e città dai campi nascosti; con JavaScript la stessa ricerca è una visita di Inertia;
+- un `<form role="search" method="get">` con etichetta visibile (« Cerca per nome o servizio »), un campo `type="search"` e il pulsante « Cerca »; Invio dal campo invia. Senza JavaScript il browser manda `q` con categoria, città e ordinamento dai campi nascosti; con JavaScript la stessa ricerca è una visita di Inertia;
 - dopo la ricerca il campo mostra il testo cercato (quello del server, senza spazi ai lati);
 - un paragrafo `role="status"` sempre presente sopra la lista: il numero dei risultati, oppure lo stato vuoto adatto (ricerca senza risultati, filtri senza risultati, nessun professionista). Le visite dei filtri e della ricerca usano `preserveState`, così la pagina resta montata, il testo cambia e un lettore di schermo lo annuncia;
 - 44 px sotto 768 px e focus visibile vengono dai componenti `Input` e `Button` del kit (`docs/accessibility.md`).
 
 ## Test
 
-`tests/Feature/ProviderSearchTest.php`.
+`tests/Feature/ProviderSearchTest.php`; la lista e l'ordinamento in `tests/Feature/ProviderListCardsTest.php`.

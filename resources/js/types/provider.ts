@@ -4,16 +4,29 @@ export type Category = {
     name: string;
 };
 
-// Valid filters of the provider list; null means "not filtered".
+// The orders of the provider list (ProviderIndexRequest::SORTS); null is the default, by name.
+export type ProviderSort = 'name' | 'recent' | 'price_asc' | 'price_desc';
+
+// Valid filters of the provider list and its order; null means "not filtered" (for sort: by
+// name).
 export type ProviderFilters = {
     category: string | null;
     city: string | null;
     q: string | null;
+    sort: ProviderSort | null;
 };
 
 export type ProviderFilterOptions = {
     categories: Category[];
     cities: string[];
+};
+
+// The cover of a card (App\Http\Resources\ProviderCoverResource): decorative, no alternative
+// text.
+export type ProviderCover = {
+    width: number;
+    height: number;
+    variants: PhotoVariant[];
 };
 
 // Shape of App\Http\Resources\ProviderResource.
@@ -24,6 +37,12 @@ export type ProviderListItem = {
     city: string;
     avatar_url: string | null;
     categories: Category[];
+    // The first photo of the work, or null.
+    cover: ProviderCover | null;
+    // The price of the cheapest active service, "30.00" (euros, without the options).
+    min_price: string;
+    // How many active services.
+    services_count: number;
 };
 
 // Shape of App\Http\Resources\FeaturedProviderResource: a provider in "Professionisti in
@@ -34,11 +53,7 @@ export type FeaturedProvider = {
     name: string;
     city: string;
     categories: Category[];
-    cover: {
-        width: number;
-        height: number;
-        variants: PhotoVariant[];
-    } | null;
+    cover: ProviderCover | null;
 };
 
 export type PaginationLink = {

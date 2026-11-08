@@ -121,14 +121,14 @@ test('what the form sends is the search and the filter of the list of providers'
     $this->get(route('providers.index', ['q' => 'trecce', 'city' => 'Bologna']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('filters', ['category' => null, 'city' => 'Bologna', 'q' => 'trecce'])
+            ->where('filters', ['category' => null, 'city' => 'Bologna', 'q' => 'trecce', 'sort' => null])
             ->has('providers.data', 1));
 
     // Both empty, as the native form sends them: the whole list.
     $this->get('/providers?q=&city=')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('filters', ['category' => null, 'city' => null, 'q' => null])
+            ->where('filters', ['category' => null, 'city' => null, 'q' => null, 'sort' => null])
             ->has('providers.data', 3));
 });
 

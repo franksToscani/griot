@@ -21,6 +21,12 @@ class ProviderIndexRequest extends FormRequest
      */
     public const SEARCH_MAX = 100;
 
+    /**
+     * The orders of the list (docs/search.md): name A→Z (the default, when sort is missing),
+     * the most recently published first, the lowest price ("da X €") up or down.
+     */
+    public const SORTS = ['name', 'recent', 'price_asc', 'price_desc'];
+
     /** @var Collection<int, Category>|null */
     private ?Collection $categoryOptions = null;
 
@@ -48,6 +54,7 @@ class ProviderIndexRequest extends FormRequest
             'city' => ['nullable', 'string', Rule::in($this->cityOptions())],
             // The text of the search (scope Provider::search()). Already trimmed by TrimStrings.
             'q' => ['nullable', 'string', 'max:'.self::SEARCH_MAX],
+            'sort' => ['nullable', 'string', Rule::in(self::SORTS)],
         ];
     }
 
@@ -60,9 +67,10 @@ class ProviderIndexRequest extends FormRequest
     }
 
     /**
-     * The valid filters; an invalid or missing one is null.
+     * The valid filters and the order; an invalid or missing one is null (for sort: the
+     * default order, by name).
      *
-     * @return array{category: string|null, city: string|null, q: string|null}
+     * @return array{category: string|null, city: string|null, q: string|null, sort: string|null}
      */
     public function filters(): array
     {
@@ -72,6 +80,7 @@ class ProviderIndexRequest extends FormRequest
             'category' => $this->validFilter('category', $failed),
             'city' => $this->validFilter('city', $failed),
             'q' => $this->validFilter('q', $failed),
+            'sort' => $this->validFilter('sort', $failed),
         ];
     }
 

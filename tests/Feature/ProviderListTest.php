@@ -13,8 +13,11 @@ test('guests can see the provider list', function () {
 });
 
 test('only published providers are listed', function () {
+    // Each with an active service: without one a provider is not listed anyway
+    // (ProviderListCardsTest).
     $published = Provider::factory()->published()->create();
-    Provider::factory()->create();
+    Service::factory()->for($published)->create();
+    Service::factory()->for(Provider::factory())->create();
 
     $this->get(route('providers.index'))
         ->assertInertia(fn (Assert $page) => $page
@@ -25,7 +28,7 @@ test('only published providers are listed', function () {
 test('a provider shows name, city, avatar and categories', function () {
     $provider = Provider::factory()->published()->create(['avatar_path' => null]);
     $category = Category::factory()->create();
-    Service::factory()->for($provider)->for($category)->create();
+    $service = Service::factory()->for($provider)->for($category)->create();
 
     $this->get(route('providers.index'))
         ->assertInertia(fn (Assert $page) => $page
@@ -36,7 +39,11 @@ test('a provider shows name, city, avatar and categories', function () {
                 ->where('city', $provider->city)
                 ->where('avatar_url', null)
                 ->has('categories', 1)
-                ->where('categories.0.name', $category->name)));
+                ->where('categories.0.name', $category->name)
+                // The card's fields (ProviderListCardsTest): no photo, one service.
+                ->where('cover', null)
+                ->where('min_price', $service->price)
+                ->where('services_count', 1)));
 });
 
 test('an inactive service does not add its category', function () {
@@ -63,7 +70,8 @@ test('categories are listed without duplicates', function () {
 });
 
 test('the list is paginated by 12', function () {
-    Provider::factory()->count(13)->published()->create();
+    // Each with an active service: without one a provider is not listed.
+    Provider::factory()->count(13)->published()->has(Service::factory())->create();
 
     $this->get(route('providers.index'))
         ->assertInertia(fn (Assert $page) => $page

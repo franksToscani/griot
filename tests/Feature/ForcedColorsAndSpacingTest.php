@@ -66,7 +66,7 @@ test('the controls with a box-shadow ring have an outline on focus in forced col
     'textarea' => ['components/ui/textarea.tsx', 'data-slot="textarea"\s*className=\{cn\(\s*'],
     'booking notes' => ['components/booking-fields.tsx', 'const textareaClass =\s*'],
     'show password' => ['components/password-input.tsx', 'onClick=\{\(\) => setShowPassword\(\(prev\) => !prev\)\}\s*className='],
-    'provider card' => ['components/provider-card.tsx', 'href=\{show\(provider\.slug\)\}\s*className='],
+    'provider card' => ['components/provider-card.tsx', 'href=\{show\(provider\.slug\)\}\s*className=\{cn\(\s*'],
     'services: select' => ['pages/provider/services/index.tsx', 'const selectClass =\s*'],
     'service: select' => ['pages/provider/services/edit.tsx', 'const selectClass =\s*'],
     'availability: select' => ['pages/provider/availability/index.tsx', 'const selectClass =\s*'],

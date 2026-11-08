@@ -41,14 +41,7 @@ class FeaturedProviderResource extends JsonResource
                     ->sortBy('name')
                     ->values(),
             )->resolve($request),
-            'cover' => $cover === null ? null : [
-                'width' => $cover->width,
-                'height' => $cover->height,
-                'variants' => array_map(fn (int $side) => [
-                    'width' => $cover->widthFor($side),
-                    'url' => $cover->urlFor($side),
-                ], $cover->sizes()),
-            ],
+            'cover' => $cover === null ? null : (new ProviderCoverResource($cover))->resolve($request),
         ];
     }
 }
