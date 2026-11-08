@@ -1,7 +1,8 @@
 <?php
 
-// Griot's visual identity (Sprint 8): the font inside the project, the name of the site, the small
-// mark and the favicons. The colours are checked in AccessibilityContrastTest.
+// Griot's visual identity: the font inside the project, the name of the site, the small mark and
+// the favicons of the provisional logo (docs/brand.md). The colours are checked in
+// AccessibilityContrastTest and BrandPaletteTest, the files of the logo in BrandAssetsTest.
 
 function vidSource(string $path): string
 {
@@ -22,8 +23,22 @@ function vidPngSize(string $png): array
     return [(int) $size['width'], (int) $size['height']];
 }
 
-// The path of the "G" in the small mark and in public/favicon.svg.
+// The path of the old "G": gone with the provisional logo.
 const VID_G_PATH = 'M41.9 22.1A14 14 0 1 0 46 32H33';
+
+/**
+ * The colour and the alpha (0 opaque, 127 transparent) of a pixel of a PNG.
+ *
+ * @return array{0: int, 1: int, 2: int, 3: int}
+ */
+function vidPixel(string $png, int $x, int $y): array
+{
+    $image = imagecreatefromstring($png);
+    expect($image)->not->toBeFalse();
+    $pixel = imagecolorat($image, $x, $y);
+
+    return [($pixel >> 16) & 0xFF, ($pixel >> 8) & 0xFF, $pixel & 0xFF, ($pixel >> 24) & 0x7F];
+}
 
 // ---------------------------------------------------------------------------------------------
 // Font
@@ -123,9 +138,13 @@ test('the orange decor is only the line under the public header', function () {
 // Name of the site, small mark, favicons
 // ---------------------------------------------------------------------------------------------
 
-test('the name of the site is real text, bold and brown (text-primary), from the app name', function () {
+test('the name of the site is the logo named by the app name, and real text, bold and brown, where the logo cannot show', function () {
     expect(vidSource('resources/js/components/app-logo.tsx'))
         ->toContain('const { name } = usePage().props;')
+        // Since the provisional logo: two images (light and dark theme), named by the app name.
+        ->and(substr_count(vidSource('resources/js/components/app-logo.tsx'), 'alt={name}'))->toBe(2);
+    expect(vidSource('resources/js/components/app-logo.tsx'))
+        // The name as text: in forced colours, and for screen readers in the collapsed sidebar.
         ->toMatch('/<span className="[^"]*\bfont-bold\b[^"]*\btext-primary\b[^"]*">\s*\{name\}\s*<\/span>/')
         ->not->toMatch('/\b(?:border|bg|text)-decor\b/');
     // Brown in the light theme: dark, between red and yellow.
@@ -138,23 +157,25 @@ test('the name of the site is real text, bold and brown (text-primary), from the
         ->toContain('group-data-[collapsible=icon]:sr-only');
 });
 
-test('the small mark is a "G" on a square of the buttons\' colour (primary), not the Laravel logo', function () {
+test('the small mark is the pin of the logo on the brown of the band, decorative, not the Laravel logo', function () {
     expect(vidSource('resources/js/components/app-logo-icon.tsx'))
-        ->toContain(VID_G_PATH)
-        ->toContain('className="fill-primary"')
-        ->toContain('className="stroke-primary-foreground"')
+        ->toContain("import { PIN } from '@/lib/brand';")
+        ->toMatch("/'flex items-center justify-center rounded-\[22%\] bg-hero forced-colors:border'/")
         ->toContain('aria-hidden="true"')
-        // The first point of the Laravel cube.
+        ->toMatch('/<img\s+src=\{PIN\.src\}\s+srcSet=\{PIN\.srcSet\}\s+width=\{PIN\.width\}\s+height=\{PIN\.height\}\s+alt=""/')
+        // Neither the old "G" nor the first point of the Laravel cube.
+        ->not->toContain(VID_G_PATH)
         ->not->toContain('M17.2 5.63325');
 });
 
 test('the favicons are Griot\'s, in the sizes the page points to', function () {
-    $svg = vidSource('public/favicon.svg');
-    expect($svg)->toContain(VID_G_PATH)->toContain('fill="#005f48"')
-        // The first point of the Laravel favicon.
-        ->not->toContain('M162.041');
+    // Since the provisional logo no SVG: the mark exists as an image only (docs/brand.md).
+    expect(file_exists(public_path('favicon.svg')))->toBeFalse();
 
-    expect(vidPngSize(vidSource('public/apple-touch-icon.png')))->toBe([180, 180]);
+    // The apple-touch icon: 180 px, square and opaque (iOS rounds it), brown in its corner.
+    $apple = vidSource('public/apple-touch-icon.png');
+    expect(vidPngSize($apple))->toBe([180, 180])
+        ->and(vidPixel($apple, 0, 0))->toBe([0x3C, 0x13, 0x04, 0]);
 
     // An ICO with three PNG images: 16, 32 and 48 px.
     $ico = vidSource('public/favicon.ico');
@@ -169,9 +190,16 @@ test('the favicons are Griot\'s, in the sizes the page points to', function () {
     }
 
     expect($sizes)->toBe([[16, 16], [32, 32], [48, 48]]);
+    // The 48 px one: round corners (transparent), brown on its side, an orange pin in the middle.
+    $entry = unpack('Cwidth/Cheight/x2/vplanes/vbits/Vbytes/Voffset', substr($ico, 6 + 32, 16));
+    $big = substr($ico, (int) $entry['offset'], (int) $entry['bytes']);
+    [$r, $g, $b] = vidPixel($big, 24, 18);
+    expect(vidPixel($big, 0, 0)[3])->toBe(127)
+        ->and(vidPixel($big, 2, 24))->toBe([0x3C, 0x13, 0x04, 0])
+        ->and($r)->toBeGreaterThan(200)->and($b)->toBeLessThan(80)->and($g)->toBeGreaterThan(60);
 
     expect(vidSource('resources/views/app.blade.php'))
         ->toContain('<link rel="icon" href="/favicon.ico" sizes="any">')
-        ->toContain('<link rel="icon" href="/favicon.svg" type="image/svg+xml">')
+        ->not->toContain('favicon.svg')
         ->toContain('<link rel="apple-touch-icon" href="/apple-touch-icon.png">');
 });

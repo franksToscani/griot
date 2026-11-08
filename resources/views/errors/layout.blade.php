@@ -16,7 +16,6 @@
         <meta name="robots" content="noindex">
         <title>@yield('title') - {{ $appName }}</title>
         <link rel="icon" href="/favicon.ico" sizes="any">
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
         <style>
             :root {
@@ -29,6 +28,7 @@
                 --input: oklch(0.58 0.045 55);
                 --ring: oklch(0.2 0.06 40);
                 --decor: oklch(0.64 0.18 50);
+                --hero: oklch(0.25 0.07 40);
             }
 
             @media (prefers-color-scheme: dark) {
@@ -41,6 +41,7 @@
                     --input: oklch(0.58 0.05 60);
                     --ring: oklch(0.82 0.165 79);
                     --decor: oklch(0.71 0.17 55);
+                    --hero: oklch(0.27 0.07 40);
                 }
             }
 
@@ -77,18 +78,22 @@
                 text-decoration: none;
             }
 
-            .brand svg {
+            /* The small mark: the pin of the provisional logo (public/brand/pin.png, made by
+               scripts/brand-assets.php) on the brown square of the band (--hero). */
+            .brand .mark {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
                 width: 2rem;
                 height: 2rem;
                 flex: none;
+                border-radius: 22%;
+                background: var(--hero);
             }
 
-            .brand .mark-square {
-                fill: var(--primary);
-            }
-
-            .brand .mark-letter {
-                stroke: var(--primary-foreground);
+            .brand .mark img {
+                height: 64%;
+                width: auto;
             }
 
             main {
@@ -150,6 +155,10 @@
                     border-color: ButtonText;
                 }
 
+                .brand .mark {
+                    border: 1px solid CanvasText;
+                }
+
                 a:focus-visible {
                     outline-color: Highlight;
                 }
@@ -160,10 +169,7 @@
         <header>
             <div class="wrap">
                 <a class="brand" href="{{ url('/') }}" target="_top">
-                    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-                        <rect class="mark-square" width="64" height="64" rx="14" />
-                        <path class="mark-letter" d="M41.9 22.1A14 14 0 1 0 46 32H33" fill="none" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
+                    <span class="mark" aria-hidden="true"><img src="/brand/pin.png" width="22" height="24" alt=""></span>
                     {{ $appName }}
                 </a>
             </div>

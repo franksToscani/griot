@@ -84,7 +84,8 @@ test('every error page has its status, title, message and links, in the language
     expect($found[0][1])->toBe(' primary');
 
     // The name of the site, linked to the home page.
-    expect($html)->toMatch('#<a class="brand" href="'.preg_quote(url('/'), '#').'" target="_top">\s*<svg[^>]*aria-hidden="true"[\s\S]*?</svg>\s*Griot\s*</a>#');
+    // Since the provisional logo the mark is the pin (decorative), then the name of the site.
+    expect($html)->toMatch('#<a class="brand" href="'.preg_quote(url('/'), '#').'" target="_top">\s*<span class="mark" aria-hidden="true"><img[^>]*alt=""></span>\s*Griot\s*</a>#');
 })->with([
     '403' => [403, ['home', 'providers']],
     '404' => [404, ['home', 'providers']],
@@ -176,7 +177,11 @@ test('every page has one h1, a main landmark, its lang and the favicons of the s
         ->and(substr_count($html, '<main'))->toBe(1)
         ->and(substr_count($html, '<header'))->toBe(1)
         ->and($html)->toContain('<html lang="fr">')
-        ->toContain('<link rel="icon" href="/favicon.svg" type="image/svg+xml">')
+        // Since the provisional logo the favicon is an ICO only (docs/brand.md).
+        ->toContain('<link rel="icon" href="/favicon.ico" sizes="any">')
+        ->not->toContain('favicon.svg')
+        // The small mark: the pin of the logo, a file of public/ (no Vite here), decorative.
+        ->toContain('<span class="mark" aria-hidden="true"><img src="/brand/pin.png" width="22" height="24" alt=""></span>')
         ->toContain('<meta name="robots" content="noindex">');
 })->with([403, 404, 419, 429, 500, 503]);
 
@@ -187,6 +192,9 @@ test('the CSS keeps targets, focus and borders: 44px below 768px, an outline, fo
         ->toMatch('/@media \(max-width: 767\.98px\) \{\s*\.brand,\s*\.button \{\s*min-height: 2\.75rem;/')
         ->toMatch('/a:focus-visible \{\s*outline: 3px solid var\(--ring\);\s*outline-offset: 2px;/')
         ->toMatch('/@media \(forced-colors: active\) \{\s*\.button\.primary \{\s*border-color: ButtonText;/')
+        // The square of the small mark: the brown of the band, a border where its background is gone.
+        ->toMatch('/\.brand \.mark \{[^}]*background: var\(--hero\);/')
+        ->toMatch('/\.brand \.mark \{\s*border: 1px solid CanvasText;/')
         // The filled button keeps its border (transparent), the others show it.
         ->toMatch('/\.button \{[^}]*border: 1px solid var\(--input\);/')
         ->toMatch('/\.button\.primary \{[^}]*border-color: transparent;/')
@@ -200,7 +208,7 @@ test('the colours of the error pages are the tokens of app.css, in the light and
     $colours = errColours($theme);
     $tokens = accTokens($theme);
 
-    expect(array_keys($colours))->toBe(['background', 'foreground', 'muted-foreground', 'primary', 'primary-foreground', 'input', 'ring', 'decor']);
+    expect(array_keys($colours))->toBe(['background', 'foreground', 'muted-foreground', 'primary', 'primary-foreground', 'input', 'ring', 'decor', 'hero']);
 
     foreach ($colours as $name => $value) {
         expect($value)->toBe($tokens[$name], "--{$name} of the error pages differs from app.css ({$theme})");
@@ -218,7 +226,8 @@ test('every colour pair of the error pages reaches its WCAG threshold', function
         ['text of the other buttons', accSrgb($c['foreground']), $background, 4.5],
         ['border of the other buttons (input)', accSrgb($c['input']), $background, 3.0],
         ['focus outline (ring, solid)', accSrgb($c['ring']), $background, 3.0],
-        ['letter of the small mark', accSrgb($c['primary-foreground']), accSrgb($c['primary']), 3.0],
+        // The small mark is the pin of the logo on --hero: its orange, read from the pixels of
+        // public/brand/pin.png, is measured in BrandAssetsTest.
         ['orange line under the header', accSrgb($c['decor']), $background, 3.0],
     ];
 

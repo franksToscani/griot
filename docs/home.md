@@ -4,7 +4,7 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 
 ## Struttura decisa (dall'alto in basso)
 
-1. Testata: quella del layout pubblico (logo, lingua, accesso).
+1. Testata: quella del layout pubblico (logo provvisorio, lingua, accesso; [brand.md](brand.md)).
 2. Fascia marrone a tutta larghezza: a sinistra l'h1, una frase e la ricerca per servizio e città; a destra il carousel delle categorie con foto (sotto, sui telefoni).
 3. Categorie: una fila sottile di schede con foto (o un riquadro colorato) che si scorre di lato.
 4. Professionisti in evidenza: provider pubblicati con almeno una foto, i più recenti per `published_at` (passo 3).

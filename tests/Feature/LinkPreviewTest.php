@@ -337,13 +337,29 @@ test('the default image exists, is a PNG of 1200x630 and comes from its SVG sour
         ->and(LinkPreview::DEFAULT_IMAGE_WIDTH)->toBe(1200)
         ->and(LinkPreview::DEFAULT_IMAGE_HEIGHT)->toBe(630);
 
-    // The source: the palette's colours, the name of the site, no other text.
-    $svg = (string) file_get_contents(resource_path('images/og-default.svg'));
-    expect($svg)->toContain('width="1200" height="630"')
-        ->toContain('fill="#005f48"')
-        ->toContain('>Griot</text>')
-        ->toContain('M41.9 22.1A14 14 0 1 0 46 32H33')
-        ->and(substr_count($svg, '<text'))->toBe(1);
+    // Since the provisional logo it is made by scripts/brand-assets.php (docs/brand.md), no more
+    // from an SVG: the cream of the page, the wordmark in the middle, the orange line under it.
+    expect(file_exists(resource_path('images/og-default.svg')))->toBeFalse();
+    expect((string) file_get_contents(base_path('scripts/brand-assets.php')))
+        ->toContain('$preview = imagecreatetruecolor(1200, 630);')
+        ->toContain('save($preview, "{$root}/public/og-default.png");');
+
+    $image = imagecreatefromstring($png);
+    expect($image)->not->toBeFalse();
+    $hex = fn (int $x, int $y): string => sprintf('#%06X', imagecolorat($image, $x, $y) & 0xFFFFFF);
+    $token = fn (string $name): string => sprintf('#%02X%02X%02X', ...array_map(fn (float $channel) => (int) round($channel * 255), accSrgb(accTokens('light')[$name])));
+
+    // The background in the corners and on the edges is --background; the line is --decor.
+    foreach ([[0, 0], [1199, 0], [0, 629], [1199, 629], [600, 20], [600, 610]] as [$x, $y]) {
+        expect($hex($x, $y))->toBe($token('background'), "{$x},{$y}");
+    }
+    expect($hex(600, 425))->toBe($token('decor'));
+    // Something dark in the middle: the brown letters of the wordmark.
+    $dark = 0;
+    for ($x = 300; $x < 900; $x += 2) {
+        $dark += (imagecolorat($image, $x, 300) & 0xFF) < 60 ? 1 : 0;
+    }
+    expect($dark)->toBeGreaterThan(20);
 });
 
 test('the texts of the previews exist in Italian, French and English, with the same placeholders', function () {

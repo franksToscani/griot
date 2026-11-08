@@ -19,12 +19,8 @@ Cosa compare quando qualcuno condivide un link di Griot su WhatsApp, Instagram, 
 
 ## Immagine predefinita
 
-- `public/og-default.png`, 1200×630 (la misura consigliata da Meta), generata da `resources/images/og-default.svg`: la « G », la scritta « Griot » e i colori della palette Laguna. Nessun altro testo: va bene per tutte le lingue. Il testo alternativo è tradotto (`link_preview.image_alt`).
-- Per cambiarla: modificare l'SVG, poi
-    ```bash
-    rsvg-convert -w 1200 -h 630 resources/images/og-default.svg -o public/og-default.png
-    ```
-    (`rsvg-convert` sta nel pacchetto `librsvg2-bin`). Se cambiano le misure, aggiornare `LinkPreview::DEFAULT_IMAGE_WIDTH` e `DEFAULT_IMAGE_HEIGHT`. Meta tiene le immagini in cache per indirizzo: un'immagine nuova con lo stesso nome può restare vecchia nelle anteprime già fatte (vedi sotto).
+- `public/og-default.png`, 1200×630 (la misura consigliata da Meta), generata da `scripts/brand-assets.php` insieme al logo provvisorio ([brand.md](brand.md)): sfondo crema (`--background`), al centro la scritta GRIOT con il segnaposto, sotto un filo arancio (`--decor`). Nessun altro testo, né il motto in francese né la figura: va bene per tutte le lingue. Il testo alternativo è tradotto (`link_preview.image_alt`).
+- Per cambiarla: rigenerarla con lo script (vedi [brand.md](brand.md)); niente più SVG né `rsvg-convert`. Se cambiano le misure, aggiornare `LinkPreview::DEFAULT_IMAGE_WIDTH` e `DEFAULT_IMAGE_HEIGHT`. Meta tiene le immagini in cache per indirizzo: un'immagine nuova con lo stesso nome può restare vecchia nelle anteprime già fatte (vedi sotto).
 
 ## Foto dei provider
 

@@ -42,7 +42,10 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                     >
                         <AppLogo />
                     </Link>
-                    <div className="flex items-center gap-4">
+                    {/* With the logo as an image (28 px high, about 117 px wide on phones),
+                        a 320 px screen may not hold the language and "log in" on one row: they
+                        go one under the other, never off the screen. */}
+                    <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
                         <LocaleSwitcher />
                         <nav className="text-sm">
                             {auth.user ? (
