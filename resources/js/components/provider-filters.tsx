@@ -1,181 +1,116 @@
-import { Link, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { router } from '@inertiajs/react';
 import type { FormEvent } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { useTranslation } from '@/hooks/use-translation';
+import { SearchFields } from '@/components/search-fields';
 import { index } from '@/routes/providers';
 import type {
-    ProviderFilterOptions,
+    ProviderFilterKey,
+    ProviderFilterKeys,
     ProviderFilters as Filters,
 } from '@/types';
 
-// Radix Select does not accept an empty value, so "all" has its own value.
-const ALL = '__all__';
+// The fields of the search bar: the other filters and the order go with it as hidden fields.
+const BAR_FIELDS: ProviderFilterKey[] = ['q', 'city'];
 
-// The same limit as ProviderIndexRequest::SEARCH_MAX: a longer search would be ignored.
-const SEARCH_MAX = 100;
+// The look of the list's search bar: the kit's fields, 44px on phones, 40px from 768 px.
+const LOOK = { size: 'h-11 md:h-10', field: '', button: '' };
 
-type Props = {
-    filters: Filters;
-    options: ProviderFilterOptions;
-};
+// The text of a field of a sent form; empty when it is missing or not text.
+function fieldText(data: FormData, name: string): string {
+    const value = data.get(name);
+
+    return typeof value === 'string' ? value.trim() : '';
+}
+
+// Whether any filter of the list is on (ProviderIndexRequest::FILTERS). The order is not a filter.
+export function hasActiveFilters(
+    filters: Filters,
+    keys: ProviderFilterKey[],
+): boolean {
+    return keys.some((key) => filters[key] !== null);
+}
+
+// How many filters of the panel are on, for "Filtri (n)": not the city nor the search.
+export function activePanelFilters(
+    filters: Filters,
+    keys: ProviderFilterKeys,
+): number {
+    return keys.panel.filter((key) => filters[key] !== null).length;
+}
 
 // The list without filters, in the same order: "Azzera filtri" never resets the order.
 export function resetFilters(filters: Filters) {
     return index({ query: { sort: filters.sort } });
 }
 
-// The order is not a filter: the default one is no filter either.
-export function hasActiveFilters(filters: Filters): boolean {
-    return (
-        filters.category !== null || filters.city !== null || filters.q !== null
-    );
+// A visit of the list with some filters changed, from page 1 (the address has no "page"),
+// keeping the page mounted: the status of the results changes and is announced.
+export function visitList(filters: Filters, changes: Partial<Filters>) {
+    router.visit(index({ query: { ...filters, ...changes } }), {
+        preserveScroll: true,
+        preserveState: true,
+    });
 }
 
-export function ProviderFilters({ filters, options }: Props) {
-    const { t } = useTranslation();
+// The search bar of the list (docs/search.md): the fields of the home page (SearchFields) in a
+// GET form. With JavaScript it is an Inertia visit with the other filters and the order; without,
+// the browser sends them from the hidden fields. The fields start again from the server's values
+// when those change from outside (a link, "Azzera filtri", the browser's back button).
+export function ProviderSearchBar({
+    filters,
+    keys,
+    cities,
+}: {
+    filters: Filters;
+    keys: ProviderFilterKeys;
+    cities: string[];
+}) {
+    const hidden = [
+        ...keys.all.filter((key) => !BAR_FIELDS.includes(key)),
+        'sort' as const,
+    ];
 
-    // The text of the field. It follows the search of the page when that changes from outside
-    // the field (a link, the reset, the browser's back button): the server's value, trimmed.
-    const [text, setText] = useState(filters.q ?? '');
-    const [shownSearch, setShownSearch] = useState(filters.q);
+    const search = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+        const q = fieldText(data, 'q');
+        const city = fieldText(data, 'city');
 
-    if (filters.q !== shownSearch) {
-        setShownSearch(filters.q);
-        setText(filters.q ?? '');
-    }
-
-    // A new filter value starts again from page 1: the URL has no "page". preserveState keeps
-    // the page mounted, so the role="status" of the list changes and is announced.
-    const apply = (key: keyof Filters, value: string | null) => {
-        router.visit(index({ query: { ...filters, [key]: value } }), {
-            preserveScroll: true,
-            preserveState: true,
+        visitList(filters, {
+            q: q === '' ? null : q,
+            city: city === '' ? null : city,
         });
     };
 
-    // A GET form: without JavaScript the browser sends q with the other filters, from the hidden
-    // fields. With JavaScript the same address, as an Inertia visit.
-    const search = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        apply('q', text.trim() === '' ? null : text.trim());
-    };
-
     return (
-        <div className="flex flex-wrap items-end gap-4">
-            <form
-                role="search"
-                method="get"
-                action={index().url}
-                onSubmit={search}
-                className="flex flex-wrap items-end gap-2"
-            >
-                {filters.category !== null && (
-                    <input
-                        type="hidden"
-                        name="category"
-                        value={filters.category}
-                    />
-                )}
-                {filters.city !== null && (
-                    <input type="hidden" name="city" value={filters.city} />
-                )}
-                {filters.sort !== null && (
-                    <input type="hidden" name="sort" value={filters.sort} />
-                )}
-                <div className="grid gap-2">
-                    <Label htmlFor="filter-search">
-                        {t('providers.filters.search')}
-                    </Label>
-                    <Input
-                        id="filter-search"
-                        type="search"
-                        name="q"
-                        maxLength={SEARCH_MAX}
-                        value={text}
-                        onChange={(event) => setText(event.target.value)}
-                        className="max-w-full min-w-56"
-                    />
-                </div>
-                <Button type="submit">
-                    {t('providers.filters.search_submit')}
-                </Button>
-            </form>
+        <form
+            key={`${filters.q ?? ''}|${filters.city ?? ''}`}
+            role="search"
+            method="get"
+            action={index().url}
+            onSubmit={search}
+            className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end"
+        >
+            {hidden.map((key) => {
+                const value = filters[key];
 
-            <div className="grid gap-2">
-                <Label htmlFor="filter-category">
-                    {t('providers.filters.category')}
-                </Label>
-                <Select
-                    value={filters.category ?? ALL}
-                    onValueChange={(value) =>
-                        apply('category', value === ALL ? null : value)
-                    }
-                >
-                    <SelectTrigger
-                        id="filter-category"
-                        className="max-w-full min-w-56"
-                    >
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value={ALL}>
-                            {t('providers.filters.all_categories')}
-                        </SelectItem>
-                        {options.categories.map((category) => (
-                            <SelectItem key={category.id} value={category.slug}>
-                                {category.name}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-
-            <div className="grid gap-2">
-                <Label htmlFor="filter-city">
-                    {t('providers.filters.city')}
-                </Label>
-                <Select
-                    value={filters.city ?? ALL}
-                    onValueChange={(value) =>
-                        apply('city', value === ALL ? null : value)
-                    }
-                >
-                    <SelectTrigger
-                        id="filter-city"
-                        className="max-w-full min-w-56"
-                    >
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value={ALL}>
-                            {t('providers.filters.all_cities')}
-                        </SelectItem>
-                        {options.cities.map((city) => (
-                            <SelectItem key={city} value={city}>
-                                {city}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
-
-            {hasActiveFilters(filters) && (
-                <Button variant="outline" asChild>
-                    <Link href={resetFilters(filters)} preserveScroll>
-                        {t('providers.filters.reset')}
-                    </Link>
-                </Button>
-            )}
-        </div>
+                return (
+                    value !== null && (
+                        <input
+                            key={key}
+                            type="hidden"
+                            name={key}
+                            value={value}
+                        />
+                    )
+                );
+            })}
+            <SearchFields
+                idPrefix="provider-search"
+                cities={cities}
+                defaultQ={filters.q ?? ''}
+                defaultCity={filters.city ?? ''}
+                look={LOOK}
+            />
+        </form>
     );
 }

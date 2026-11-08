@@ -17,7 +17,7 @@ function hmSource(string $path): string
 function hmSources(): string
 {
     $files = [
-        'js/pages/home.tsx', 'js/components/home/home-hero.tsx', 'js/components/home/home-search.tsx',
+        'js/pages/home.tsx', 'js/components/home/home-hero.tsx', 'js/components/home/home-search.tsx', 'js/components/search-fields.tsx',
         'js/components/home/home-carousel.tsx', 'js/components/home/category-card.tsx',
         'js/components/home/featured-provider-card.tsx', 'js/components/home/scroll-row.tsx',
         'js/lib/home-hero.ts', 'js/lib/motion.ts', 'js/hooks/use-reveal.ts',
@@ -207,7 +207,7 @@ test('the band and its first photo are never hidden: the h1 only rises, the phot
         ->toMatch('/\[data-home-enter\] > form \{\s*animation: home-enter 350ms ease-out 120ms both;\s*\}/')
         ->and(substr_count($css, '[data-home-enter]'))->toBe(3);
     // Nothing of the band appears on scroll; the carousel and its photo have no entrance.
-    $band = hmSource('js/components/home/home-hero.tsx').hmSource('js/components/home/home-search.tsx').hmSource('js/components/home/home-carousel.tsx');
+    $band = hmSource('js/components/home/home-hero.tsx').hmSource('js/components/home/home-search.tsx').hmSource('js/components/search-fields.tsx').hmSource('js/components/home/home-carousel.tsx');
     expect($band)->not->toMatch('/useReveal|reveal-item|data-home-enter=\{[^}]*\}[^>]*>\s*<HomeCarousel/');
     expect(hmSource('js/components/home/home-carousel.tsx'))->not->toMatch('/<img[^>]*(animate|opacity|scale)/');
     // Only at the first visit: a page loaded by the browser, not a visit inside the site.
@@ -224,7 +224,8 @@ test('the buttons of the band shrink when pressed; the select eases its focus', 
         ->toContain('${PRESS}`,')
         ->toContain('press: PRESS,');
     expect(hmSource('js/components/home/home-carousel.tsx'))->toContain('HERO.press,');
-    expect(hmSource('js/components/home/home-search.tsx'))->toContain('motion-safe:transition-[color,box-shadow] motion-safe:duration-200');
+    // Since the list's PR B the select is in SearchFields, shared with the list.
+    expect(hmSource('js/components/search-fields.tsx'))->toContain('motion-safe:transition-[color,box-shadow] motion-safe:duration-200');
     // The kit's Button and Input are left as they are.
     expect(hmSource('js/components/ui/button.tsx').hmSource('js/components/ui/input.tsx'))->not->toContain('motion-safe');
 });

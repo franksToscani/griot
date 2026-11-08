@@ -174,7 +174,7 @@ test('the search is trimmed and kept in the props', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('providers/index')
-            ->where('filters', ['category' => null, 'city' => null, 'q' => 'sahel', 'sort' => null])
+            ->where('filters', ['category' => null, 'city' => null, 'q' => 'sahel', 'max_price' => null, 'with_photo' => null, 'sort' => null])
             ->has('providers.data', 1)
             ->where('providers.data.0.name', 'Trecce Sahel')
             ->where('providers.meta.total', 1)
@@ -219,7 +219,7 @@ test('the search combines with category and city', function () {
 
     $this->get(route('providers.index', ['q' => 'sahel', 'category' => 'treccine', 'city' => 'Milano']))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('filters', ['category' => 'treccine', 'city' => 'Milano', 'q' => 'sahel', 'sort' => null]));
+            ->where('filters', ['category' => 'treccine', 'city' => 'Milano', 'q' => 'sahel', 'max_price' => null, 'with_photo' => null, 'sort' => null]));
 });
 
 test('the page links keep the search', function () {
@@ -258,18 +258,26 @@ test('the number of queries of a search does not grow with the providers found',
 });
 
 test('the search field has a visible label, a submit button and sends q with the other filters', function () {
+    // Since the list's PR B the fields are SearchFields, shared with the home page; the list puts
+    // them in its own form, with the other filters and the order as hidden fields.
     $source = searchSource('components/provider-filters.tsx');
+    $fields = searchSource('components/search-fields.tsx');
 
     expect($source)
-        ->toMatch('/<form\s+role="search"\s+method="get"\s+action=\{index\(\)\.url\}\s+onSubmit=\{search\}/')
-        ->toMatch('/<Label htmlFor="filter-search">\s*\{t\(\'providers\.filters\.search\'\)\}\s*<\/Label>/')
-        ->toMatch('/<Input\s+id="filter-search"\s+type="search"\s+name="q"\s+maxLength=\{SEARCH_MAX\}\s+value=\{text\}/')
-        ->toMatch('/<Button type="submit">\s*\{t\(\'providers\.filters\.search_submit\'\)\}\s*<\/Button>/')
-        ->toMatch('/<input\s+type="hidden"\s+name="category"/')
-        ->toMatch('/<input type="hidden" name="city"/')
-        ->toContain('const SEARCH_MAX = 100;')
+        ->toMatch('/<form\s+key=\{`[^`]*`\}\s+role="search"\s+method="get"\s+action=\{index\(\)\.url\}\s+onSubmit=\{search\}/')
+        ->toMatch('/<SearchFields\s+idPrefix="provider-search"\s+cities=\{cities\}\s+defaultQ=\{filters\.q \?\? \'\'\}\s+defaultCity=\{filters\.city \?\? \'\'\}/')
+        // Every filter of the one list but those of the bar, then the order.
+        ->toContain("const BAR_FIELDS: ProviderFilterKey[] = ['q', 'city'];")
+        ->toMatch("/const hidden = \\[\\s*\\.\\.\\.keys\\.all\\.filter\\(\\(key\\) => !BAR_FIELDS\\.includes\\(key\\)\\),\\s*'sort' as const,?\\s*\\];/")
+        ->toMatch('/<input\s+key=\{key\}\s+type="hidden"\s+name=\{key\}\s+value=\{value\}\s*\/>/')
         // Every visit of the filters keeps the page mounted: the status changes and is read.
         ->toMatch('/preserveScroll: true,\s+preserveState: true,/')
+        ->not->toContain('aria-label');
+    expect($fields)
+        ->toMatch("/<Label htmlFor=\\{qId\\}>\\{t\\('search\\.q'\\)\\}<\\/Label>/")
+        ->toMatch('/<Input\s+id=\{qId\}\s+type="search"\s+name="q"\s+maxLength=\{SEARCH_MAX\}\s+defaultValue=\{defaultQ\}/')
+        ->toMatch("/<Button\\s+type=\"submit\"[^>]*>\\s*\\{t\\('search\\.submit'\\)\\}\\s*<\\/Button>/")
+        ->toContain('const SEARCH_MAX = 100;')
         ->not->toContain('aria-label');
 });
 
@@ -277,17 +285,21 @@ test('the field follows the search of the page and empties with it', function ()
     $source = searchSource('components/provider-filters.tsx');
 
     expect($source)
-        ->toContain("useState(filters.q ?? '')")
-        ->toMatch("/if \\(filters\\.q !== shownSearch\\) \\{\\s+setShownSearch\\(filters\\.q\\);\\s+setText\\(filters\\.q \\?\\? ''\\);/")
-        ->toMatch("/apply\\('q', text\\.trim\\(\\) === '' \\? null : text\\.trim\\(\\)\\)/")
-        ->toMatch('/filters\.category !== null \|\| filters\.city !== null \|\| filters\.q !== null/');
+        // Since the list's PR B the form starts again (a new key) when the server's search or city
+        // change: a link, "Azzera filtri", the back button. The fields show the server's values.
+        ->toContain('key={`${filters.q ?? \'\'}|${filters.city ?? \'\'}`}')
+        ->toContain("defaultQ={filters.q ?? ''}")
+        // Sent trimmed; empty is no search.
+        ->toMatch("/return typeof value === 'string' \\? value\\.trim\\(\\) : '';/")
+        ->toMatch("/q: q === '' \\? null : q,\\s*city: city === '' \\? null : city,/")
+        ->toMatch('/return keys\.some\(\(key\) => filters\[key\] !== null\);/');
 });
 
 test('the number of results, or the empty state, is announced in a status always on the page', function () {
     $source = searchSource('pages/providers/index.tsx');
 
     expect($source)
-        ->toMatch('/<p role="status" className="text-muted-foreground">\s*\{resultsText\(t, providers\.meta\.total, filters\)\}\s*<\/p>/')
+        ->toMatch('/<p role="status" className="text-muted-foreground">\s*\{resultsText\(\s*t,\s*providers\.meta\.total,\s*filters,\s*filtered,?\s*\)\}\s*<\/p>/')
         ->toContain("t('providers.list.results_one')")
         ->toContain("t('providers.list.results', { count: total })")
         ->toContain("t('providers.list.empty_search')")
@@ -296,13 +308,14 @@ test('the number of results, or the empty state, is announced in a status always
         ->not->toContain('aria-label');
 
     // The status is outside the condition on the results: it is there with and without them.
-    expect(strpos($source, 'role="status"'))->toBeLessThan(strpos($source, 'providers.data.length === 0'));
+    expect(strpos($source, 'role="status"'))->toBeLessThan(strpos($source, 'providers.data.length > 0'));
 });
 
 test('the keys of the search are in the three languages, with the same placeholders', function () {
     $keys = [
-        'providers.filters.search',
-        'providers.filters.search_submit',
+        // Since the list's PR B the keys of the search are those of the home page too.
+        'search.q',
+        'search.submit',
         'providers.list.results',
         'providers.list.results_one',
         'providers.list.empty_search',

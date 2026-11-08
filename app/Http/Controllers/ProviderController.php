@@ -19,8 +19,8 @@ class ProviderController extends Controller
 {
     /**
      * Show the public list of published providers with something to book (at least one active
-     * service, as on the home page), optionally filtered by category and city, searched by words
-     * (Provider::search()) and sorted (docs/search.md).
+     * service, as on the home page), optionally filtered (ProviderIndexRequest::FILTERS: category,
+     * city, search by words, maximum price, with photos) and sorted (docs/providers-list.md).
      *
      * Seven queries without a search, however many providers (ProviderListCardsTest): the
      * categories and the cities of the filters, the count of the pagination, the providers (with
@@ -41,6 +41,8 @@ class ProviderController extends Controller
             ->when($filters['category'], fn ($query, string $slug) => $query->inCategory($slug))
             ->when($filters['city'], fn ($query, string $city) => $query->inCity($city))
             ->when($filters['q'], fn ($query, string $text) => $query->search($text))
+            ->when($filters['max_price'], fn ($query, string $price) => $query->withServiceUpTo($price))
+            ->when($filters['with_photo'], fn ($query) => $query->withPhotos())
             // The card's "da X €" and "N servizi": the active services only. The lowest price
             // comes as the database gives it (a number in SQLite): the cast makes it "30.00".
             ->withMin(['services as min_price' => $active], 'price')
@@ -73,6 +75,11 @@ class ProviderController extends Controller
         return Inertia::render('providers/index', [
             'providers' => ProviderResource::collection($providers),
             'filters' => $filters,
+            // The one list of the filters (ProviderIndexRequest), for the page.
+            'filterKeys' => [
+                'all' => ProviderIndexRequest::FILTERS,
+                'panel' => ProviderIndexRequest::PANEL_FILTERS,
+            ],
             'filterOptions' => [
                 // resolve() gives a plain list: without pagination there is no need for the "data" wrapper.
                 'categories' => CategoryResource::collection($request->categoryOptions())->resolve($request),

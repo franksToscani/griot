@@ -17,6 +17,7 @@ La ricerca testuale di `/providers`, insieme ai filtri per categoria e città. S
 - L'ordine è quello scelto in « Ordina per » (per nome se non c'è), 12 per pagina (`docs/providers-list.md`).
 
 - La stessa ricerca parte anche dalla fascia della home (`docs/home.md`): un form HTML `GET` verso `/providers` con `q` e `city`, che funziona senza JavaScript.
+- Prezzo massimo e « solo con foto » sono nel pannello dei filtri della lista (`docs/providers-list.md`).
 
 ## Categorie e lingua
 
@@ -34,13 +35,20 @@ Quindi « coiffeur » non trova « barbiere » se la lingua attiva è l'italiano
 
 ## Interfaccia
 
-`resources/js/components/provider-filters.tsx` e `resources/js/pages/providers/index.tsx`:
+I campi sono uno solo componente per la home e per la lista: `resources/js/components/search-fields.tsx` (`SearchFields`), senza form e con l'aspetto passato da fuori (`look`):
 
-- un `<form role="search" method="get">` con etichetta visibile (« Cerca per nome o servizio »), un campo `type="search"` e il pulsante « Cerca »; Invio dal campo invia. Senza JavaScript il browser manda `q` con categoria, città e ordinamento dai campi nascosti; con JavaScript la stessa ricerca è una visita di Inertia;
-- dopo la ricerca il campo mostra il testo cercato (quello del server, senza spazi ai lati);
+- « Servizio o professionista »: campo `q`, `type="search"`, con la lente decorativa e un esempio come placeholder (« Treccine, barbiere, unghie… »); l'etichetta resta visibile;
+- « Città »: un `<select>` nativo con « Tutte le città » (valore vuoto);
+- « Cerca ».
+
+Le chiavi sono le stesse nei due posti: `search.q`, `search.placeholder`, `search.city`, `search.all_cities`, `search.submit`. Hanno sostituito `home.search.*` e `providers.filters.search`, `search_submit`, `city`, `all_cities`.
+
+- **Home** (`components/home/home-search.tsx`): `SearchFields` in un form HTML `GET`, senza `onSubmit` né Inertia, nei colori della fascia.
+- **Lista** (`ProviderSearchBar` in `components/provider-filters.tsx`): `SearchFields` in un `<form role="search" method="get">` con `onSubmit`. Invio dal campo invia. Con JavaScript la ricerca è una visita di Inertia con gli altri filtri e l'ordinamento; senza, il browser li manda dai campi nascosti. La città si applica con « Cerca »;
+- dopo la ricerca il campo mostra il testo cercato (quello del server, senza spazi ai lati): il form riparte quando ricerca o città cambiano;
 - un paragrafo `role="status"` sempre presente sopra la lista: il numero dei risultati, oppure lo stato vuoto adatto (ricerca senza risultati, filtri senza risultati, nessun professionista). Le visite dei filtri e della ricerca usano `preserveState`, così la pagina resta montata, il testo cambia e un lettore di schermo lo annuncia;
 - 44 px sotto 768 px e focus visibile vengono dai componenti `Input` e `Button` del kit (`docs/accessibility.md`).
 
 ## Test
 
-`tests/Feature/ProviderSearchTest.php`; la lista e l'ordinamento in `tests/Feature/ProviderListCardsTest.php`.
+`tests/Feature/ProviderSearchTest.php`; la lista e l'ordinamento in `tests/Feature/ProviderListCardsTest.php`; i filtri, la barra condivisa e il pannello in `tests/Feature/ProviderListFiltersTest.php`.

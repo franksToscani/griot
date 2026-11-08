@@ -14,8 +14,9 @@ import { dashboard, home, login, privacy } from '@/routes';
 const FOOTER_CONTACT_ID = 'footer-contact-label';
 
 // The pages that lay out their own width: the home page, whose first band goes from edge to edge
-// (docs/home.md). Their sections use the same container as the header and the footer.
-const FULL_WIDTH_PAGES = ['home'];
+// (docs/home.md), and the list of providers, whose results will have a map next to them
+// (docs/providers-list.md). Their sections use the same container as the header and the footer.
+const FULL_WIDTH_PAGES = ['home', 'providers/index'];
 
 // Layout for the public pages that customers see without logging in.
 export default function PublicLayout({ children }: { children: ReactNode }) {
