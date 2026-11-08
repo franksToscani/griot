@@ -156,7 +156,7 @@ test('one h1, in the band at the top; an h2 per section and an h3 per step, with
         // Nor the cards of the categories (#144 step 8): the name is the link's text.
         ->and($levels(hpSource('components/home/category-card.tsx')))->toBe([])
         // Nor the search: its fields have labels.
-        ->and($levels(hpSource('components/home/home-search.tsx')))->toBe([])
+        ->and($levels(hpSource('components/home/home-search.tsx').hpSource('components/search-fields.tsx')))->toBe([])
         // The band comes first, then the sections; the h3 are inside the steps' list.
         ->and($page)->toMatch('/<HomeHero[\s\S]*<CategoriesSection[\s\S]*<ScrollRow[\s\S]*<h2[\s\S]*<ol[^>]*>[\s\S]*<h3[\s\S]*<\/ol>/')
         // The row's h2 comes before its items: the cards' h3 are under it.
@@ -200,7 +200,7 @@ test('the section of the categories is there only with categories', function () 
 });
 
 test('nothing written by hand: no aria-label, no category name; nothing that moves or sticks', function () {
-    $sources = hpSource('pages/home.tsx').hpSource('components/home/home-hero.tsx').hpSource('components/home/home-search.tsx').hpSource('components/home/scroll-row.tsx')
+    $sources = hpSource('pages/home.tsx').hpSource('components/home/home-hero.tsx').hpSource('components/home/home-search.tsx').hpSource('components/search-fields.tsx').hpSource('components/home/scroll-row.tsx')
         .hpSource('components/home/featured-provider-card.tsx').hpSource('components/home/home-carousel.tsx').hpSource('lib/home-carousel.ts').hpSource('lib/home-hero.ts')
         .hpSource('components/home/category-card.tsx').hpSource('lib/home-categories.ts');
 
@@ -239,9 +239,11 @@ test('the texts of the home page exist in Italian, French and English, with the 
 
     $keys = array_values(array_filter(array_keys($json('it')), fn (string $key) => str_starts_with($key, 'home.')));
     // 11 of the page, 2 of "Professionisti in evidenza" (#144 step 3), 17 of the carousel (step 5),
-    // 4 of the search in the band and its placeholder (step 9). "home.intro.cta" is gone with its
-    // button: the search does the same.
-    expect($keys)->toHaveCount(35)
+    // The 5 of the search in the band left with the list's PR B: they are the search.* keys,
+    // shared with the list (HomeHeroSearchTest). "home.intro.cta" is gone with its button: the
+    // search does the same.
+    expect($keys)->toHaveCount(30)
+        ->and($keys)->not->toContain('home.search.q')
         ->and($keys)->not->toContain('home.intro.cta');
 
     // Every key the page uses, the steps and the sentences of the categories included.
@@ -264,7 +266,7 @@ test('the texts of the home page exist in Italian, French and English, with the 
         expect(preg_match('/ [:?!;](?![a-z])/', $json('fr')[$key]))->toBe(0, "fr {$key}");
     }
 
-    expect(__('home.search.submit', [], 'it'))->toBe('Cerca')
+    expect(__('search.submit', [], 'it'))->toBe('Cerca')
         ->and(__('home.steps.title', [], 'it'))->toBe('Come funziona')
         ->and(__('home.intro.text', [], 'fr'))->toContain("encore\u{00A0}: trouvez");
 });

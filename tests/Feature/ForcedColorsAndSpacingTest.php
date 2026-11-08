@@ -143,16 +143,19 @@ test('the name of the site in the public header is never squeezed', function () 
         ->toContain('flex', 'shrink-0', 'items-center');
 });
 
-test('the filters of the providers\' list grow with their text, from the same width', function () {
-    $source = fcsSource('js/components/provider-filters.tsx');
+test('the fields of the providers\' list never force a width on a phone', function () {
+    // Since the list's PR B the category is a native select in the panel and the city a native
+    // select in the search bar (SearchFields): full width under 768 px, a minimum width only from
+    // 768 px, never a fixed one.
+    $sources = fcsSource('js/components/search-fields.tsx').fcsSource('js/components/provider-filters.tsx')
+        .fcsSource('js/components/provider-filters-panel.tsx').fcsSource('js/components/provider-sort.tsx');
 
-    foreach (['filter-category', 'filter-city'] as $id) {
-        expect(fcsClasses($source, '<SelectTrigger\s+id="'.$id.'"\s+className='))
-            ->toContain('min-w-56', 'max-w-full')
-            ->not->toContain('w-56');
-    }
-
-    // The trigger fits its content (w-fit): 14rem at least, as before, more with more text.
-    expect(fcsClasses(fcsSource('js/components/ui/select.tsx'), 'data-slot="select-trigger"[\s\S]*?className=\{cn\(\s*'))
-        ->toContain('w-fit');
+    expect($sources)
+        ->not->toMatch('/(?<![\w:-])(min-w|w)-([1-9]\d*|\[[^\]]+\])(?![\w-])/')
+        ->toContain('md:min-w-56')
+        ->toContain('md:w-44');
+    expect(fcsClasses(fcsSource('js/components/provider-filters-panel.tsx'), 'const selectClass =\s*'))
+        ->toContain('w-full', 'min-w-0');
+    expect(fcsClasses(fcsSource('js/components/search-fields.tsx'), '<select\s+id=[\s\S]*?className=\{cn\(\s*'))
+        ->toContain('w-full', 'min-w-0');
 });

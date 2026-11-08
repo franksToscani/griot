@@ -97,6 +97,31 @@ class Provider extends Model
     }
 
     /**
+     * Only providers with at least one active service at this price or less: "da X €" on the
+     * card is then at most X. $price is a decimal string such as "39.90".
+     *
+     * @param  Builder<Provider>  $query
+     */
+    #[Scope]
+    protected function withServiceUpTo(Builder $query, string $price): void
+    {
+        $query->whereHas('services', fn (Builder $services) => $services
+            ->where('is_active', true)
+            ->where('price', '<=', $price));
+    }
+
+    /**
+     * Only providers with at least one photo of their work.
+     *
+     * @param  Builder<Provider>  $query
+     */
+    #[Scope]
+    protected function withPhotos(Builder $query): void
+    {
+        $query->whereHas('photos');
+    }
+
+    /**
      * Only providers that match every word of a search (at most SEARCH_WORDS): each word appears
      * in the provider's name, in the name of one of its active services, or in the category of
      * one of its active services (slug, saved name or name in the language of the request).

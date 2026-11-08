@@ -12,7 +12,7 @@ function hhpSource(string $path): string
 
 function hhpBand(): string
 {
-    return hhpSource('components/home/home-hero.tsx').hhpSource('components/home/home-search.tsx')
+    return hhpSource('components/home/home-hero.tsx').hhpSource('components/home/home-search.tsx').hhpSource('components/search-fields.tsx')
         .hhpSource('components/home/home-carousel.tsx').hhpSource('lib/home-hero.ts');
 }
 
@@ -29,35 +29,40 @@ function hhpLang(string $locale): array
 // ---------------------------------------------------------------------------------------------
 
 test('the example in the field comes from t(), and the label stays visible above it', function () {
-    $search = hhpSource('components/home/home-search.tsx');
+    // Since the list's PR B the fields are SearchFields, shared with the list.
+    $search = hhpSource('components/search-fields.tsx');
 
     expect($search)
-        ->toContain("placeholder={t('home.search.placeholder')}")
+        ->toContain("placeholder={t('search.placeholder')}")
         // The visible label, before the field and tied to it: never sr-only, never replaced.
-        ->toMatch("/<Label htmlFor=\"home-search-q\">\\{t\\('home\\.search\\.q'\\)\\}<\\/Label>[\\s\\S]*?<Input\\s+id=\"home-search-q\"/")
+        ->toMatch("/<Label htmlFor=\\{qId\\}>\\{t\\('search\\.q'\\)\\}<\\/Label>[\\s\\S]*?<Input\\s+id=\\{qId\\}/")
         ->and(substr_count($search, 'placeholder='))->toBe(1)
         ->and($search)->not->toMatch('/<Label[^>]*className="[^"]*sr-only/');
-    expect(__('home.search.placeholder', [], 'it'))->not->toBe(__('home.search.q', [], 'it'));
+    expect(hhpSource('components/home/home-search.tsx'))->toContain('idPrefix="home-search"');
+    expect(__('search.placeholder', [], 'it'))->not->toBe(__('search.q', [], 'it'));
 });
 
 test('the magnifying glass is decorative, inside the field, and never in the way of a click', function () {
-    expect(hhpSource('components/home/home-search.tsx'))
+    expect(hhpSource('components/search-fields.tsx'))
         ->toContain("import { Search } from 'lucide-react';")
         ->toMatch('/<div className="relative">\s*<Search\s+aria-hidden="true"\s+className="pointer-events-none absolute inset-y-0 left-3 my-auto size-5 text-muted-foreground"\s*\/>\s*<Input\b/')
         // The field leaves room for it.
-        ->toContain("className={cn('pl-10', SIZE, HERO.field)}");
+        ->toContain("className={cn('pl-10', look.size, look.field)}");
 });
 
 test('the fields and the button: 44px on phones, 3rem from 768 px, heights in rem only; one row from 768 px', function () {
     $search = hhpSource('components/home/home-search.tsx');
+    $fields = hhpSource('components/search-fields.tsx');
 
+    // The home page gives SIZE to the three of them (look.size in SearchFields).
     expect($search)
         ->toContain("const SIZE = 'h-11 text-base md:h-12 md:text-base';")
-        ->and(substr_count($search, 'SIZE,'))->toBe(3)
-        // The select keeps its 44px on phones; the button is full width under 768 px.
-        ->and($search)->toContain('max-md:min-h-11')
-        ->toContain("className={cn('px-6 max-md:w-full', SIZE, HERO.button)}")
+        ->toContain('look={{ size: SIZE, field: HERO.field, button: HERO.button }}')
         ->toContain('className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end"')
+        ->and(substr_count($fields, 'look.size'))->toBe(3)
+        // The select keeps its 44px on phones; the button is full width under 768 px.
+        ->and($fields)->toContain('max-md:min-h-11')
+        ->toContain("className={cn('px-6 max-md:w-full', look.size, look.button)}")
         ->toContain('className="grid min-w-0 gap-2 md:min-w-56 md:flex-1"')
         ->toContain('className="grid min-w-0 gap-2 md:w-44"');
     // Never a height in pixels: the zoom makes it grow.
@@ -124,7 +129,7 @@ test('no aria-label written by hand, no timer, nothing that moves or scrolls smo
 
 test('the example exists in Italian, French and English, without placeholders, in the right form', function () {
     foreach (['it', 'fr', 'en'] as $locale) {
-        $text = hhpLang($locale)['home.search.placeholder'] ?? null;
+        $text = hhpLang($locale)['search.placeholder'] ?? null;
 
         expect($text)->toBeString()->not->toBe('')
             ->and($text)->not->toMatch('/:[a-z_]+/')
@@ -132,15 +137,15 @@ test('the example exists in Italian, French and English, without placeholders, i
     }
     expect(array_keys(hhpLang('fr')))->toBe(array_keys(hhpLang('it')))
         ->and(array_keys(hhpLang('en')))->toBe(array_keys(hhpLang('it')));
-    expect(__('home.search.placeholder', [], 'it'))->toBe('Treccine, barbiere, unghie…')
-        ->and(__('home.search.placeholder', [], 'fr'))->toBe('Tresses, barbier, ongles…')
-        ->and(__('home.search.placeholder', [], 'en'))->toBe('Braids, barber, nails…');
+    expect(__('search.placeholder', [], 'it'))->toBe('Treccine, barbiere, unghie…')
+        ->and(__('search.placeholder', [], 'fr'))->toBe('Tresses, barbier, ongles…')
+        ->and(__('search.placeholder', [], 'en'))->toBe('Braids, barber, nails…');
 });
 
 test('no real contact: no email address, no phone number in the band or its texts', function () {
     $sources = hhpBand();
     foreach (['it', 'fr', 'en'] as $locale) {
-        $sources .= implode("\n", array_filter(hhpLang($locale), fn (string $key) => str_starts_with($key, 'home.'), ARRAY_FILTER_USE_KEY));
+        $sources .= implode("\n", array_filter(hhpLang($locale), fn (string $key) => str_starts_with($key, 'home.') || str_starts_with($key, 'search.'), ARRAY_FILTER_USE_KEY));
     }
 
     expect($sources)

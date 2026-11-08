@@ -219,7 +219,7 @@ test('the order is a closed list, kept in the links of the pagination with the f
 
     $props = plcProps(['sort' => 'price_desc', 'city' => 'Bologna']);
 
-    expect($props['filters'])->toBe(['category' => null, 'city' => 'Bologna', 'q' => null, 'sort' => 'price_desc'])
+    expect($props['filters'])->toBe(['category' => null, 'city' => 'Bologna', 'q' => null, 'max_price' => null, 'with_photo' => null, 'sort' => 'price_desc'])
         ->and($props['providers']['links']['next'])->toBe(route('providers.index', ['city' => 'Bologna', 'sort' => 'price_desc', 'page' => 2]));
 });
 
@@ -334,23 +334,24 @@ test('"Ordina per" is a native select with a visible label, 44px on phones, next
 
     $page = plcSource('pages/providers/index.tsx');
     expect($page)
-        ->toMatch('/<div className="flex flex-wrap items-end justify-between gap-4">\s*(\{\/\*[\s\S]*?\*\/\}\s*)?<p role="status" className="text-muted-foreground">\s*\{resultsText\(t, providers\.meta\.total, filters\)\}\s*<\/p>\s*<ProviderSort filters=\{filters\} \/>\s*<\/div>/')
+        // Since the list's PR B one row: "Filtri (n)", "Ordina per", the number of results.
+        ->toMatch('/<div className="flex flex-wrap items-end gap-4">\s*<ProviderFiltersPanel[^>]*\/>\s*<ProviderSort filters=\{filters\} \/>\s*(\{\/\*[\s\S]*?\*\/\}\s*)?<p role="status" className="text-muted-foreground">\s*\{resultsText\(\s*t,\s*providers\.meta\.total,\s*filters,\s*filtered,?\s*\)\}\s*<\/p>\s*<\/div>/')
         // The status is outside every condition: before the first one of the page.
         ->and(strpos($page, 'role="status"'))->toBeLessThan(strpos($page, '&&'));
 });
 
-test('"Azzera filtri" takes the filters away and keeps the order, in both places', function () {
+test('"Azzera filtri" takes the filters away and keeps the order', function () {
     $filters = plcSource('components/provider-filters.tsx');
 
     expect($filters)
         ->toMatch('/export function resetFilters\(filters: Filters\) \{\s*return index\(\{ query: \{ sort: filters\.sort \} \}\);\s*\}/')
-        ->toContain('<Link href={resetFilters(filters)} preserveScroll>')
-        // The order is not a filter.
-        ->toMatch('/filters\.category !== null \|\| filters\.city !== null \|\| filters\.q !== null\s*\)/')
-        // A search sent by the browser keeps it too.
-        ->toMatch('/<input type="hidden" name="sort" value=\{filters\.sort\} \/>/');
+        // The order is not a filter: only the keys of the one list count (ProviderListFiltersTest).
+        ->toMatch('/return keys\.some\(\(key\) => filters\[key\] !== null\);/')
+        // A search sent by the browser keeps it too: sort is among the hidden fields.
+        ->toMatch("/const hidden = \\[[^\\]]*'sort' as const,?\\s*\\];/");
+    // Since the list's PR B one button, in the page, whenever a filter is on.
     expect(plcSource('pages/providers/index.tsx'))
-        ->toContain('<Link href={resetFilters(filters)}>')
+        ->toMatch('/\{filtered && \(\s*<div>\s*<Button variant="outline" asChild>\s*<Link href=\{resetFilters\(filters\)\} preserveScroll>/')
         ->not->toMatch('/href=\{index\(\)\}/');
 });
 

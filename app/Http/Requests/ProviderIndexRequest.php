@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\DecimalPrice;
 use App\Models\Category;
 use App\Models\Provider;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -16,6 +17,22 @@ use Illuminate\Validation\Rule;
  */
 class ProviderIndexRequest extends FormRequest
 {
+    use DecimalPrice;
+
+    /**
+     * The filters of the list, in one place (docs/providers-list.md): filters() reads them, the
+     * links of the pagination keep them, and the page receives them (filterKeys) for "Azzera
+     * filtri", the hidden fields of the search and the count of "Filtri (n)". The order (sort) is
+     * not a filter.
+     */
+    public const FILTERS = ['category', 'city', 'q', 'max_price', 'with_photo'];
+
+    /**
+     * The filters of the panel, counted by its button "Filtri (n)": not the city nor the search,
+     * which are in the search bar.
+     */
+    public const PANEL_FILTERS = ['category', 'max_price', 'with_photo'];
+
     /**
      * The longest search, in characters: a longer one is ignored, like an invalid filter.
      */
@@ -43,6 +60,14 @@ class ProviderIndexRequest extends FormRequest
     }
 
     /**
+     * "39,90" is read as "39.90", as for the price of a service.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->commaToDot('max_price', 4);
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
@@ -55,6 +80,10 @@ class ProviderIndexRequest extends FormRequest
             // The text of the search (scope Provider::search()). Already trimmed by TrimStrings.
             'q' => ['nullable', 'string', 'max:'.self::SEARCH_MAX],
             'sort' => ['nullable', 'string', Rule::in(self::SORTS)],
+            // Euros, positive, at most 9999.99 (the largest price of a service).
+            'max_price' => ['nullable', 'string', 'regex:/^\d{1,4}(\.\d{1,2})?$/', 'not_regex:/^0*(\.0*)?$/'],
+            // Only "1" turns it on.
+            'with_photo' => ['nullable', 'string', Rule::in(['1'])],
         ];
     }
 
@@ -67,21 +96,27 @@ class ProviderIndexRequest extends FormRequest
     }
 
     /**
-     * The valid filters and the order; an invalid or missing one is null (for sort: the
-     * default order, by name).
+     * The valid filters (FILTERS) and the order; an invalid or missing one is null (for sort:
+     * the default order, by name). The maximum price comes as "39.90".
      *
-     * @return array{category: string|null, city: string|null, q: string|null, sort: string|null}
+     * The keys are those of FILTERS, then sort, in this order (ProviderListFiltersTest).
+     *
+     * @return array<string, string|null>
      */
     public function filters(): array
     {
         $failed = $this->getValidatorInstance()->failed();
+        $filters = [];
 
-        return [
-            'category' => $this->validFilter('category', $failed),
-            'city' => $this->validFilter('city', $failed),
-            'q' => $this->validFilter('q', $failed),
-            'sort' => $this->validFilter('sort', $failed),
-        ];
+        foreach ([...self::FILTERS, 'sort'] as $key) {
+            $filters[$key] = $this->validFilter($key, $failed);
+        }
+
+        if ($filters['max_price'] !== null) {
+            $filters['max_price'] = $this->normalizedPrice($filters['max_price']);
+        }
+
+        return $filters;
     }
 
     /**

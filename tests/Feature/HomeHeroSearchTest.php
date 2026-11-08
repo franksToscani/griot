@@ -62,7 +62,7 @@ function hhsQueries(): int
  */
 function hhsBand(): string
 {
-    return hhsSource('pages/home.tsx').hhsSource('components/home/home-hero.tsx').hhsSource('components/home/home-search.tsx')
+    return hhsSource('pages/home.tsx').hhsSource('components/home/home-hero.tsx').hhsSource('components/home/home-search.tsx').hhsSource('components/search-fields.tsx')
         .hhsSource('components/home/home-carousel.tsx').hhsSource('lib/home-hero.ts').hhsSource('lib/home-carousel.ts');
 }
 
@@ -121,14 +121,14 @@ test('what the form sends is the search and the filter of the list of providers'
     $this->get(route('providers.index', ['q' => 'trecce', 'city' => 'Bologna']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('filters', ['category' => null, 'city' => 'Bologna', 'q' => 'trecce', 'sort' => null])
+            ->where('filters', ['category' => null, 'city' => 'Bologna', 'q' => 'trecce', 'max_price' => null, 'with_photo' => null, 'sort' => null])
             ->has('providers.data', 1));
 
     // Both empty, as the native form sends them: the whole list.
     $this->get('/providers?q=&city=')
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('filters', ['category' => null, 'city' => null, 'q' => null, 'sort' => null])
+            ->where('filters', ['category' => null, 'city' => null, 'q' => null, 'max_price' => null, 'with_photo' => null, 'sort' => null])
             ->has('providers.data', 3));
 });
 
@@ -143,7 +143,11 @@ test('a native GET form to the list of providers, which needs no JavaScript', fu
         ->toMatch('/<form\s+role="search"\s+method="get"\s+action=\{index\(\)\.url\}\s+className=/')
         ->toContain("import { index } from '@/routes/providers';")
         // Nothing stops the browser: no handler, no Inertia visit.
-        ->not->toMatch('/onSubmit|preventDefault|router\./');
+        ->not->toMatch('/onSubmit|preventDefault|router\./')
+        // Since the list's PR B the fields are shared with the list (SearchFields), in the
+        // band's colours; they hold no handler either.
+        ->toMatch('/<SearchFields\\s+idPrefix="home-search"\\s+cities=\\{cities\\}\\s+look=\\{\\{ size: SIZE, field: HERO\\.field, button: HERO\\.button \\}\\}\\s*\\/>/');
+    expect(hhsSource('components/search-fields.tsx'))->not->toMatch('#onSubmit|preventDefault|router\.|<form#');
     expect(hhsSource('components/home/home-hero.tsx'))->toContain('<HomeSearch cities={cities} />');
     expect(hhsSource('pages/home.tsx'))
         ->toContain('<HomeHero cities={cities} slides={slides} />')
@@ -151,26 +155,35 @@ test('a native GET form to the list of providers, which needs no JavaScript', fu
 });
 
 test('the fields q and city, with their visible translated labels and the limit of the list', function () {
-    $search = hhsSource('components/home/home-search.tsx');
+    // Since the list's PR B the fields are in SearchFields, shared by the home page and the list;
+    // the ids start with idPrefix ("home-search-q" on the home page).
+    $search = hhsSource('components/search-fields.tsx');
 
     expect($search)
         // Since #144 step 9 the magnifying glass sits between the label and the field.
-        ->toMatch("/<Label htmlFor=\"home-search-q\">\\{t\\('home\\.search\\.q'\\)\\}<\\/Label>[\\s\\S]*?<Input\\s+id=\"home-search-q\"\\s+type=\"search\"\\s+name=\"q\"\\s+maxLength=\\{SEARCH_MAX\\}/")
-        ->toMatch("/<Label htmlFor=\"home-search-city\">\\s*\\{t\\('home\\.search\\.city'\\)\\}\\s*<\\/Label>[\\s\\S]*?<select\\s+id=\"home-search-city\"\\s+name=\"city\"\\s+defaultValue=\"\"/")
+        ->toMatch("/<Label htmlFor=\\{qId\\}>\\{t\\('search\\.q'\\)\\}<\\/Label>[\\s\\S]*?<Input\\s+id=\\{qId\\}\\s+type=\"search\"\\s+name=\"q\"\\s+maxLength=\\{SEARCH_MAX\\}/")
+        ->toMatch("/<Label htmlFor=\\{cityId\\}>\\{t\\('search\\.city'\\)\\}<\\/Label>[\\s\\S]*?<select\\s+id=\\{cityId\\}\\s+name=\"city\"\\s+defaultValue=\\{defaultCity\\}/")
+        ->toContain('const qId = `${idPrefix}-q`;')
+        ->toContain('const cityId = `${idPrefix}-city`;')
         // "All cities" sends an empty value; then one option per city of the prop.
-        ->toMatch("/<option value=\"\">\\s*\\{t\\('home\\.search\\.all_cities'\\)\\}\\s*<\\/option>\\s*\\{cities\\.map\\(\\(city\\) => \\(\\s*<option key=\\{city\\} value=\\{city\\}>\\s*\\{city\\}\\s*<\\/option>/")
-        ->toMatch("/<Button\\s+type=\"submit\"\\s+className=\\{cn\\('px-6 max-md:w-full', SIZE, HERO\\.button\\)\\}\\s*>\\s*\\{t\\('home\\.search\\.submit'\\)\\}\\s*<\\/Button>/")
+        ->toMatch("/<option value=\"\">\\s*\\{t\\('search\\.all_cities'\\)\\}\\s*<\\/option>\\s*\\{cities\\.map\\(\\(city\\) => \\(\\s*<option key=\\{city\\} value=\\{city\\}>\\s*\\{city\\}\\s*<\\/option>/")
+        ->toMatch("/<Button\\s+type=\"submit\"\\s+className=\\{cn\\('px-6 max-md:w-full', look\\.size, look\\.button\\)\\}\\s*>\\s*\\{t\\('search\\.submit'\\)\\}\\s*<\\/Button>/")
         ->not->toMatch('/aria-label(?!ledby)/');
+    // Without a default, both start empty: "Tutte le città" on the home page.
+    expect($search)->toContain("defaultQ = '',")->toContain("defaultCity = '',");
     // The limit of ProviderIndexRequest: a longer search would be ignored.
     expect($search)->toContain('const SEARCH_MAX = '.ProviderIndexRequest::SEARCH_MAX.';');
 });
 
 test('the select looks like the kit\'s fields: 44px on phones, a visible focus, a border in forced colours', function () {
-    expect(hhsSource('components/home/home-search.tsx'))
-        ->toMatch("/<select[\\s\\S]*?className=\\{cn\\(\\s*'[^']*\\bborder border-input\\b[^']*\\boutline-none\\b[^']*\\bfocus-visible:ring-\\[3px\\] focus-visible:outline-hidden\\b[^']*\\bmax-md:min-h-11\\b[^']*',\\s*SIZE,\\s*HERO\\.field,?\\s*\\)\\}/")
+    // Since the list's PR B in SearchFields, with the look given by the form (look.size,
+    // look.field: on the home page SIZE and HERO.field).
+    expect(hhsSource('components/search-fields.tsx'))
+        ->toMatch("/<select\\s+id=[\\s\\S]*?className=\\{cn\\(\\s*'[^']*\\bborder border-input\\b[^']*\\boutline-none\\b[^']*\\bfocus-visible:ring-\\[3px\\] focus-visible:outline-hidden\\b[^']*\\bmax-md:min-h-11\\b[^']*',\\s*look\\.size,\\s*look\\.field,?\\s*\\)\\}/")
         // The text field is the kit's Input, 44px on phones already, with the band's focus ring;
         // since #144 step 9 the same height as the select and room for the magnifying glass.
-        ->toMatch("/name=\"q\"\\s+maxLength=\\{SEARCH_MAX\\}\\s+placeholder=\\{t\\('home\\.search\\.placeholder'\\)\\}\\s+className=\\{cn\\('pl-10', SIZE, HERO\\.field\\)\\}/");
+        ->toMatch("/name=\"q\"\\s+maxLength=\\{SEARCH_MAX\\}\\s+defaultValue=\\{defaultQ\\}\\s+placeholder=\\{t\\('search\\.placeholder'\\)\\}\\s+className=\\{cn\\('pl-10', look\\.size, look\\.field\\)\\}/");
+    expect(hhsSource('components/home/home-search.tsx'))->toContain("const SIZE = 'h-11 text-base md:h-12 md:text-base';");
 });
 
 // ---------------------------------------------------------------------------------------------
@@ -190,9 +203,10 @@ test('from edge to edge, square corners, a height in rem; its content in the sit
     expect(preg_replace('/rounded-full/', '', hhsSource('components/home/home-carousel.tsx')))->not->toContain('rounded');
     expect(hhsBand())->not->toMatch('/\b(w-screen|w-\[100vw\]|-mx-)/');
 
-    // The public layout leaves the width to the home page only.
+    // The public layout leaves the width to the home page and, since the list's PR B, to the
+    // list of providers only.
     expect(hhsSource('layouts/public-layout.tsx'))
-        ->toContain("const FULL_WIDTH_PAGES = ['home'];")
+        ->toContain("const FULL_WIDTH_PAGES = ['home', 'providers/index'];")
         ->toMatch("/className=\\{cn\\(\\s*'w-full flex-1 outline-none',\\s*!fullWidth && 'mx-auto max-w-6xl px-4 py-6',?\\s*\\)\\}/");
     expect(hhsSource('pages/home.tsx'))->toContain('<div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10">');
 });
@@ -201,7 +215,7 @@ test('the h1 is the same, alone in the band; no heading in the search nor in the
     expect(hhsSource('components/home/home-hero.tsx'))
         ->toMatch("/<h1 className=\"[^\"]*\">\\s*\\{t\\('home\\.intro\\.title'\\)\\}\\s*<\\/h1>\\s*<p className=\"max-w-xl md:text-lg\">\\s*\\{t\\('home\\.intro\\.text'\\)\\}\\s*<\\/p>/");
     expect(__('home.intro.title', [], 'it'))->toBe('Il savoir-faire africano, vicino a te');
-    expect(hhsSource('components/home/home-search.tsx').hhsSource('components/home/home-carousel.tsx'))->not->toMatch('/<h[1-6]\b/');
+    expect(hhsSource('components/home/home-search.tsx').hhsSource('components/search-fields.tsx').hhsSource('components/home/home-carousel.tsx'))->not->toMatch('/<h[1-6]\b/');
     // The old button "Trova un professionista" and its block are gone.
     expect(file_exists(resource_path('js/components/home/home-intro.tsx')))->toBeFalse();
     expect(hhsBand())->not->toContain('HomeIntro');
@@ -209,7 +223,7 @@ test('the h1 is the same, alone in the band; no heading in the search nor in the
 
 test('the colours of the band are its tokens only, defined in both themes', function () {
     expect(hhsSource('components/home/home-hero.tsx'))->toContain('<div className={HERO.band}>');
-    expect(hhsSource('components/home/home-search.tsx'))->toContain("className={cn('pl-10', SIZE, HERO.field)}");
+    expect(hhsSource('components/home/home-search.tsx'))->toContain('look={{ size: SIZE, field: HERO.field, button: HERO.button }}');
     expect(hhsSource('components/home/home-carousel.tsx'))->toContain('HERO.button')->toContain('HERO.ring');
 
     $css = (string) file_get_contents(resource_path('css/app.css'));
@@ -259,7 +273,8 @@ test('the link of a slide goes to the list filtered on its category', function (
 // ---------------------------------------------------------------------------------------------
 
 test('the texts of the search exist in Italian, French and English', function () {
-    $keys = ['home.search.q', 'home.search.placeholder', 'home.search.city', 'home.search.all_cities', 'home.search.submit'];
+    // Since the list's PR B the same keys for the home page and the list.
+    $keys = ['search.q', 'search.placeholder', 'search.city', 'search.all_cities', 'search.submit'];
 
     foreach (['it', 'fr', 'en'] as $locale) {
         $json = json_decode((string) file_get_contents(lang_path("{$locale}.json")), true, flags: JSON_THROW_ON_ERROR);
@@ -272,17 +287,17 @@ test('the texts of the search exist in Italian, French and English', function ()
         }
     }
 
-    expect(__('home.search.q', [], 'it'))->toBe('Servizio o professionista')
-        ->and(__('home.search.all_cities', [], 'it'))->toBe('Tutte le città')
-        ->and(__('home.search.submit', [], 'fr'))->toBe('Rechercher')
-        ->and(__('home.search.city', [], 'en'))->toBe('City');
+    expect(__('search.q', [], 'it'))->toBe('Servizio o professionista')
+        ->and(__('search.all_cities', [], 'it'))->toBe('Tutte le città')
+        ->and(__('search.submit', [], 'fr'))->toBe('Rechercher')
+        ->and(__('search.city', [], 'en'))->toBe('City');
 });
 
 test('no real contact in the band: no email address, no phone number', function () {
     $sources = hhsBand().hhsSource('layouts/public-layout.tsx');
     foreach (['it', 'fr', 'en'] as $locale) {
         $json = json_decode((string) file_get_contents(lang_path("{$locale}.json")), true, flags: JSON_THROW_ON_ERROR);
-        $sources .= implode("\n", array_filter($json, fn (string $key) => str_starts_with($key, 'home.'), ARRAY_FILTER_USE_KEY));
+        $sources .= implode("\n", array_filter($json, fn (string $key) => str_starts_with($key, 'home.') || str_starts_with($key, 'search.'), ARRAY_FILTER_USE_KEY));
     }
 
     expect($sources)

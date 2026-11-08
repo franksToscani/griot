@@ -10,9 +10,11 @@ import { cn } from '@/lib/utils';
 import { show } from '@/routes/providers';
 import type { ProviderListItem } from '@/types';
 
-// The width of a card: the whole column on phones, half the list from 640 px, a third from
-// 1024 px (the site's container is 72rem).
-const COVER_SIZES = '(min-width: 1024px) 22rem, (min-width: 640px) 50vw, 100vw';
+// The width of a card in the grid of ResultsLayout without an aside: the whole column on phones,
+// half from 640 px, a third from 1024 px, at most a third of the site's container (72rem less
+// its 2rem of padding and the two 1rem gaps: about 23rem).
+const COVER_SIZES =
+    '(min-width: 1152px) 23rem, (min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw';
 
 // A card of the public list (docs/search.md): one link to the provider's page. On top the first
 // photo of the work, 4:3, decorative (the card says the name); without photos the avatar, in a

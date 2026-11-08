@@ -8,12 +8,24 @@ export type Category = {
 export type ProviderSort = 'name' | 'recent' | 'price_asc' | 'price_desc';
 
 // Valid filters of the provider list and its order; null means "not filtered" (for sort: by
-// name).
+// name). max_price as "39.90"; with_photo "1" when on.
 export type ProviderFilters = {
     category: string | null;
     city: string | null;
     q: string | null;
+    max_price: string | null;
+    with_photo: '1' | null;
     sort: ProviderSort | null;
+};
+
+// A filter of the list (ProviderIndexRequest::FILTERS): the order is not one.
+export type ProviderFilterKey = Exclude<keyof ProviderFilters, 'sort'>;
+
+// The one list of the filters, sent by the server: all of them, and those of the panel (counted
+// by "Filtri (n)").
+export type ProviderFilterKeys = {
+    all: ProviderFilterKey[];
+    panel: ProviderFilterKey[];
 };
 
 export type ProviderFilterOptions = {
