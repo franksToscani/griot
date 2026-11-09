@@ -333,6 +333,26 @@ test('the docker-build job builds, starts and checks the image, with pinned acti
     expect($last['if'])->toBe('always()');
 });
 
+test('docker top always asks ps for the pid, and the root check reads the uid column, never the header', function () {
+    $workflow = dplSource('.github/workflows/production-checks.yml');
+
+    // "docker top" hands the options to ps and refuses an output without the PID column.
+    preg_match_all('/docker top "\$CONTAINER" -eo (\S+)/', $workflow, $calls);
+    expect($calls[1])->not->toBeEmpty();
+    foreach ($calls[1] as $columns) {
+        expect(explode(',', $columns))->toContain('pid');
+    }
+
+    expect($workflow)
+        ->not->toContain('-eo uid,args')
+        ->toContain('processes="$(docker top "$CONTAINER" -eo pid,uid,args)"')
+        // The header is skipped, the uid is the second field.
+        ->toContain('body="$(printf \'%s\n\' "$processes" | tail -n +2)"')
+        ->toContain('root="$(printf \'%s\n\' "$body" | awk \'$2 == 0\')"')
+        // Not an empty list: the check cannot pass on nothing.
+        ->toContain('for expected in supervisord frankenphp; do');
+});
+
 // ---------------------------------------------------------------------------------------------
 // SITE_NOINDEX
 // ---------------------------------------------------------------------------------------------

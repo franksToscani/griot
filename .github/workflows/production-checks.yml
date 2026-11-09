@@ -341,9 +341,22 @@ jobs:
       - name: Check that nothing runs as root
         run: |
           test "$(docker exec "$CONTAINER" id -u)" != "0"
-          docker top "$CONTAINER" -eo uid,args
-          if docker top "$CONTAINER" -eo uid | tail -n +2 | grep -qx ' *0'; then
-            echo "::error::a process of the container runs as root"
+          # docker top hands the options to ps and needs the pid column among them.
+          processes="$(docker top "$CONTAINER" -eo pid,uid,args)"
+          echo "$processes"
+          # The first line is the header (PID UID COMMAND); the uid is the second field.
+          body="$(printf '%s\n' "$processes" | tail -n +2)"
+          # Not an empty list: the processes of the container are there.
+          for expected in supervisord frankenphp; do
+            if ! printf '%s\n' "$body" | grep -q "$expected"; then
+              echo "::error::no $expected process in the container"
+              exit 1
+            fi
+          done
+          root="$(printf '%s\n' "$body" | awk '$2 == 0')"
+          if [ -n "$root" ]; then
+            echo "::error::processes of the container run as root:"
+            echo "$root"
             exit 1
           fi
 
