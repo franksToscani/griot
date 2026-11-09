@@ -28,7 +28,9 @@ test('after the migration the token is required and unique', function () {
     $booking = Booking::factory()->create();
     $other = Booking::factory()->create();
 
-    expect(fn () => DB::table('bookings')->where('id', $other->id)->update(['public_token' => null]))
+    // In its own transaction (a savepoint): on PostgreSQL a failed statement spoils the test's
+    // transaction, and the next query would fail too (docs/ci.md).
+    expect(fn () => DB::transaction(fn () => DB::table('bookings')->where('id', $other->id)->update(['public_token' => null])))
         ->toThrow(QueryException::class);
     expect(fn () => DB::table('bookings')->where('id', $other->id)->update(['public_token' => $booking->public_token]))
         ->toThrow(UniqueConstraintViolationException::class);

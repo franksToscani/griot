@@ -182,6 +182,8 @@ test('a taken slug of 100 characters gets "-2" within the 120 of the column', fu
 });
 
 test('a slug taken between the read and the insert is retried with the next one', function () {
+    skipOnPostgresSameTransactionRace();
+
     $user = User::factory()->create();
     $other = User::factory()->create();
     $inserted = false;
@@ -199,6 +201,8 @@ test('a slug taken between the read and the insert is retried with the next one'
 });
 
 test('a double submit of the same user ends on the dashboard with one provider', function () {
+    skipOnPostgresSameTransactionRace();
+
     $user = User::factory()->create();
 
     ppcWhileCreating(function (Provider $provider) {
@@ -213,6 +217,8 @@ test('a double submit of the same user ends on the dashboard with one provider',
 });
 
 test('five collisions in a row throw a RuntimeException and leave no provider', function () {
+    skipOnPostgresSameTransactionRace();
+
     $user = User::factory()->create();
 
     $attempt = fn () => app(CreateProviderProfile::class)->create($user, new ProfileDetails('Barberia Lagos', 'Milano'));

@@ -20,8 +20,9 @@ Cosa deve essere vero prima di aprire Griot a persone reali (issue #58, #59, #86
 ## PHP e dipendenze
 
 - PHP **8.4** almeno (`composer.json`: `^8.4`, come la piattaforma del lock): alcuni pacchetti Symfony lo richiedono. La CI usa PHP 8.5 e Node 22.
-- Prima di ogni deploy: `composer audit` e `composer audit --no-dev` senza avvisi.
-- Build: `composer install --no-dev --optimize-autoloader`, `npm ci && npm run build`, poi `php artisan config:cache`, `route:cache`, `view:cache`.
+- Prima di ogni deploy: `composer audit` e `composer audit --no-dev` senza avvisi. Il job `audit` della CI li lancia a ogni push, con `npm audit --omit=dev` ([ci.md](ci.md)).
+- Build: `composer install --no-dev --optimize-autoloader`, `npm ci && npm run build`, poi `php artisan config:cache`, `route:cache`, `view:cache`, `event:cache`. Il job `production-build` della CI rifà questi passi a ogni push, con migrazioni, categorie e un server che deve rispondere su `/up` e `/` ([ci.md](ci.md)).
+- Database: la suite gira anche su PostgreSQL (job `tests-postgres`); le differenze da ricordare sono in [ci.md](ci.md).
 
 ## Dati iniziali
 
@@ -76,4 +77,4 @@ L'area del provider ha i suoi limiti per utente (foto, servizi, prenotazioni). O
 
 ## Test
 
-`tests/Feature/ProductionHardeningTest.php` (comando, `auth.user`, seeder, proxy, intestazioni, limite della lista, pagine in produzione, esempio dell'ambiente, versione di PHP) e `tests/Feature/Auth/RegistrationTest.php` (la registrazione non esiste).
+I controlli automatici su GitHub sono in [ci.md](ci.md). `tests/Feature/ProductionHardeningTest.php` (comando, `auth.user`, seeder, proxy, intestazioni, limite della lista, pagine in produzione, esempio dell'ambiente, versione di PHP) e `tests/Feature/Auth/RegistrationTest.php` (la registrazione non esiste).

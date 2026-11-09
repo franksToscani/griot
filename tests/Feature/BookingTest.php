@@ -5,6 +5,7 @@ use App\Models\Booking;
 use App\Models\Provider;
 use App\Models\Service;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 test('a booking can be created with the factory', function () {
@@ -86,7 +87,9 @@ test('a service has many bookings', function () {
 test('a provider with bookings cannot be deleted', function () {
     $booking = Booking::factory()->create();
 
-    expect(fn () => $booking->provider->delete())
+    // In its own transaction (a savepoint): on PostgreSQL a failed statement spoils the test's
+    // transaction, and the next query would fail too (docs/ci.md).
+    expect(fn () => DB::transaction(fn () => $booking->provider->delete()))
         ->toThrow(QueryException::class);
 
     $this->assertModelExists($booking);
@@ -95,7 +98,9 @@ test('a provider with bookings cannot be deleted', function () {
 test('a service with bookings cannot be deleted', function () {
     $booking = Booking::factory()->create();
 
-    expect(fn () => $booking->service->delete())
+    // In its own transaction (a savepoint): on PostgreSQL a failed statement spoils the test's
+    // transaction, and the next query would fail too (docs/ci.md).
+    expect(fn () => DB::transaction(fn () => $booking->service->delete()))
         ->toThrow(QueryException::class);
 
     $this->assertModelExists($booking);

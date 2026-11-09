@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Assert;
 use Tests\TestCase;
 
 /*
@@ -174,4 +176,52 @@ function accRatio(array $first, array $second): float
 function withoutMotionSafe(string $source): string
 {
     return (string) preg_replace('/(?<![\w:-])motion-safe:(?:\[[^\]]*\]|[^\s\'"`\[])+/', '', $source);
+}
+
+/*
+|--------------------------------------------------------------------------
+| PostgreSQL
+|--------------------------------------------------------------------------
+|
+| The same suite runs on SQLite (here, phpunit.xml) and on PostgreSQL (the tests-postgres job,
+| docs/ci.md).
+|
+*/
+
+/**
+ * Skip a test that simulates two requests at the same moment with an insert on the same
+ * connection, inside the transaction of the test (RefreshDatabase). On PostgreSQL the failed
+ * statement that follows spoils that whole transaction, so the code under test cannot read again
+ * as it would after a real race: there the test is skipped, with its reason; SQLite runs it.
+ */
+function skipOnPostgresSameTransactionRace(): void
+{
+    if (DB::connection()->getDriverName() === 'pgsql') {
+        Assert::markTestSkipped('PostgreSQL: the race is simulated inside the transaction of the test, which a failed statement spoils (docs/ci.md).');
+    }
+}
+
+/**
+ * Run a request whose database statement fails on purpose, answered with the error page, inside
+ * a savepoint: the request does not throw, so DB::transaction() cannot undo it by itself.
+ *
+ * - On PostgreSQL the failed statement spoils the transaction of the test (25P02, "current
+ *   transaction is aborted"): going back to the savepoint makes it usable for the checks after.
+ * - On SQLite the savepoint is only released: whatever the request wrote stays, exactly as without
+ *   the savepoint, so a write made before the failure is still seen by the test.
+ *
+ * @template TResult
+ *
+ * @param  Closure(): TResult  $request
+ * @return TResult
+ */
+function failingRequestInSavepoint(Closure $request): mixed
+{
+    DB::beginTransaction();
+
+    try {
+        return $request();
+    } finally {
+        DB::connection()->getDriverName() === 'pgsql' ? DB::rollBack() : DB::commit();
+    }
 }

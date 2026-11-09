@@ -298,6 +298,8 @@ test('an unpublished provider has no public page, before or after a new slug', f
 });
 
 test('a slug taken between the validation and the save gives an error on slug, not a 500', function () {
+    skipOnPostgresSameTransactionRace();
+
     $provider = ppeProvider();
     $other = User::factory()->create();
     $before = ppeColumns($provider);

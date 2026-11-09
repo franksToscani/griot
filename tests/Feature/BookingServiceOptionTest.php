@@ -3,6 +3,7 @@
 use App\Models\Booking;
 use App\Models\ServiceOption;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 
 test('a booking can have many options', function () {
     $booking = Booking::factory()->create();
@@ -51,7 +52,9 @@ test('an option chosen in a booking cannot be deleted', function () {
     $option = ServiceOption::factory()->for($booking->service)->create();
     $booking->options()->attach($option);
 
-    expect(fn () => $option->delete())
+    // In its own transaction (a savepoint): on PostgreSQL a failed statement spoils the test's
+    // transaction, and the next query would fail too (docs/ci.md).
+    expect(fn () => DB::transaction(fn () => $option->delete()))
         ->toThrow(QueryException::class);
 
     $this->assertModelExists($option);
