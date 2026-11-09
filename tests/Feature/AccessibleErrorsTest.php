@@ -23,7 +23,6 @@ function aceForms(): array
         'js/components/booking-sheet.tsx' => 'booking-form',
         'js/pages/provider/bookings/create.tsx' => 'provider-booking-form',
         'js/pages/auth/login.tsx' => 'login-form',
-        'js/pages/auth/register.tsx' => 'register-form',
         'js/pages/auth/forgot-password.tsx' => 'forgot-password-form',
         'js/pages/auth/reset-password.tsx' => 'reset-password-form',
         'js/pages/auth/confirm-password.tsx' => 'confirm-password-form',

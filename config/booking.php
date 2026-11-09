@@ -110,6 +110,9 @@ return [
 
     'rate_limit_slots_per_minute' => 60,
 
+    // The public list of providers and its search, per IP (AppServiceProvider, providers-list).
+    'rate_limit_providers_list_per_minute' => 60,
+
     // Photo uploads of a logged-in provider, per user (not per IP).
     'rate_limit_avatar_per_minute' => 10,
 

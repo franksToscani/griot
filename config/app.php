@@ -132,6 +132,20 @@ return [
 
     'cipher' => 'AES-256-CBC',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Trusted Proxies
+    |--------------------------------------------------------------------------
+    |
+    | The proxies in front of the application (docs/production.md): "*" behind the load balancer
+    | of the hosting service, or a list of addresses separated by commas. Their X-Forwarded-For,
+    | -Proto, -Host and -Port headers give the client's address (for the rate limits) and the https
+    | scheme (for the links). Empty, as in local development: no proxy is trusted.
+    |
+    */
+
+    'trusted_proxies' => env('TRUSTED_PROXIES', ''),
+
     'key' => env('APP_KEY'),
 
     'previous_keys' => [

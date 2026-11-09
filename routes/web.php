@@ -57,7 +57,10 @@ Route::post('locale', LocaleController::class)->name('locale.update');
 // The privacy page, for everyone.
 Route::get('privacy', PrivacyController::class)->name('privacy');
 
-Route::get('providers', [ProviderController::class, 'index'])->name('providers.index');
+// A wide limit per IP on the list and its search (providers-list, AppServiceProvider).
+Route::get('providers', [ProviderController::class, 'index'])
+    ->middleware('throttle:providers-list')
+    ->name('providers.index');
 Route::get('providers/{slug}', [ProviderController::class, 'show'])->name('providers.show');
 // ":slug" is only for Wayfinder, so that it generates a type with the slug: Laravel uses the
 // Route::bind of "publishedProvider" (AppServiceProvider) and ignores it. The 404 tests on

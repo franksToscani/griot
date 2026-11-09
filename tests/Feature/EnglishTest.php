@@ -323,7 +323,6 @@ test('the English texts of the glossary are exactly the expected ones', function
     ['provider.area.title', 'Your area'],
     ['nav.login', 'Log in'],
     ['nav.logout', 'Log out'],
-    ['nav.register', 'Sign up'],
 ]);
 
 test('the English texts use the same terms for the same things', function () {

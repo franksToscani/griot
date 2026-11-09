@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Resources\AuthUserResource;
 use App\Support\SiteContact;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -39,8 +40,9 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            // Only the fields the pages show (AuthUserResource), never the model with its relations.
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user() === null ? null : (new AuthUserResource($request->user()))->resolve($request),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             // Closures: read when the page is rendered, so a language set after this middleware (the

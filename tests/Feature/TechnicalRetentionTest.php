@@ -237,7 +237,8 @@ test('only the queue workers and the scheduler are checked before they start', f
 
 test('boot checks the web requests only, first, and listens to the commands', function () {
     expect((string) file_get_contents(app_path('Providers/AppServiceProvider.php')))
-        ->toMatch('/public function boot\(\): void\s*\{\s*\$this->configureProductionMailer\(\);\s*\$this->configureDefaults\(\);/')
+        // The mailer first; since the production hardening the trusted proxies come right after.
+        ->toMatch('/public function boot\(\): void\s*\{\s*\$this->configureProductionMailer\(\);\s*\$this->configureTrustedProxies\(\);\s*\$this->configureDefaults\(\);/')
         ->toMatch('/if \(! \$this->app->runningInConsole\(\)\) \{\s*ProductionMailer::ensureItSends\(\$this->app\);\s*\}/')
         ->toMatch('/Event::listen\(CommandStarting::class, function \(CommandStarting \$event\): void \{\s*ProductionMailer::ensureItSendsBefore\(\$event->command, \$this->app\);\s*\}\);/');
 });

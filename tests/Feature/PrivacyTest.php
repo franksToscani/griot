@@ -273,10 +273,11 @@ test('the booking form has a short line with the link, under the button', functi
         ->toMatch("/\{t\('booking\.form\.submit'\)\}\s*<\/Button>\s*<p[^>]*>\s*\{t\('booking\.form\.privacy_note'\)\}(\{' '\})?\s+<PrivacyLink \/>/");
 });
 
-test('the registration has the link too', function () {
-    expect((string) file_get_contents(resource_path('js/pages/auth/register.tsx')))
-        ->toContain("import { PrivacyLink } from '@/components/privacy-link';")
-        ->toMatch("/\{t\('account\.register\.privacy_note'\)\}(\{' '\})?\s+<PrivacyLink \/>/");
+test('no registration page any more, so no note of its own (#58)', function () {
+    expect(file_exists(resource_path('js/pages/auth/register.tsx')))->toBeFalse();
+    foreach (['it', 'fr', 'en'] as $locale) {
+        expect(__('account.register.privacy_note', [], $locale))->toBe('account.register.privacy_note');
+    }
 });
 
 test('the public layout has the link in its footer', function () {
@@ -308,7 +309,7 @@ test('every privacy text exists in the three languages, and every one is used by
         expect($sources)->toContain("t('{$key}'");
     }
 
-    foreach (['booking.form.privacy_note', 'account.register.privacy_note'] as $key) {
+    foreach (['booking.form.privacy_note'] as $key) {
         expect(__($key, [], 'fr'))->not->toBe($key)
             ->and(__($key, [], 'en'))->not->toBe($key);
     }
@@ -326,6 +327,5 @@ test('the texts are prudent: no promise of compliance or guarantee', function ()
 
 test('the Italian texts of the forms are exactly the expected ones', function () {
     expect(__('booking.form.privacy_note'))->toBe('I dati che lasci servono a gestire la prenotazione e li riceve il professionista che hai scelto.')
-        ->and(__('account.register.privacy_note'))->toBe("Come usiamo i dati dell'account e del profilo è spiegato nell'informativa.")
         ->and(__('privacy.link'))->toBe('Informativa sulla privacy');
 });

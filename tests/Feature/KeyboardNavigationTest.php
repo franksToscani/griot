@@ -41,9 +41,11 @@ test('no element has a positive tabIndex: the order of the page is the order of 
     }
 });
 
-test('the login page goes field, password, "forgot password", remember, button, then the sign-up link', function () {
+test('the login page goes field, password, "forgot password", remember, button; no sign-up link', function () {
     $source = kbnSource('js/pages/auth/login.tsx');
-    $order = ['id="email"', 'id="password"', "t('account.login.forgot')", 'id="remember"', 'type="submit"', "t('nav.register')"];
+    // Since #58 nobody registers: no sign-up link after the button.
+    expect($source)->not->toContain('register');
+    $order = ['id="email"', 'id="password"', "t('account.login.forgot')", 'id="remember"', 'type="submit"'];
     $positions = array_map(fn (string $needle) => strpos($source, $needle), $order);
 
     expect($positions)->not->toContain(false)

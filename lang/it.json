@@ -443,7 +443,6 @@
     "common.breadcrumb": "Percorso",
     "common.show_password": "Mostra la password",
     "common.hide_password": "Nascondi la password",
-    "nav.register": "Registrati",
     "nav.logout": "Esci",
     "nav.settings": "Impostazioni",
     "nav.menu": "Menu",
@@ -454,12 +453,6 @@
     "account.login.description": "Scrivi email e password per accedere",
     "account.login.forgot": "Password dimenticata?",
     "account.login.remember": "Ricordami",
-    "account.login.no_account": "Non hai un account?",
-    "account.register.title": "Crea un account",
-    "account.register.description": "Scrivi i tuoi dati per creare l'account",
-    "account.register.submit": "Crea l'account",
-    "account.register.have_account": "Hai già un account?",
-    "account.register.privacy_note": "Come usiamo i dati dell'account e del profilo è spiegato nell'informativa.",
     "account.forgot.title": "Password dimenticata",
     "account.forgot.description": "Scrivi la tua email: ti mandiamo un link per reimpostare la password",
     "account.forgot.submit": "Mandami il link",
@@ -693,5 +686,8 @@
     "home.carousel.sentence.ciglia": "Extension e trattamenti per le ciglia.",
     "home.carousel.sentence.sopracciglia": "Forma e cura delle sopracciglia.",
     "home.carousel.sentence.couture": "Abiti su misura e riparazioni, anche con tessuti africani.",
-    "home.carousel.sentence.ristorazione": "Cucina africana: scopri chi la prepara e prenota."
+    "home.carousel.sentence.ristorazione": "Cucina africana: scopri chi la prepara e prenota.",
+    "console.provider_create.done": "Creato il professionista « :name » (:slug), non pubblicato.",
+    "console.provider_create.password": "Password iniziale, mostrata solo ora: :password",
+    "console.provider_create.change": "Comunicala al professionista in modo sicuro: potrà cambiarla in Impostazioni → Sicurezza."
 }

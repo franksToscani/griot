@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useInitials } from '@/hooks/use-initials';
 import type { User } from '@/types';
 
@@ -14,8 +14,8 @@ export function UserInfo({
     return (
         <>
             <Avatar className="h-8 w-8 overflow-hidden rounded-full">
-                {/* The name is written next to it: no alternative text, no initials read. */}
-                <AvatarImage src={user.avatar} alt="" />
+                {/* The user has no photo of their own: the initials, never read, the name is
+                    written next to them. */}
                 <AvatarFallback
                     aria-hidden="true"
                     className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white"

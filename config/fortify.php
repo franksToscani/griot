@@ -142,8 +142,9 @@ return [
     |
     */
 
+    // No registration (issue #58, docs/production.md): the providers are created by
+    // "php artisan provider:create", never by themselves.
     'features' => [
-        Features::registration(),
         Features::resetPasswords(),
         Features::emailVerification(),
     ],

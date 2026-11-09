@@ -10,6 +10,7 @@ use Closure;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Console\Events\CommandStarting;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureProductionMailer();
+        $this->configureTrustedProxies();
         $this->configureDefaults();
         $this->configureRouteBindings();
         $this->configureRateLimiting();
@@ -167,9 +169,34 @@ class AppServiceProvider extends ServiceProvider
         // The free slots and the new bookings of a logged-in provider share one counter per user,
         // apart from the services and the answers to the bookings. The slots are read with fetch()
         // and JSON: the usual 429 with Retry-After; the booking form goes back to the bookings page.
+        // The public list and its search (docs/search.md): a wide limit per IP, against a script
+        // that would read every page (each one is 7 or 8 queries). Laravel's 429 page.
+        RateLimiter::for('providers-list', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_providers_list_per_minute'))
+            ->by($request->ip()));
+
         RateLimiter::for('provider-bookings', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_provider_bookings_per_minute'))
             ->by('user:'.$request->user()?->id)
             ->response($tooMany('booking')));
+    }
+
+    /**
+     * The proxies whose X-Forwarded-* headers are believed (config app.trusted_proxies, from
+     * TRUSTED_PROXIES): "*" or a list of addresses. Behind the hosting service's proxy, without
+     * this, every customer would have the proxy's address (one rate limit for all) and the links
+     * would be http. Empty: no proxy at all, set every time (the middleware keeps it in a static).
+     */
+    protected function configureTrustedProxies(): void
+    {
+        $proxies = trim(config()->string('app.trusted_proxies'));
+
+        if ($proxies === '') {
+            TrustProxies::flushState();
+
+            return;
+        }
+
+        TrustProxies::at($proxies === '*' ? '*' : array_values(array_filter(array_map('trim', explode(',', $proxies)))));
+        TrustProxies::withHeaders(Request::HEADER_X_FORWARDED_FOR | Request::HEADER_X_FORWARDED_HOST | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO);
     }
 
     /**
