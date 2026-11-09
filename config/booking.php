@@ -83,9 +83,10 @@ return [
     |--------------------------------------------------------------------------
     |
     | The customer's data of a booking (name, phone, email, notes) are made
-    | anonymous this many months after the booking ended, or after it started
-    | for a request that never got an answer. The privacy page shows this
-    | number; the command that applies it comes with issue #56, phase 2.
+    | anonymous this many months after the end of the appointment (ends_at),
+    | in any status: a request that never got an answer too. The privacy page
+    | shows this number; bookings:anonymize-old applies it every day, with
+    | the rule written once in Booking::dueForAnonymization().
     |
     */
 

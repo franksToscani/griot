@@ -4,13 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Http\Middleware\SetLocale;
 use App\Support\LinkPreview;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
  * The privacy page, public. The texts are in lang/ (privacy.*); what changes with the installation
  * comes from the config: the controller and the contact (config/privacy.php, from the environment),
- * the retention of the customers' data (config/booking.php) and the session cookie.
+ * the retention of the customers' data and the cancellation notice (config/booking.php), the session
+ * cookie, and the "remember me" cookie of the login as Laravel names it.
  */
 class PrivacyController extends Controller
 {
@@ -30,10 +32,14 @@ class PrivacyController extends Controller
             'reviewed' => config()->boolean('privacy.reviewed'),
             'updatedOn' => config()->string('privacy.updated_on'),
             'retentionMonths' => config()->integer('booking.anonymize_after_months'),
+            'cancellationHours' => intdiv(config()->integer('booking.cancellation_notice_minutes'), 60),
             'cookies' => [
                 'session' => config()->string('session.cookie'),
                 'sessionMinutes' => config()->integer('session.lifetime'),
                 'locale' => SetLocale::COOKIE,
+                // "remember_web_" and a hash: the check box "Ricordami" of the login (providers only).
+                'remember' => Auth::guard('web')->getRecallerName(),
+                'rememberDays' => intdiv(config()->integer('auth.guards.web.remember'), 60 * 24),
             ],
         ]);
     }

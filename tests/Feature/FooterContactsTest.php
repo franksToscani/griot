@@ -194,8 +194,8 @@ test('the footer has no heading, no language selector, nothing written by hand, 
         ->not->toContain('LocaleSwitcher')
         ->not->toMatch('/aria-label(?!ledby)/')
         ->not->toMatch('/sticky|fixed|animate-|transition/');
-    // Exactly the links of before plus the two contacts: privacy, mailto, WhatsApp.
-    expect(substr_count($footer, '<Link'))->toBe(1)
+    // Exactly the links of before plus the two contacts: privacy, terms (#131), mailto, WhatsApp.
+    expect(substr_count($footer, '<Link'))->toBe(2)
         ->and(substr_count($footer, '<a'))->toBe(2);
 });
 

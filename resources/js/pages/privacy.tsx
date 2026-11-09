@@ -1,6 +1,9 @@
 import { Head } from '@inertiajs/react';
-import type { ReactNode } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+    DraftNotice,
+    LegalSection,
+    Placeholder,
+} from '@/components/legal-page';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatLongDate } from '@/lib/format';
 import { touchTarget } from '@/lib/touch-target';
@@ -14,33 +17,26 @@ type Props = {
     // Y-m-d.
     updatedOn: string;
     retentionMonths: number;
-    cookies: { session: string; sessionMinutes: number; locale: string };
+    // How long before the start a customer can still cancel online.
+    cancellationHours: number;
+    cookies: {
+        session: string;
+        sessionMinutes: number;
+        locale: string;
+        // "remember_web_" and a hash, as Laravel names it; its duration in days.
+        remember: string;
+        rememberDays: number;
+    };
 };
 
-// A missing value of the configuration, shown so that nobody can miss it.
-function Placeholder({ children }: { children: ReactNode }) {
-    return (
-        <span className="rounded bg-highlight px-1 font-medium text-highlight-foreground">
-            {children}
-        </span>
-    );
-}
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
-    return (
-        <section className="flex flex-col gap-3">
-            <h2 className="text-lg font-semibold">{title}</h2>
-            {children}
-        </section>
-    );
-}
-
-// The privacy page, public. Every text is a key privacy.*, one per paragraph.
+// The privacy page, public, a draft (issue #131, docs/legal.md). Every text is a key privacy.*,
+// one per paragraph; every number comes from the server, never written in a text.
 export default function Privacy({
     controller,
     reviewed,
     updatedOn,
     retentionMonths,
+    cancellationHours,
     cookies,
 }: Props) {
     const { t, locale } = useTranslation();
@@ -49,7 +45,7 @@ export default function Privacy({
     });
 
     // The names of the cookies set in the browser (use-appearance.tsx, ui/sidebar.tsx) and by
-    // Laravel (XSRF-TOKEN); the session and the language come from the server.
+    // Laravel (XSRF-TOKEN); the session, the language and "remember me" come from the server.
     const cookieRows = [
         {
             name: cookies.session,
@@ -60,6 +56,13 @@ export default function Privacy({
             name: 'XSRF-TOKEN',
             purpose: t('privacy.cookies.xsrf'),
             duration: sessionDuration,
+        },
+        {
+            name: cookies.remember,
+            purpose: t('privacy.cookies.remember'),
+            duration: t('privacy.cookies.duration_days', {
+                days: cookies.rememberDays,
+            }),
         },
         {
             name: cookies.locale,
@@ -83,12 +86,10 @@ export default function Privacy({
             <Head title={t('privacy.title')} />
             <article className="mx-auto flex w-full max-w-2xl flex-col gap-8 text-sm leading-relaxed">
                 {!reviewed && (
-                    <Alert className="border-highlight-foreground bg-highlight text-highlight-foreground">
-                        <AlertTitle>{t('privacy.draft.title')}</AlertTitle>
-                        <AlertDescription className="text-current">
-                            {t('privacy.draft.body')}
-                        </AlertDescription>
-                    </Alert>
+                    <DraftNotice
+                        title={t('privacy.draft.title')}
+                        body={t('privacy.draft.body')}
+                    />
                 )}
 
                 <header className="flex flex-col gap-2">
@@ -103,7 +104,7 @@ export default function Privacy({
                     </p>
                 </header>
 
-                <Section title={t('privacy.controller.heading')}>
+                <LegalSection title={t('privacy.controller.heading')}>
                     <dl className="grid gap-2 sm:grid-cols-[auto_1fr] sm:gap-x-6">
                         <dt className="font-medium">
                             {t('privacy.controller.name_label')}
@@ -136,10 +137,10 @@ export default function Privacy({
                             )}
                         </dd>
                     </dl>
-                    <p>{t('privacy.controller.providers')}</p>
-                </Section>
+                    <p>{t('privacy.controller.roles')}</p>
+                </LegalSection>
 
-                <Section title={t('privacy.data.heading')}>
+                <LegalSection title={t('privacy.data.heading')}>
                     <h3 className="font-medium">
                         {t('privacy.data.customers_title')}
                     </h3>
@@ -153,46 +154,69 @@ export default function Privacy({
                         {t('privacy.data.technical_title')}
                     </h3>
                     <p>{t('privacy.data.technical')}</p>
-                </Section>
+                </LegalSection>
 
-                <Section title={t('privacy.purpose.heading')}>
+                <LegalSection title={t('privacy.purpose.heading')}>
                     <p>{t('privacy.purpose.customers')}</p>
                     <p>{t('privacy.purpose.providers')}</p>
                     <p>{t('privacy.purpose.technical')}</p>
                     <p>{t('privacy.purpose.no_marketing')}</p>
-                </Section>
+                </LegalSection>
 
-                <Section title={t('privacy.retention.heading')}>
+                <LegalSection title={t('privacy.visibility.heading')}>
+                    <p>{t('privacy.visibility.provider')}</p>
+                    <p>{t('privacy.visibility.customer')}</p>
+                    <p>{t('privacy.visibility.public')}</p>
+                </LegalSection>
+
+                <LegalSection title={t('privacy.photos.heading')}>
+                    <p>{t('privacy.photos.body')}</p>
+                    <p>{t('privacy.photos.consent')}</p>
+                </LegalSection>
+
+                <LegalSection title={t('privacy.retention.heading')}>
                     <p>
                         {t('privacy.retention.bookings', {
                             months: retentionMonths,
                         })}
                     </p>
+                    <p>{t('privacy.retention.copies')}</p>
                     <p>{t('privacy.retention.providers')}</p>
                     <p>
                         {t('privacy.retention.technical', {
                             minutes: cookies.sessionMinutes,
                         })}
                     </p>
-                </Section>
+                </LegalSection>
 
-                <Section title={t('privacy.recipients.heading')}>
+                <LegalSection title={t('privacy.recipients.heading')}>
                     <ul className="flex list-disc flex-col gap-2 pl-5">
                         <li>{t('privacy.recipients.provider')}</li>
                         <li>{t('privacy.recipients.whatsapp')}</li>
                         <li>{t('privacy.recipients.hosting')}</li>
+                        <li>{t('privacy.recipients.photos')}</li>
                         <li>{t('privacy.recipients.email')}</li>
                     </ul>
+                    <p>{t('privacy.recipients.planned')}</p>
                     <p>{t('privacy.recipients.no_one_else')}</p>
-                </Section>
+                </LegalSection>
 
-                <Section title={t('privacy.rights.heading')}>
+                <LegalSection title={t('privacy.rights.heading')}>
                     <p>{t('privacy.rights.body')}</p>
+                    <p>
+                        {t('privacy.rights.customers', {
+                            hours: cancellationHours,
+                        })}
+                    </p>
                     <p>{t('privacy.rights.providers')}</p>
                     <p>{t('privacy.rights.authority')}</p>
-                </Section>
+                </LegalSection>
 
-                <Section title={t('privacy.contact.heading')}>
+                <LegalSection title={t('privacy.sensitive.heading')}>
+                    <p>{t('privacy.sensitive.body')}</p>
+                </LegalSection>
+
+                <LegalSection title={t('privacy.contact.heading')}>
                     <p>
                         {t('privacy.contact.body')}{' '}
                         {controller.email !== null ? (
@@ -208,9 +232,9 @@ export default function Privacy({
                             </Placeholder>
                         )}
                     </p>
-                </Section>
+                </LegalSection>
 
-                <Section title={t('privacy.cookies.heading')}>
+                <LegalSection title={t('privacy.cookies.heading')}>
                     <p>{t('privacy.cookies.intro')}</p>
                     <div className="overflow-x-auto">
                         <table className="w-full border-collapse text-left">
@@ -233,7 +257,8 @@ export default function Privacy({
                                         key={row.name}
                                         className="border-b align-top"
                                     >
-                                        <td className="py-2 pr-4 font-mono text-xs">
+                                        {/* break-all: remember_web_ and its hash are one long word. */}
+                                        <td className="py-2 pr-4 font-mono text-xs break-all">
                                             {row.name}
                                         </td>
                                         <td className="py-2 pr-4">
@@ -246,7 +271,8 @@ export default function Privacy({
                         </table>
                     </div>
                     <p>{t('privacy.cookies.storage')}</p>
-                </Section>
+                    <p>{t('privacy.cookies.external')}</p>
+                </LegalSection>
             </article>
         </>
     );

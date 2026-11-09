@@ -309,14 +309,14 @@ Il provider vede le prenotazioni in arrivo, le conferma o le rifiuta e avvisa il
 
 **Decisioni da fissare all'inizio**
 
-| Decisione                                | Proposta                                                                                                                                                        |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Passaggi di stato consentiti             | `pending` verso `confirmed` o `cancelled`; `confirmed` verso `cancelled`. Una prenotazione cancellata non torna indietro; tutto il resto è vietato e dà errore. |
-| Rifiuto e annullamento                   | Entrambi portano a `cancelled`. Un messaggio facoltativo per il cliente viaggia nell'email e non viene salvato, quindi non serve una nuova colonna.             |
-| Richieste in attesa che nessuno gestisce | Una `pending` blocca lo slot. Niente scadenza automatica nell'MVP: il provider vede in evidenza quelle da gestire e riceve un promemoria.                       |
-| Come si avvisa il cliente                | Email se l'ha lasciata; altrimenti un pulsante apre WhatsApp con un messaggio già scritto verso il numero del cliente (senza WhatsApp Business API).            |
-| Vista del calendario                     | Per l'MVP un elenco per giorno e per settimana, senza libreria di calendario.                                                                                   |
-| Prenotazioni inserite dal provider       | Il provider può creare una prenotazione già `confirmed` (cliente venuto in negozio o arrivato su WhatsApp), per tenere l'agenda allineata.                      |
+| Decisione                                | Proposta                                                                                                                                                                      |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Passaggi di stato consentiti             | `pending` verso `confirmed` o `cancelled`; `confirmed` verso `cancelled`. Una prenotazione cancellata non torna indietro; tutto il resto è vietato e dà errore.               |
+| Rifiuto e annullamento                   | Entrambi portano a `cancelled`. Il messaggio facoltativo per il cliente è salvato (`bookings.cancellation_reason`) e reso anonimo dopo 6 mesi con gli altri dati del cliente. |
+| Richieste in attesa che nessuno gestisce | Una `pending` blocca lo slot. Niente scadenza automatica nell'MVP: il provider vede in evidenza quelle da gestire e riceve un promemoria.                                     |
+| Come si avvisa il cliente                | Email se l'ha lasciata; altrimenti un pulsante apre WhatsApp con un messaggio già scritto verso il numero del cliente (senza WhatsApp Business API).                          |
+| Vista del calendario                     | Per l'MVP un elenco per giorno e per settimana, senza libreria di calendario.                                                                                                 |
+| Prenotazioni inserite dal provider       | Il provider può creare una prenotazione già `confirmed` (cliente venuto in negozio o arrivato su WhatsApp), per tenere l'agenda allineata.                                    |
 
 **Elenco delle prenotazioni** _Come provider voglio vedere le mie prenotazioni per giorno e per settimana, per organizzare il lavoro._
 
@@ -550,6 +550,7 @@ Gli issue di questo sprint sono #57, #58, #59, #60 (deploy su Render), #62, #63,
 
 - Un workflow di GitHub Actions con i controlli della prima story.
 - Il prezzo salvato sulla prenotazione (#97): il prezzo del servizio e di ogni opzione al momento della prenotazione, in centesimi; le prenotazioni già fatte riempite con i prezzi di quel giorno ([bookings.md](bookings.md)).
+- Bozze di informativa sulla privacy e termini d'uso, con l'avviso « Bozza in revisione » (#131, **ancora aperta**: serve la revisione di una persona competente). Ipotesi sui ruoli, domande aperte e cosa manca in [legal.md](legal.md).
 - Un controllo in avvio che rifiuta di eseguire il seeder di sviluppo in produzione.
 - Test Pest per il comando che crea i provider e per le rotte chiuse.
 - `composer ci:check` verde a ogni PR, una PR per story.

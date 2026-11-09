@@ -8,7 +8,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
 import { whatsappLink } from '@/lib/whatsapp';
-import { dashboard, home, login, privacy } from '@/routes';
+import { dashboard, home, login, privacy, terms } from '@/routes';
 
 // The name of the group of the site's contacts in the footer.
 const FOOTER_CONTACT_ID = 'footer-contact-label';
@@ -86,6 +86,15 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                         )}
                     >
                         {t('privacy.link')}
+                    </Link>
+                    <Link
+                        href={terms()}
+                        className={cn(
+                            'underline underline-offset-4',
+                            touchTarget,
+                        )}
+                    >
+                        {t('terms.link')}
                     </Link>
                     {/* The site's contacts, only those configured (config/contact.php): with none,
                         no group at all. A group with a name, read before its links. */}

@@ -43,6 +43,7 @@ use App\Http\Controllers\ProviderSlotsController;
 use App\Http\Controllers\ProviderStoreController;
 use App\Http\Controllers\ProviderUnpublishController;
 use App\Http\Controllers\ProviderUpdateController;
+use App\Http\Controllers\TermsController;
 use App\Http\Middleware\PrivateBookingPage;
 use App\Http\Middleware\PrivateProviderPage;
 use App\Http\Middleware\UseBookingLocale;
@@ -56,6 +57,9 @@ Route::post('locale', LocaleController::class)->name('locale.update');
 
 // The privacy page, for everyone.
 Route::get('privacy', PrivacyController::class)->name('privacy');
+
+// The terms of use, for everyone (issue #131, docs/legal.md).
+Route::get('terms', TermsController::class)->name('terms');
 
 // A wide limit per IP on the list and its search (providers-list, AppServiceProvider).
 Route::get('providers', [ProviderController::class, 'index'])
