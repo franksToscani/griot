@@ -33,8 +33,9 @@ class StoreProviderAvatarRequest extends FormRequest
     {
         return [
             // bail: one message per wrong file. max:1536 (KB, 1.5 MB) stays below PHP's
-            // upload_max_filesize of 2M: a file between the two gets this clear message; a bigger
-            // one does not even reach Laravel as a valid file (see messages(), "uploaded").
+            // upload_max_filesize of 3M (docker/php.ini), on purpose: a file between the two gets
+            // this clear message; a bigger one does not even reach Laravel as a valid file (see
+            // messages(), "uploaded").
             // JPEG, PNG and WebP only: no SVG (it can contain scripts), no GIF.
             'avatar' => [
                 'bail',

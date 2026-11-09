@@ -39,9 +39,11 @@ class StoreProviderPhotoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // bail: one message per wrong file. max:2048 (KB, 2 MB) is PHP's upload_max_filesize:
-            // a bigger file does not even reach Laravel as a valid file (see messages(),
-            // "uploaded"). JPEG, PNG and WebP only: no SVG (it can contain scripts), no GIF.
+            // bail: one message per wrong file. max:2048 (KB, 2 MB) stays below PHP's
+            // upload_max_filesize of 3M (docker/php.ini), on purpose: a file between 2 and 3 MB
+            // gets this clear message; a bigger one does not even reach Laravel as a valid file
+            // (see messages(), "uploaded"). JPEG, PNG and WebP only: no SVG (it can contain
+            // scripts), no GIF.
             'photo' => [
                 'bail',
                 'required',

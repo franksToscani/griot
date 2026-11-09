@@ -4,6 +4,7 @@ use App\Http\LocaleFromRequest;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\NoIndexPrivatePages;
+use App\Http\Middleware\NoIndexSite;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
@@ -23,6 +24,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Every response, error pages and /up included (docs/production.md).
         $middleware->append(SecurityHeaders::class);
+        // SITE_NOINDEX: a private site is never indexed, whatever the page (docs/production.md).
+        $middleware->append(NoIndexSite::class);
 
         $middleware->web(append: [
             // Before HandleInertiaRequests, which shares the translations of the language set here.

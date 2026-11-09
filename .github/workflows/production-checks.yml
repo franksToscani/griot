@@ -267,3 +267,128 @@ jobs:
 
       - name: Run the tests on PostgreSQL
         run: php artisan test
+
+  # The production image (Dockerfile): built and started here, since it cannot be built on the
+  # developers' machines. Docker commands of the runner only, no third-party action. The values
+  # are throwaway: a key made here, a database and a mail host on example.test that are never
+  # reached (/up needs neither).
+  docker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      IMAGE: griot:ci
+      CONTAINER: griot-ci
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build the image
+        run: docker build --pull --tag "$IMAGE" .
+
+      - name: Start the container as on Render
+        run: |
+          key="base64:$(openssl rand -base64 32)"
+          echo "::add-mask::$key"
+          docker run --detach --name "$CONTAINER" --publish 8080:8080 \
+            --env PORT=8080 \
+            --env APP_KEY="$key" \
+            --env APP_ENV=production \
+            --env APP_DEBUG=false \
+            --env APP_URL=http://127.0.0.1:8080 \
+            --env TRUSTED_PROXIES='*' \
+            --env SITE_NOINDEX=true \
+            --env LOG_CHANNEL=stderr \
+            --env DB_CONNECTION=pgsql \
+            --env DB_URL=postgresql://griot:unused@example.test:5432/griot \
+            --env SESSION_DRIVER=array \
+            --env CACHE_STORE=array \
+            --env QUEUE_CONNECTION=database \
+            --env MAIL_MAILER=smtp \
+            --env MAIL_HOST=smtp.example.test \
+            --env MAIL_PORT=587 \
+            --env MAIL_FROM_ADDRESS=noreply@example.test \
+            "$IMAGE"
+
+      - name: Wait for /up
+        run: |
+          for attempt in $(seq 1 60); do
+            code="$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/up)" || code=000
+            if [ "$code" = "200" ]; then
+              echo "/up answered 200"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::/up never answered 200"
+          exit 1
+
+      # SITE_NOINDEX=true: the header on a Laravel response and on a static file served by Caddy,
+      # and /robots.txt that disallows everything.
+      - name: Check the private site
+        run: |
+          curl -s -D - -o /dev/null http://127.0.0.1:8080/up | grep -qi '^x-robots-tag: noindex, nofollow'
+          curl -s -D - -o /dev/null http://127.0.0.1:8080/favicon.ico | grep -qi '^x-robots-tag: noindex, nofollow'
+          test "$(curl -s http://127.0.0.1:8080/robots.txt)" = "$(printf 'User-agent: *\nDisallow: /')"
+          if curl -s -D - -o /dev/null http://127.0.0.1:8080/up | grep -qi '^x-powered-by'; then
+            echo "::error::X-Powered-By is sent"
+            exit 1
+          fi
+
+      - name: Check that nothing runs as root
+        run: |
+          test "$(docker exec "$CONTAINER" id -u)" != "0"
+          docker top "$CONTAINER" -eo uid,args
+          if docker top "$CONTAINER" -eo uid | tail -n +2 | grep -qx ' *0'; then
+            echo "::error::a process of the container runs as root"
+            exit 1
+          fi
+
+      - name: Check the PHP extensions and settings
+        run: |
+          modules="$(docker exec "$CONTAINER" php -m)"
+          for module in pdo_pgsql gd exif 'Zend OPcache'; do
+            echo "$modules" | grep -qx "$module" || { echo "::error::missing PHP module: $module"; exit 1; }
+          done
+          docker exec "$CONTAINER" php -r 'exit(gd_info()["WebP Support"] ? 0 : 1);'
+          check() {
+            value="$(docker exec "$CONTAINER" php -r "echo ini_get('$1');")"
+            if [ "$value" != "$2" ]; then
+              echo "::error::$1 is '$value', expected '$2'"
+              exit 1
+            fi
+          }
+          check upload_max_filesize 3M
+          check post_max_size 8M
+          check memory_limit 256M
+          check opcache.enable 1
+          check opcache.validate_timestamps 0
+          check opcache.memory_consumption 128
+          test -z "$(docker exec "$CONTAINER" php -r "echo ini_get('expose_php');")"
+
+      # docker/stop-on-web-exit.sh: without its web server the container must exit, so that
+      # Render starts a new one. The web server is stopped by hand, found by its command line
+      # ("ru[n]": the pattern does not match the command line of this very shell).
+      - name: Check that the container stops when the web server stops
+        run: |
+          docker exec "$CONTAINER" sh -c 'for dir in /proc/[0-9]*; do if tr "\0" " " < "$dir/cmdline" 2>/dev/null | grep -q "frankenphp ru[n] "; then kill -TERM "${dir#/proc/}"; fi; done'
+          for attempt in $(seq 1 30); do
+            if [ "$(docker inspect --format '{{.State.Running}}' "$CONTAINER")" = "false" ]; then
+              echo "The container stopped after its web server"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::the container is still running without its web server"
+          exit 1
+
+      - name: Show the logs of the container
+        if: failure()
+        run: docker logs "$CONTAINER"
+
+      - name: Remove the container
+        if: always()
+        run: docker rm --force "$CONTAINER"

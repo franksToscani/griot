@@ -1,0 +1,19 @@
+# FrankenPHP in classic mode (no worker, no Octane) for Griot (Dockerfile). Render terminates TLS
+# and forwards plain HTTP to $PORT: no automatic HTTPS here, no admin API.
+{
+	admin off
+	auto_https off
+	frankenphp
+}
+
+:{$PORT:8080} {
+	root * /app/public
+	encode zstd gzip
+
+	# SITE_NOINDEX=true (docs/production.md): the static files served here get the same header as
+	# the responses of Laravel (App\Http\Middleware\NoIndexSite). ">" sets it after PHP, once.
+	@noindex expression `"{$SITE_NOINDEX:false}" == "true"`
+	header @noindex >X-Robots-Tag "noindex, nofollow"
+
+	php_server
+}

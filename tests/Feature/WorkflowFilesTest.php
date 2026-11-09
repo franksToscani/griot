@@ -4,11 +4,11 @@ use Symfony\Component\Yaml\Yaml;
 
 /*
  * The GitHub Actions workflows (issue #57, docs/ci.md): the "ci" job of tests.yml that the
- * protection of main requires, and the three jobs of production-checks.yml. They run only on
+ * protection of main requires, and the four jobs of production-checks.yml. They run only on
  * GitHub: this test reads them, so that a change that weakens them shows up here first.
  */
 
-const WF_JOBS = ['ci', 'audit', 'production-build', 'tests-postgres'];
+const WF_JOBS = ['ci', 'audit', 'production-build', 'tests-postgres', 'docker-build'];
 
 /**
  * A workflow, parsed.
@@ -228,7 +228,7 @@ test('phpunit.xml lets the CI choose the database: DB_CONNECTION and DB_DATABASE
         ->and($variables['DB_DATABASE'])->toBe(['value' => ':memory:', 'force' => '']);
 });
 
-test('the jobs are exactly the four of docs/ci.md, the names for the protection of main', function () {
+test('the jobs are exactly the five of docs/ci.md, the names for the protection of main', function () {
     $jobs = [...array_keys(wfParse('tests.yml')['jobs']), ...array_keys(wfParse('production-checks.yml')['jobs'])];
     $docs = (string) file_get_contents(base_path('docs/ci.md'));
 
