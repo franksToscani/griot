@@ -227,8 +227,8 @@ test('the lone links get it where they are', function () {
         ->toContain("className: cn('underline underline-offset-4', touchTarget),");
     expect(tamSource('js/pages/privacy.tsx'))
         ->toMatch('/<dd>\s*\{controller\.email !== null \? \(\s*<a\s+href=\{`mailto:\$\{controller\.email\}`\}\s+className=\{cn\(\s*\'underline underline-offset-4\',\s*touchTarget,\s*\)\}/');
-    // The links inside a sentence: the registration page has none of them.
-    expect(tamSource('js/pages/auth/register.tsx'))->not->toContain('touchTarget');
+    // The links inside a sentence: the privacy link has none (the registration page is gone, #58).
+    expect(file_exists(resource_path('js/pages/auth/register.tsx')))->toBeFalse();
     expect(tamSource('js/components/privacy-link.tsx'))->not->toContain('touchTarget');
 });
 

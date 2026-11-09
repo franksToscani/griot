@@ -4,6 +4,7 @@ use App\Http\LocaleFromRequest;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\NoIndexPrivatePages;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -19,6 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+
+        // Every response, error pages and /up included (docs/production.md).
+        $middleware->append(SecurityHeaders::class);
 
         $middleware->web(append: [
             // Before HandleInertiaRequests, which shares the translations of the language set here.

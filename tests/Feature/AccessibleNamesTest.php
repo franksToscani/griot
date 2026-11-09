@@ -109,9 +109,11 @@ test('the provider\'s avatar is decorative next to the name, its initials are ne
 });
 
 test('the user\'s avatar in the menu is decorative too: the name is written next to it', function () {
+    // Since #86 the user has no photo field in the pages: only the initials, never read.
     expect(acnSource('js/components/user-info.tsx'))
-        ->toContain('<AvatarImage src={user.avatar} alt="" />')
-        ->toMatch('/<AvatarFallback\s+aria-hidden="true"/');
+        ->not->toContain('AvatarImage')
+        ->toMatch('/<AvatarFallback\s+aria-hidden="true"/')
+        ->toContain('<span className="truncate font-medium">{user.name}</span>');
 });
 
 // ---------------------------------------------------------------------------------------------

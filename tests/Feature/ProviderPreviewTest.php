@@ -130,8 +130,9 @@ test('the preview is neither cached nor indexed; the public page has no such hea
     $preview = $this->actingAs($provider->user)->get(route('provider.preview'))->assertOk();
     expect($preview->headers->get('X-Robots-Tag'))->toBe('noindex, nofollow');
     expect($preview->headers->get('Cache-Control'))->toContain('no-store')->toContain('private');
-    // Only the two headers of PrivateProviderPage, not the booking page's Referrer-Policy.
-    expect($preview->headers->has('Referrer-Policy'))->toBeFalse();
+    // The two headers of PrivateProviderPage; the Referrer-Policy is the site's own
+    // (SecurityHeaders), not the booking page's stricter no-referrer.
+    expect($preview->headers->get('Referrer-Policy'))->toBe('strict-origin-when-cross-origin');
 
     app('auth')->forgetGuards();
     $public = $this->get(route('providers.show', $provider->slug))->assertOk();

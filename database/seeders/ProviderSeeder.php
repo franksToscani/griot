@@ -20,6 +20,8 @@ class ProviderSeeder extends Seeder
      */
     public function run(): void
     {
+        DevelopmentOnly::ensure(self::class);
+
         foreach ($this->providers() as $data) {
             $user = $this->findOrCreateUser($data['email'], $data['owner']);
             $category = Category::query()->where('slug', $data['category'])->firstOrFail();

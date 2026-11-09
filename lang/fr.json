@@ -443,7 +443,6 @@
     "common.breadcrumb": "Fil d'Ariane",
     "common.show_password": "Afficher le mot de passe",
     "common.hide_password": "Masquer le mot de passe",
-    "nav.register": "S'inscrire",
     "nav.logout": "Se déconnecter",
     "nav.settings": "Paramètres",
     "nav.menu": "Menu",
@@ -454,12 +453,6 @@
     "account.login.description": "Indiquez votre e-mail et votre mot de passe pour vous connecter",
     "account.login.forgot": "Mot de passe oublié ?",
     "account.login.remember": "Se souvenir de moi",
-    "account.login.no_account": "Vous n'avez pas de compte ?",
-    "account.register.title": "Créer un compte",
-    "account.register.description": "Indiquez vos informations pour créer votre compte",
-    "account.register.submit": "Créer le compte",
-    "account.register.have_account": "Vous avez déjà un compte ?",
-    "account.register.privacy_note": "L'utilisation des données du compte et du profil est expliquée dans la politique de confidentialité.",
     "account.forgot.title": "Mot de passe oublié",
     "account.forgot.description": "Indiquez votre e-mail : nous vous envoyons un lien pour réinitialiser votre mot de passe",
     "account.forgot.submit": "Envoyez-moi le lien",
@@ -693,5 +686,8 @@
     "home.carousel.sentence.ciglia": "Extensions et soins des cils.",
     "home.carousel.sentence.sopracciglia": "Forme et soin des sourcils.",
     "home.carousel.sentence.couture": "Vêtements sur mesure et retouches, aussi avec des tissus africains.",
-    "home.carousel.sentence.ristorazione": "Cuisine africaine : découvrez qui la prépare et réservez."
+    "home.carousel.sentence.ristorazione": "Cuisine africaine : découvrez qui la prépare et réservez.",
+    "console.provider_create.done": "Professionnel « :name » (:slug) créé, non publié.",
+    "console.provider_create.password": "Mot de passe initial, affiché seulement maintenant : :password",
+    "console.provider_create.change": "Transmettez-le au professionnel de manière sûre : il pourra le changer dans Paramètres → Sécurité."
 }

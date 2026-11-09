@@ -20,6 +20,8 @@ class BookingSeeder extends Seeder
      */
     public function run(): void
     {
+        DevelopmentOnly::ensure(self::class);
+
         // dayOfWeekIso uses the same numbering as Weekday (Monday = 1).
         $today = CarbonImmutable::now(config()->string('booking.timezone'))->startOfDay();
         $nextMonday = $today->subDays($today->dayOfWeekIso - 1)->addWeek();

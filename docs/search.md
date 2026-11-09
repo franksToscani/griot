@@ -18,6 +18,7 @@ La ricerca testuale di `/providers`, insieme ai filtri per categoria e città. S
 
 - La stessa ricerca parte anche dalla fascia della home (`docs/home.md`): un form HTML `GET` verso `/providers` con `q` e `city`, che funziona senza JavaScript.
 - Prezzo massimo e « solo con foto » sono nel pannello dei filtri della lista (`docs/providers-list.md`).
+- La lista e la ricerca hanno un limite largo: 60 richieste al minuto per IP (`providers-list`, `docs/production.md`); oltre, la pagina 429 del sito.
 
 ## Categorie e lingua
 

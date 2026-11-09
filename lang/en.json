@@ -443,7 +443,6 @@
     "common.breadcrumb": "Breadcrumb",
     "common.show_password": "Show password",
     "common.hide_password": "Hide password",
-    "nav.register": "Sign up",
     "nav.logout": "Log out",
     "nav.settings": "Settings",
     "nav.menu": "Menu",
@@ -454,12 +453,6 @@
     "account.login.description": "Enter your email and password to log in",
     "account.login.forgot": "Forgot your password?",
     "account.login.remember": "Remember me",
-    "account.login.no_account": "Don't have an account?",
-    "account.register.title": "Create an account",
-    "account.register.description": "Enter your details to create your account",
-    "account.register.submit": "Create account",
-    "account.register.have_account": "Already have an account?",
-    "account.register.privacy_note": "How we use the account and profile details is explained in the privacy notice.",
     "account.forgot.title": "Forgot password",
     "account.forgot.description": "Enter your email and we will send you a link to reset your password",
     "account.forgot.submit": "Send me the link",
@@ -693,5 +686,8 @@
     "home.carousel.sentence.ciglia": "Lash extensions and treatments.",
     "home.carousel.sentence.sopracciglia": "Brow shaping and care.",
     "home.carousel.sentence.couture": "Made-to-measure clothes and alterations, also with African fabrics.",
-    "home.carousel.sentence.ristorazione": "African food: find who cooks it and book."
+    "home.carousel.sentence.ristorazione": "African food: find who cooks it and book.",
+    "console.provider_create.done": "Created the provider \":name\" (:slug), not published.",
+    "console.provider_create.password": "Initial password, shown only now: :password",
+    "console.provider_create.change": "Give it to the provider in a safe way: they can change it in Settings → Security."
 }

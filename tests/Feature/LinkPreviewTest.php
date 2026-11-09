@@ -282,7 +282,6 @@ test('a private page is not indexed and has no preview at all', function (Closur
     'bookings of the provider' => [fn ($test) => $test->actingAs(lpProvider()->user)->get(route('provider.bookings.index'))->assertOk()],
     'settings' => [fn ($test) => $test->actingAs(lpProvider()->user)->get(route('profile.edit'))->assertOk()],
     'login' => [fn ($test) => $test->get(route('login'))->assertOk()],
-    'register' => [fn ($test) => $test->get(route('register'))->assertOk()],
     'forgot password' => [fn ($test) => $test->get(route('password.request'))->assertOk()],
     'verify email' => [fn ($test) => $test->actingAs(User::factory()->unverified()->create())->get(route('verification.notice'))->assertOk()],
     'confirm password' => [fn ($test) => $test->actingAs(User::factory()->create())->get(route('password.confirm'))->assertOk()],
