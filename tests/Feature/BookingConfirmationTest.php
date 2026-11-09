@@ -60,7 +60,7 @@ test('a valid link shows the booking', function () {
     $booking = bcBooking();
     $first = ServiceOption::factory()->for($booking->service)->create(['name' => 'Extension', 'extra_price' => '20.00']);
     $second = ServiceOption::factory()->for($booking->service)->create(['name' => 'Perline', 'extra_price' => '5.50']);
-    $booking->options()->attach([$first->id, $second->id]);
+    attachBookingOptions($booking, [$first->id, $second->id]);
 
     $this->get(bcUrl($booking))
         ->assertOk()
@@ -72,11 +72,13 @@ test('a valid link shows the booking', function () {
                 'status' => 'pending',
                 // The provider's chat for a question (issue #140): the address of the provider's page.
                 'provider' => ['name' => 'Salone Awa', 'city' => 'Bologna', 'slug' => $booking->provider->slug, 'whatsapp_url' => $booking->provider->whatsappUrl()],
-                'service' => ['name' => 'Treccine', 'price' => '90.00'],
+                // The prices saved when the booking was made, in whole cents (issue #97).
+                'service' => ['name' => 'Treccine', 'price_cents' => 9000],
                 'options' => [
-                    ['name' => 'Extension', 'extra_price' => '20.00'],
-                    ['name' => 'Perline', 'extra_price' => '5.50'],
+                    ['name' => 'Extension', 'extra_price_cents' => 2000],
+                    ['name' => 'Perline', 'extra_price_cents' => 550],
                 ],
+                'total_cents' => 11550,
                 'local_date' => '2026-10-29',
                 'local_start' => '09:00',
                 'local_end' => '11:45',
@@ -211,13 +213,31 @@ test('only the chosen options are shown, ordered by id', function () {
     ServiceOption::factory()->for($booking->service)->create(['name' => 'Non scelta']);
     $third = ServiceOption::factory()->for($booking->service)->create(['name' => 'Terza', 'extra_price' => '3.00']);
     // Attached in the opposite order: the page still lists them by id.
-    $booking->options()->attach([$third->id, $first->id]);
+    attachBookingOptions($booking, [$third->id, $first->id]);
 
     $this->get(bcUrl($booking))
         ->assertInertia(fn (Assert $page) => $page->where('booking.options', [
-            ['name' => 'Prima', 'extra_price' => '1.00'],
-            ['name' => 'Terza', 'extra_price' => '3.00'],
+            ['name' => 'Prima', 'extra_price_cents' => 100],
+            ['name' => 'Terza', 'extra_price_cents' => 300],
         ]));
+});
+
+test('a price changed in the catalog afterwards, or an option hidden, does not change the page of the customer', function () {
+    $booking = bcBooking();
+    $option = ServiceOption::factory()->for($booking->service)->create(['name' => 'Perline', 'extra_price' => '5.50']);
+    attachBookingOptions($booking, $option);
+
+    // The provider changes the prices and hides the option (issue #97).
+    $booking->service->update(['price' => '120.00']);
+    $option->update(['extra_price' => '9.00']);
+    $option->is_active = false;
+    $option->save();
+
+    $this->get(bcUrl($booking))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('booking.service.price_cents', 9000)
+            ->where('booking.options', [['name' => 'Perline', 'extra_price_cents' => 550]])
+            ->where('booking.total_cents', 9550));
 });
 
 test('without options the list is empty', function () {
@@ -228,7 +248,7 @@ test('without options the list is empty', function () {
 test('the number of queries does not change with 0 or 3 options', function () {
     $withoutOptions = bcBooking();
     $withOptions = bcBooking();
-    $withOptions->options()->attach(ServiceOption::factory()->count(3)->for($withOptions->service)->create());
+    attachBookingOptions($withOptions, ServiceOption::factory()->count(3)->for($withOptions->service)->create());
 
     $queries = 0;
     DB::listen(function () use (&$queries) {

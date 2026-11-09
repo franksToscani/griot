@@ -233,7 +233,7 @@ test('options, email and notes appear only when there are some', function () {
     $second = ServiceOption::factory()->for($booking->service)->create(['name' => 'Perline']);
     $first = ServiceOption::factory()->for($booking->service)->create(['name' => 'Extension']);
     ServiceOption::factory()->for($booking->service)->create(['name' => 'Non scelta']);
-    $booking->options()->attach([$first->id, $second->id]);
+    attachBookingOptions($booking, [$first->id, $second->id]);
     $full = nbMail($booking);
 
     // Separated by a comma, ordered by id.
@@ -336,7 +336,7 @@ test('the Italian texts are exactly the expected ones', function () {
 test('the number of queries to send the email does not grow with the options', function () {
     $withoutOptions = nbBooking();
     $withOptions = nbBooking();
-    $withOptions->options()->attach(ServiceOption::factory()->count(3)->for($withOptions->service)->create());
+    attachBookingOptions($withOptions, ServiceOption::factory()->count(3)->for($withOptions->service)->create());
     // The users are read here, so that only the sending is counted.
     $firstUser = $withoutOptions->provider->user;
     $secondUser = $withOptions->provider->user;

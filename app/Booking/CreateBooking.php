@@ -6,6 +6,8 @@ use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\Provider;
 use App\Models\Service;
+use App\Models\ServiceOption;
+use App\Support\Money;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +27,7 @@ final class CreateBooking
 {
     public function __construct(
         private FreeSlots $freeSlots,
+        private BookingDuration $bookingDuration,
     ) {}
 
     /**
@@ -68,6 +71,12 @@ final class CreateBooking
                 throw SlotNotAvailable::at($lockedProvider, $start);
             }
 
+            // The prices of this moment (issue #97), read again after the lock: a price changed
+            // between the form and now is saved as it is now. The options are the same ones that
+            // set the minutes of the slot. Saved on the booking, they no longer follow the catalog.
+            $currentService = Service::query()->whereKey($service->id)->firstOrFail();
+            $options = $this->bookingDuration->chosenOptions($currentService, array_values(array_unique($optionIds)));
+
             // Through the relation: provider_id is set by the code, never by the input.
             $booking = $lockedProvider->bookings()->make([
                 'service_id' => $service->id,
@@ -85,9 +94,12 @@ final class CreateBooking
             $booking->created_by_provider = $createdByProvider;
             $booking->locale = $locale;
             $booking->public_token = Str::random(48);
+            $booking->service_price_cents = Money::cents($currentService->price);
             $booking->save();
 
-            $booking->options()->attach(array_values(array_unique($optionIds)));
+            $booking->options()->attach($options->mapWithKeys(fn (ServiceOption $option) => [
+                $option->id => ['extra_price_cents' => Money::cents($option->extra_price)],
+            ])->all());
 
             return $booking;
         });

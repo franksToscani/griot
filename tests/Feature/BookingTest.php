@@ -4,6 +4,7 @@ use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\Provider;
 use App\Models\Service;
+use App\Support\Money;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -28,8 +29,9 @@ test('a booking is pending by default', function () {
         'starts_at' => '2026-11-03 09:00:00',
         'ends_at' => '2026-11-03 12:00:00',
     ]);
-    // The secret token is not fillable: the code sets it before saving.
+    // The secret token is not fillable: the code sets it before saving, like the saved price.
     $booking->public_token = Str::random(48);
+    $booking->service_price_cents = Money::cents($service->price);
     $booking->save();
 
     expect($booking->status)->toBe(BookingStatus::Pending);

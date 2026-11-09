@@ -6,6 +6,7 @@ use App\Models\Service;
 use App\Models\ServiceOption;
 use App\Profile\CannotDeleteOption;
 use App\Profile\ManageOption;
+use App\Support\Money;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -29,7 +30,7 @@ function mopBook(ServiceOption $option, string $status = 'pending'): void
 {
     $service = $option->service()->firstOrFail();
     $booking = Booking::factory()->for($service->provider)->for($service)->create(['status' => $status]);
-    DB::table('booking_service_option')->insert(['booking_id' => $booking->id, 'service_option_id' => $option->id]);
+    DB::table('booking_service_option')->insert(['booking_id' => $booking->id, 'service_option_id' => $option->id, 'extra_price_cents' => Money::cents($option->extra_price)]);
 }
 
 /**

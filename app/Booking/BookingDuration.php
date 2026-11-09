@@ -51,14 +51,16 @@ final class BookingDuration
     }
 
     /**
-     * The chosen options of the service, or an exception if any id does not belong to it.
+     * The chosen options of the service, or an exception if any id does not belong to it or is
+     * hidden. Public for CreateBooking, which saves their prices (issue #97): the options that set
+     * the minutes are the ones whose prices are saved.
      *
-     * @param  list<int>  $optionIds
+     * @param  list<int>  $optionIds  without repetitions
      * @return Collection<int, ServiceOption>
      *
      * @throws InvalidBookingOptions
      */
-    private function chosenOptions(Service $service, array $optionIds): Collection
+    public function chosenOptions(Service $service, array $optionIds): Collection
     {
         if ($optionIds === []) {
             return new Collection;

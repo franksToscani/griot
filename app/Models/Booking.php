@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use LogicException;
 
 /**
  * A customer booking. starts_at and ends_at are stored in UTC.
@@ -32,6 +33,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * RemindPendingBookings writes it, once, with the query builder, so updated_at does not change.
  * locale (the customer's language, for the emails and the WhatsApp text) is not fillable either:
  * CreateBooking sets it, never from the input of the request.
+ * service_price_cents (the price of the service when the booking was made, issue #97) is not
+ * fillable either: CreateBooking writes it, with the extra_price_cents of each chosen option on the
+ * pivot, and nothing changes them afterwards (docs/bookings.md). totalCents() adds them up.
  * anonymized_at (when the customer's data were removed, issue #56) is not fillable either: only
  * AnonymizeOldBookings writes it, with the query builder, together with the empty customer's
  * fields and a new public_token. An anonymous booking has no customer_name and no customer_phone.
@@ -49,6 +53,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  * @property string|null $customer_email
  * @property string|null $notes
  * @property CarbonImmutable|null $anonymized_at
+ * @property int $service_price_cents
  */
 class Booking extends Model
 {
@@ -98,6 +103,7 @@ class Booking extends Model
             'status' => BookingStatus::class,
             'cancelled_by' => CancelledBy::class,
             'created_by_provider' => 'boolean',
+            'service_price_cents' => 'integer',
             'reminder_sent_at' => 'datetime',
             'anonymized_at' => 'datetime',
         ];
@@ -195,12 +201,40 @@ class Booking extends Model
     }
 
     /**
-     * Get the extra options chosen for the booking.
+     * Get the extra options chosen for the booking, each with the extra price it had when the
+     * booking was made (extra_price_cents on the pivot, read with optionPriceCents()).
      *
      * @return BelongsToMany<ServiceOption, $this>
      */
     public function options(): BelongsToMany
     {
-        return $this->belongsToMany(ServiceOption::class);
+        return $this->belongsToMany(ServiceOption::class)->withPivot('extra_price_cents');
+    }
+
+    /**
+     * The extra price an option of this booking had when the booking was made, in cents. The
+     * option must come from options(): the price is on the pivot, not on the option.
+     */
+    public static function optionPriceCents(ServiceOption $option): int
+    {
+        $pivot = $option->getRelationValue('pivot');
+
+        if (! $pivot instanceof Model || $pivot->getAttribute('extra_price_cents') === null) {
+            throw new LogicException('The option was not read through the options of a booking.');
+        }
+
+        return (int) $pivot->getAttribute('extra_price_cents');
+    }
+
+    /**
+     * The price of the booking when it was made, in cents: the service plus the chosen options.
+     * Never the current prices of the catalog. Not saved: computed from the saved parts.
+     */
+    public function totalCents(): int
+    {
+        return $this->options->reduce(
+            fn (int $total, ServiceOption $option) => $total + self::optionPriceCents($option),
+            $this->service_price_cents,
+        );
     }
 }

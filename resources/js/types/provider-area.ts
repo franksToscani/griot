@@ -109,9 +109,9 @@ export type ProviderBooking = {
     customer_email: string | null;
     notes: string | null;
     service: { name: string };
-    // Decimal strings such as "7.50".
-    options: { name: string; extra_price: string }[];
-    // Current price of the service plus the options chosen, in whole cents.
+    // The extra price of each option when the booking was made, in whole cents.
+    options: { name: string; extra_price_cents: number }[];
+    // The price saved when the booking was made: the service plus the options, in whole cents.
     price_cents: number;
     // Which actions the provider can take now, from the server's rules: the page never computes them.
     can_confirm: boolean;

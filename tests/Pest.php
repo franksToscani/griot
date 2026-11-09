@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Booking;
+use App\Models\ServiceOption;
+use App\Support\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Assert;
@@ -224,4 +227,31 @@ function failingRequestInSavepoint(Closure $request): mixed
     } finally {
         DB::connection()->getDriverName() === 'pgsql' ? DB::rollBack() : DB::commit();
     }
+}
+
+/*
+|--------------------------------------------------------------------------
+| Bookings
+|--------------------------------------------------------------------------
+*/
+
+/**
+ * Link options to a booking as CreateBooking does: each with its CURRENT extra price saved on the
+ * pivot (extra_price_cents, issue #97). For the tests that build a booking with the factory instead
+ * of booking a slot. The options are ids, models or a list of either.
+ *
+ * @param  ServiceOption|int|iterable<ServiceOption|int>  $options
+ */
+function attachBookingOptions(Booking $booking, ServiceOption|int|iterable $options): void
+{
+    $ids = collect(is_iterable($options) ? $options : [$options])
+        ->map(fn (ServiceOption|int $option) => $option instanceof ServiceOption ? $option->id : $option)
+        ->all();
+    $prices = ServiceOption::query()->whereKey($ids)->get()
+        ->mapWithKeys(fn (ServiceOption $option) => [$option->id => Money::cents($option->extra_price)]);
+
+    $booking->options()->attach(array_map(
+        fn (int $id) => ['extra_price_cents' => $prices[$id]],
+        array_combine($ids, $ids),
+    ));
 }

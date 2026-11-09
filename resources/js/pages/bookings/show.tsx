@@ -20,12 +20,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
 import { whatsappLink } from '@/lib/whatsapp';
-import {
-    centsToPrice,
-    formatLongDate,
-    formatPrice,
-    priceToCents,
-} from '@/lib/format';
+import { formatCents, formatLongDate } from '@/lib/format';
 import { show as providerShow } from '@/routes/providers';
 import type { BookingConfirmation } from '@/types';
 
@@ -44,14 +39,6 @@ export default function BookingsShow({
     can_cancel,
 }: Props) {
     const { t, locale } = useTranslation();
-
-    // Same sum as the booking form, in whole cents. Indicative: no paid price is stored.
-    const totalCents =
-        priceToCents(booking.service.price) +
-        booking.options.reduce(
-            (sum, option) => sum + priceToCents(option.extra_price),
-            0,
-        );
 
     // The date is already the provider's local day (see formatLongDate).
     const date = formatLongDate(locale, booking.local_date);
@@ -169,9 +156,7 @@ export default function BookingsShow({
                             <dt className="font-medium">
                                 {t('booking.confirmation.price')}
                             </dt>
-                            <dd>
-                                {formatPrice(locale, centsToPrice(totalCents))}
-                            </dd>
+                            <dd>{formatCents(locale, booking.total_cents)}</dd>
                         </dl>
                     </CardContent>
                 </Card>

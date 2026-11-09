@@ -137,7 +137,7 @@ test('each booking has exactly the expected keys, and the private token is only 
         'customer_email' => 'awa@example.com',
         'notes' => 'Capelli lunghi',
     ]);
-    $booking->options()->attach($option->id);
+    attachBookingOptions($booking, $option->id);
 
     $response = pblGet($provider->user);
     $props = pblPropsOf($response);
@@ -153,7 +153,7 @@ test('each booking has exactly the expected keys, and the private token is only 
         'customer_email' => 'awa@example.com',
         'notes' => 'Capelli lunghi',
         'service' => ['name' => 'Box braids'],
-        'options' => [['name' => 'Perline', 'extra_price' => '7.50']],
+        'options' => [['name' => 'Perline', 'extra_price_cents' => 750]],
         'price_cents' => 3250,
         // Confirmed, in the future: only the provider's cancellation is allowed.
         'can_confirm' => false,
@@ -347,13 +347,13 @@ test('20 per page, and the page links keep the filters', function () {
     expect(pblProps($provider->user)['bookings']['links']['next'])->not->toContain('status=');
 });
 
-test('the price in cents: the current price of the service plus the options chosen, with integers only', function (string $price, array $extras, int $cents) {
+test('the price in cents: the saved price of the service plus the saved options, with integers only', function (string $price, array $extras, int $cents) {
     $provider = pblProvider();
     $service = pblService($provider, $price);
     $booking = pblBooking($provider, '2026-10-21 08:00', override: ['service' => $service]);
 
     foreach ($extras as $i => $extra) {
-        $booking->options()->attach(ServiceOption::factory()->for($service)->create(['name' => "Opzione {$i}", 'extra_price' => $extra])->id);
+        attachBookingOptions($booking, ServiceOption::factory()->for($service)->create(['name' => "Opzione {$i}", 'extra_price' => $extra])->id);
     }
 
     expect(pblProps($provider->user)['bookings']['data'][0]['price_cents'])->toBe($cents);
@@ -364,6 +364,24 @@ test('the price in cents: the current price of the service plus the options chos
     'free options' => ['30.00', ['0.00', '0.00'], 3000],
     'the highest prices' => ['9999.99', ['999.99', '999.99'], 1199997],
 ]);
+
+test('a price changed in the catalog afterwards, or an option hidden, does not change a booking already made', function () {
+    $provider = pblProvider();
+    $service = pblService($provider, '25.00');
+    $option = ServiceOption::factory()->for($service)->create(['name' => 'Perline', 'extra_price' => '7.50']);
+    $booking = pblBooking($provider, '2026-10-21 08:00', override: ['service' => $service]);
+    attachBookingOptions($booking, $option);
+
+    // The provider changes the prices and hides the option (issue #97).
+    $service->update(['price' => '40.00']);
+    $option->update(['extra_price' => '12.00']);
+    $option->is_active = false;
+    $option->save();
+
+    $data = pblProps($provider->user)['bookings']['data'][0];
+    expect($data['price_cents'])->toBe(3250)
+        ->and($data['options'])->toBe([['name' => 'Perline', 'extra_price_cents' => 750]]);
+});
 
 test('a customer without email and notes gets null for both', function () {
     $provider = pblProvider();
@@ -397,7 +415,7 @@ test('the number of queries does not grow with bookings and options', function (
         $chosen = ServiceOption::factory()->count($options)->for($service)->create()->modelKeys();
 
         for ($i = 0; $i < $bookings; $i++) {
-            pblBooking($provider, '2026-10-21 08:00', override: ['service' => $service])->options()->attach($chosen);
+            attachBookingOptions(pblBooking($provider, '2026-10-21 08:00', override: ['service' => $service]), $chosen);
         }
 
         $queries = 0;
@@ -462,7 +480,7 @@ test('the texts of the bookings page are exactly the expected ones', function ()
         'provider.bookings.phone' => 'Telefono',
         'provider.bookings.email' => 'Email',
         'provider.bookings.notes' => 'Note',
-        'provider.bookings.price_note' => 'Prezzo indicativo',
+        'provider.bookings.saved_price' => 'Prezzo al momento della prenotazione: :price',
         'provider.area.bookings' => 'Le tue prenotazioni',
     ];
 

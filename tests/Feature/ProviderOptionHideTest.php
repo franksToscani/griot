@@ -238,7 +238,7 @@ test('a booking made before the option is hidden keeps it everywhere', function 
     app('auth')->forgetGuards();
     $this->get(route('bookings.show', ['booking' => $booking->public_token]))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->where('booking.options', [['name' => 'Perline', 'extra_price' => '5.00']]));
+        ->assertInertia(fn (Assert $page) => $page->where('booking.options', [['name' => 'Perline', 'extra_price_cents' => 500]]));
 
     // The link and the times do not change.
     $fresh = $booking->fresh();
@@ -260,7 +260,7 @@ test('a hidden option never booked can be deleted, a booked one cannot', functio
     $free = pohOption($service, ['name' => 'Mai prenotata', 'is_active' => false]);
     $booked = pohOption($service, ['name' => 'Prenotata', 'is_active' => false]);
     $booking = Booking::factory()->for($provider)->for($service)->create();
-    $booking->options()->attach($booked->id);
+    attachBookingOptions($booking, $booked->id);
 
     $this->actingAs($provider->user)->delete(route('provider.services.options.destroy', ['service' => $service->id, 'option' => $free->id]))
         ->assertSessionHasNoErrors();

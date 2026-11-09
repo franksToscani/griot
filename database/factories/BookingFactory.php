@@ -6,6 +6,7 @@ use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\Provider;
 use App\Models\Service;
+use App\Support\Money;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -32,6 +33,11 @@ class BookingFactory extends Factory
             'service_id' => fn (array $attributes) => Service::factory()->state([
                 'provider_id' => $attributes['provider_id'],
             ]),
+            // The price of its service when the booking is made, as CreateBooking saves it (issue
+            // #97). Without parents (withoutParents()) there is no service to read.
+            'service_price_cents' => fn (array $attributes) => $attributes['service_id'] === null
+                ? 0
+                : Money::cents(Service::query()->whereKey($attributes['service_id'])->firstOrFail()->price),
             'customer_name' => fake()->name(),
             'customer_phone' => fake()->e164PhoneNumber(),
             'customer_email' => fake()->optional()->safeEmail(),

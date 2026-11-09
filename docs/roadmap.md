@@ -301,7 +301,7 @@ Il provider costruisce da solo la propria offerta: cosa vende, con quali extra e
 **Da tenere d'occhio**
 
 - Le story su servizi, opzioni e disponibilità sono simili (elenco, form, Policy): conviene estrarre i pezzi comuni, ma solo dopo tre casi concreti.
-- Il prezzo pagato non è "congelato" nella prenotazione: oggi non c'è una colonna per quello. Da valutare dopo.
+- Il prezzo non era "congelato" nella prenotazione: lo è dallo Sprint 9 (#97, [bookings.md](bookings.md)).
 
 ## Sprint 6: area provider, parte 3 (calendario e gestione delle prenotazioni)
 
@@ -549,6 +549,7 @@ Gli issue di questo sprint sono #57, #58, #59, #60 (deploy su Render), #62, #63,
 **Attività tecniche**
 
 - Un workflow di GitHub Actions con i controlli della prima story.
+- Il prezzo salvato sulla prenotazione (#97): il prezzo del servizio e di ogni opzione al momento della prenotazione, in centesimi; le prenotazioni già fatte riempite con i prezzi di quel giorno ([bookings.md](bookings.md)).
 - Un controllo in avvio che rifiuta di eseguire il seeder di sviluppo in produzione.
 - Test Pest per il comando che crea i provider e per le rotte chiuse.
 - `composer ci:check` verde a ogni PR, una PR per story.
@@ -647,6 +648,6 @@ Il piano conta 11 sprint, a circa 10 ore a settimana, con studi e lavoro.
 **Punti aperti**
 
 - Confermare con i provider intervistati che la durata massima come blocco dello slot sia la scelta giusta.
-- Il prezzo pagato non è salvato nella prenotazione: valutare se serve.
+- Il prezzo della prenotazione è salvato dallo Sprint 9 (#97, [bookings.md](bookings.md)); nessun pagamento online.
 - Wireframe a bassa fedeltà di elenco provider, scheda e form di prenotazione: rimandati, da fare prima dello Sprint 1 se servono.
 - Lingua dell'interfaccia: decidere il sistema di traduzioni prima di scrivere le pagine dello Sprint 1.

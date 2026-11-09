@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Enums\BookingStatus;
 use App\Enums\Weekday;
 use App\Models\Provider;
+use App\Models\ServiceOption;
+use App\Support\Money;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
@@ -50,11 +52,15 @@ class BookingSeeder extends Seeder
             ]);
             // Not fillable, so set directly, like the token below.
             $booking->status = $data['status'];
+            // The prices of the catalog of today, saved as CreateBooking saves them (issue #97).
+            $booking->service_price_cents = Money::cents($service->price);
             // Not fillable, so set directly; only on the first run, so the private link stays the same.
             $booking->public_token ??= Str::random(48);
             $booking->save();
 
-            $booking->options()->sync($options);
+            $booking->options()->sync($options->mapWithKeys(fn (ServiceOption $option) => [
+                $option->id => ['extra_price_cents' => Money::cents($option->extra_price)],
+            ])->all());
         }
     }
 
