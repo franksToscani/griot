@@ -146,6 +146,19 @@ return [
 
     'trusted_proxies' => env('TRUSTED_PROXIES', ''),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Private Site (no indexing)
+    |--------------------------------------------------------------------------
+    |
+    | SITE_NOINDEX=true while the site is online but private (docs/production.md): every response
+    | says "X-Robots-Tag: noindex, nofollow" and /robots.txt disallows everything. False, the
+    | default: the pages decide by themselves (App\Support\LinkPreview) and /robots.txt allows all.
+    |
+    */
+
+    'noindex' => (bool) env('SITE_NOINDEX', false),
+
     'key' => env('APP_KEY'),
 
     'previous_keys' => [

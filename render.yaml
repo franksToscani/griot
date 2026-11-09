@@ -1,0 +1,106 @@
+# Griot on Render (Blueprint, https://render.com/docs/blueprint-spec): one web service from the
+# Dockerfile (web server, queue worker and scheduler in one container) and its PostgreSQL.
+# The values here are not secret. Every secret, address or contact is "sync: false": it is
+# written by hand in the dashboard, never in the repository (docs/production.md).
+services:
+    - type: web
+      name: griot
+      runtime: docker
+      dockerfilePath: ./Dockerfile
+      dockerContext: .
+      region: frankfurt
+      # 0.5 CPU and 512 MB, the instance type chosen for Griot (the blueprint spec lists it among
+      # the plans and uses it by default). Its monthly price is to be checked on
+      # https://render.com/pricing: the spec does not say it.
+      plan: 0.5c-512mb
+      healthCheckPath: /up
+      # A deploy only after the checks of the commit on main are green (.github/workflows).
+      autoDeployTrigger: checksPass
+      # The migrations run before the new version starts, never in the container's start script.
+      preDeployCommand: php artisan migrate --force
+      envVars:
+          - key: APP_NAME
+            value: Griot
+          - key: APP_ENV
+            value: production
+          - key: APP_DEBUG
+            value: 'false'
+          - key: APP_KEY
+            sync: false
+          - key: APP_URL
+            sync: false
+          - key: TRUSTED_PROXIES
+            value: '*'
+          - key: SITE_NOINDEX
+            value: 'true'
+          - key: LOG_CHANNEL
+            value: stderr
+          - key: LOG_LEVEL
+            value: info
+          - key: DB_CONNECTION
+            value: pgsql
+          - key: DB_URL
+            fromDatabase:
+                name: griot-db
+                property: connectionString
+          - key: SESSION_DRIVER
+            value: database
+          - key: SESSION_SECURE_COOKIE
+            value: 'true'
+          - key: CACHE_STORE
+            value: database
+          - key: QUEUE_CONNECTION
+            value: database
+          - key: MEDIA_DISK_DRIVER
+            value: s3
+          - key: AWS_ACCESS_KEY_ID
+            sync: false
+          - key: AWS_SECRET_ACCESS_KEY
+            sync: false
+          - key: AWS_DEFAULT_REGION
+            sync: false
+          - key: AWS_BUCKET
+            sync: false
+          - key: AWS_ENDPOINT
+            sync: false
+          - key: AWS_URL
+            sync: false
+          # A real mailer is required in production (App\Support\ProductionMailer): without it the
+          # pages, the queue worker and the scheduler refuse to start, /up included.
+          - key: MAIL_MAILER
+            value: smtp
+          - key: MAIL_PORT
+            value: '587'
+          - key: MAIL_HOST
+            sync: false
+          - key: MAIL_USERNAME
+            sync: false
+          - key: MAIL_PASSWORD
+            sync: false
+          - key: MAIL_FROM_ADDRESS
+            sync: false
+          - key: CONTACT_EMAIL
+            sync: false
+          - key: CONTACT_WHATSAPP
+            sync: false
+          - key: PRIVACY_CONTROLLER_NAME
+            sync: false
+          - key: PRIVACY_CONTACT_EMAIL
+            sync: false
+          - key: PRIVACY_REVIEWED
+            value: 'false'
+          - key: TERMS_PUBLISHER_NAME
+            sync: false
+          - key: TERMS_PUBLISHER_ADDRESS
+            sync: false
+          - key: TERMS_PUBLISHER_VAT_NUMBER
+            sync: false
+          - key: TERMS_REVIEWED
+            value: 'false'
+
+databases:
+    - name: griot-db
+      region: frankfurt
+      plan: 0.1c-256mb
+      # The same major version as the tests-postgres job of the CI.
+      postgresMajorVersion: '18'

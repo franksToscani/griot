@@ -2,7 +2,7 @@
 
 Cosa gira da solo a ogni push su `main` e a ogni Pull Request (issue #57), come leggerlo e come rifarlo in locale. I file sono in `.github/workflows/`; `tests/Feature/WorkflowFilesTest.php` li legge e fallisce se un job sparisce, cambia nome o perde un controllo.
 
-## I quattro job
+## I cinque job
 
 | Job (nome esatto)  | File                    | Cosa controlla                                                                                         |
 | ------------------ | ----------------------- | ------------------------------------------------------------------------------------------------------ |
@@ -10,8 +10,9 @@ Cosa gira da solo a ogni push su `main` e a ogni Pull Request (issue #57), come 
 | `audit`            | `production-checks.yml` | nessun avviso di sicurezza noto nei pacchetti Composer (con e senza dev) e npm (solo produzione)       |
 | `production-build` | `production-checks.yml` | la build di produzione si costruisce, si avvia e risponde                                              |
 | `tests-postgres`   | `production-checks.yml` | tutta la suite su PostgreSQL, il database probabile della produzione                                   |
+| `docker-build`     | `production-checks.yml` | l'immagine di produzione (`Dockerfile`) si costruisce, parte come su Render e risponde                 |
 
-**Protezione di `main`** (si imposta a mano su GitHub: Settings → Branches → la regola di `main` → « Require status checks to pass »): i quattro nomi sopra, `ci`, `audit`, `production-build`, `tests-postgres`. GitHub li propone solo dopo che hanno girato almeno una volta. Nella pagina della PR compaiono come « tests / ci » e « production-checks / audit » e così via: il nome da scegliere nella protezione è quello del job.
+**Protezione di `main`** (si imposta a mano su GitHub: Settings → Branches → la regola di `main` → « Require status checks to pass »): i cinque nomi sopra, `ci`, `audit`, `production-build`, `tests-postgres`, `docker-build`. GitHub li propone solo dopo che hanno girato almeno una volta: `docker-build` va aggiunto dopo il primo giro verde. Nella pagina della PR compaiono come « tests / ci » e « production-checks / audit » e così via: il nome da scegliere nella protezione è quello del job.
 
 Tutti e due i workflow:
 
@@ -63,6 +64,20 @@ Come leggerlo: il passo rosso dice cosa si è rotto.
 Un contenitore `postgres:18` (immagine ufficiale) accanto al job, con un controllo di salute (`pg_isready`): il job parte solo quando il database risponde. È solo per i test: nessuna password (`trust`), raggiungibile solo dal job, cancellato alla fine. PHP ha l'estensione `pdo_pgsql`; le variabili sono `DB_CONNECTION=pgsql`, `DB_DATABASE=griot_test` e le altre `DB_*`. Poi `php artisan test`, la suite intera.
 
 È un job separato da `ci` per distinguere subito un errore di PostgreSQL da uno di tutto il resto: se `ci` è verde e `tests-postgres` è rosso, il problema è una differenza tra i due database (sotto).
+
+### `docker-build`
+
+L'immagine di produzione non si può costruire sui computer di sviluppo (Docker non c'è): la costruisce questo job, solo con i comandi `docker` del runner, senza azioni di terzi.
+
+1. `docker build` del `Dockerfile` (vendor, assets, runtime).
+2. Avvia il container come su Render, con valori usa e getta: una `APP_KEY` generata nel job, un database e un server di posta su `example.test` che non vengono mai raggiunti (`/up` non li usa), `SITE_NOINDEX=true`.
+3. Aspetta `/up` con 200.
+4. Controlla il sito privato: `X-Robots-Tag: noindex, nofollow` su `/up` e su un file statico (`/favicon.ico`, servito da Caddy), `/robots.txt` che vieta tutto, nessun `X-Powered-By`.
+5. Controlla che nessun processo giri come root.
+6. Controlla le estensioni (`pdo_pgsql`, `gd` con WebP, `exif`, OPcache) e i valori di `docker/php.ini`.
+7. Ferma il server web dentro il container e controlla che il container esca, così Render ne avvia uno nuovo (`docker/stop-on-web-exit.sh`).
+
+Se è rosso: il passo dice che cosa manca; i log del container sono stampati sotto. Un errore nel passo di build è quasi sempre una dipendenza o un'estensione mancante.
 
 ## Riprodurre in locale
 
