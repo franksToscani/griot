@@ -148,7 +148,8 @@ test('no query names an id column on a table without one', function () {
             // table's column: the expressions that start from a variable are left out.
             $own = (string) preg_replace('/\$\w+(?:->\w+(?:\([^()]*\))?)+/', '', $query);
 
-            if (preg_match('/[\'"](?:\w+\.)?id[\'"]/', $own) === 1) {
+            // "id" alone or of one of these tables; "service_options.id" in a join is another table.
+            if (preg_match('/[\'"](?:(?:'.implode('|', $tables).')\.)?id[\'"]/', $own) === 1) {
                 $found[] = str_replace(base_path().'/', '', $path).': '.$query;
             }
         }

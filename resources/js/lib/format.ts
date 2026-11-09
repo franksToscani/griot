@@ -57,6 +57,11 @@ export function centsToPrice(cents: number): string {
     return `${Math.trunc(cents / 100)}.${String(cents % 100).padStart(2, '0')}`;
 }
 
+// 9550 becomes "95,50 €" for the "it" locale: the prices saved on a booking come in whole cents.
+export function formatCents(locale: string, cents: number): string {
+    return formatPrice(locale, centsToPrice(cents));
+}
+
 // The extras of an option that actually add something, for example ["+ 10,00 €", "+ 15 min"].
 export function formatOptionExtras(
     t: TranslateFn,

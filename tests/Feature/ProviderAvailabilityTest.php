@@ -455,7 +455,7 @@ test('the slots offered change at once with create, update and delete; the booki
         'starts_at' => CarbonImmutable::parse(PVA_MONDAY.' 07:00', 'UTC'),
         'ends_at' => CarbonImmutable::parse(PVA_MONDAY.' 08:00', 'UTC'),
     ]);
-    $booking->options()->attach($option->id);
+    attachBookingOptions($booking, $option->id);
     $unchanged = fn () => [
         $booking->fresh()->starts_at->toIso8601String(),
         $booking->fresh()->ends_at->toIso8601String(),

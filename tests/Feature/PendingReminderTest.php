@@ -411,7 +411,7 @@ test('the options appear only when there are some, ordered by id', function () {
     $first = ServiceOption::factory()->for($booking->service)->create(['name' => 'Capelli lunghi']);
     expect(prmMail($booking)['text'])->not->toContain('Opzioni');
 
-    $booking->options()->attach([$first->id, $second->id]);
+    attachBookingOptions($booking, [$first->id, $second->id]);
     $mail = prmMail($booking->fresh());
 
     expect($mail['text'])->toContain('Opzioni: Perline, Capelli lunghi');
@@ -477,7 +477,7 @@ test('the queries per reminder are the same for every candidate, whatever the op
 
         for ($i = 1; $i <= $candidates; $i++) {
             $booking = prmBooking(prmProvider("Salone {$candidates} {$options} {$i}"));
-            $booking->options()->attach(ServiceOption::factory()->count($options)->for($booking->service)->create()->modelKeys());
+            attachBookingOptions($booking, ServiceOption::factory()->count($options)->for($booking->service)->create()->modelKeys());
         }
 
         $queries = 0;

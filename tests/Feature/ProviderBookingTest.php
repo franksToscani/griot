@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\Provider;
 use App\Models\Service;
 use App\Models\ServiceOption;
+use App\Support\Money;
 use Carbon\CarbonImmutable;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -97,7 +98,8 @@ test('a valid form creates a pending booking and goes to its private page with a
             ->where('booking.status', 'pending')
             ->where('booking.provider.slug', $provider->slug)
             ->where('booking.service.name', $service->name)
-            ->where('booking.options', [['name' => $option->name, 'extra_price' => $option->extra_price]])
+            // The price saved when the booking was made (issue #97).
+            ->where('booking.options', [['name' => $option->name, 'extra_price_cents' => Money::cents($option->extra_price)]])
             ->where('booking.local_date', '2026-10-19')
             ->where('booking.local_start', '09:00')
             ->where('booking.local_end', '10:30'));

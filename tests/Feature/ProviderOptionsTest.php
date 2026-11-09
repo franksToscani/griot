@@ -108,7 +108,7 @@ function popBook(ServiceOption $option, string $status = 'pending'): Booking
         'starts_at' => CarbonImmutable::parse('2026-10-26 07:00', 'UTC'),
         'ends_at' => CarbonImmutable::parse('2026-10-26 08:15', 'UTC'),
     ]);
-    $booking->options()->attach($option->id);
+    attachBookingOptions($booking, $option->id);
 
     return $booking;
 }

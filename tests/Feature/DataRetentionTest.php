@@ -174,7 +174,7 @@ test('only the customer\'s data, the token and anonymized_at change: updated_at 
 
 test('the options of the booking stay', function () {
     $booking = drtBooking('2026-03-01 10:00:00');
-    $booking->options()->attach(ServiceOption::factory()->count(2)->for($booking->service)->create()->modelKeys());
+    attachBookingOptions($booking, ServiceOption::factory()->count(2)->for($booking->service)->create()->modelKeys());
     // The pivot has no id: its key is the pair (booking_id, service_option_id).
     $pivot = DB::table('booking_service_option')->orderBy('booking_id')->orderBy('service_option_id')->get()->all();
 

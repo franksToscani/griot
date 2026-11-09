@@ -9,7 +9,7 @@ test('a booking can have many options', function () {
     $booking = Booking::factory()->create();
     $options = ServiceOption::factory()->count(2)->for($booking->service)->create();
 
-    $booking->options()->attach($options);
+    attachBookingOptions($booking, $options);
 
     expect($booking->options)->toHaveCount(2);
     $this->assertDatabaseHas('booking_service_option', [
@@ -22,7 +22,9 @@ test('an option can be chosen in many bookings', function () {
     $option = ServiceOption::factory()->create();
     $bookings = Booking::factory()->count(2)->for($option->service->provider)->for($option->service)->create();
 
-    $option->bookings()->attach($bookings);
+    foreach ($bookings as $booking) {
+        attachBookingOptions($booking, $option);
+    }
 
     expect($option->bookings)->toHaveCount(2);
 });
@@ -30,16 +32,16 @@ test('an option can be chosen in many bookings', function () {
 test('the same option cannot be added twice to a booking', function () {
     $booking = Booking::factory()->create();
     $option = ServiceOption::factory()->for($booking->service)->create();
-    $booking->options()->attach($option);
+    attachBookingOptions($booking, $option);
 
-    expect(fn () => $booking->options()->attach($option))
+    expect(fn () => attachBookingOptions($booking, $option))
         ->toThrow(QueryException::class);
 });
 
 test('deleting a booking removes its options from the pivot table', function () {
     $booking = Booking::factory()->create();
     $option = ServiceOption::factory()->for($booking->service)->create();
-    $booking->options()->attach($option);
+    attachBookingOptions($booking, $option);
 
     $booking->delete();
 
@@ -50,7 +52,7 @@ test('deleting a booking removes its options from the pivot table', function () 
 test('an option chosen in a booking cannot be deleted', function () {
     $booking = Booking::factory()->create();
     $option = ServiceOption::factory()->for($booking->service)->create();
-    $booking->options()->attach($option);
+    attachBookingOptions($booking, $option);
 
     // In its own transaction (a savepoint): on PostgreSQL a failed statement spoils the test's
     // transaction, and the next query would fail too (docs/ci.md).

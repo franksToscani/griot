@@ -57,16 +57,13 @@ class ProviderBookingResource extends JsonResource
             'options' => $options
                 ->map(fn (ServiceOption $option) => [
                     'name' => $option->name,
-                    // Decimal string such as "7.50".
-                    'extra_price' => $option->extra_price,
+                    // The extra price saved when the booking was made, in whole cents (issue #97).
+                    'extra_price_cents' => Booking::optionPriceCents($option),
                 ])
                 ->all(),
-            // The CURRENT prices of the service and of the options chosen: the booking does not
-            // keep the prices of the day it was made.
-            'price_cents' => $options->reduce(
-                fn (int $total, ServiceOption $option) => $total + self::cents($option->extra_price),
-                self::cents($this->service->price),
-            ),
+            // The price saved when the booking was made: the service plus the options chosen, in
+            // whole cents. A later change of the catalog does not change it (docs/bookings.md).
+            'price_cents' => $this->totalCents(),
             // Which buttons the page shows, from the same rules the actions check again. No query.
             'can_confirm' => $transitions->canConfirm($this->resource),
             'can_reject' => $transitions->canReject($this->resource),
@@ -119,16 +116,5 @@ class ProviderBookingResource extends JsonResource
         // wa.me wants the digits without "+". rawurlencode() writes a space as %20, which every
         // WhatsApp app reads as a space ("+" from urlencode() can stay a "+").
         return 'https://wa.me/'.substr($phone, 1).'?text='.rawurlencode(implode("\n\n", $lines));
-    }
-
-    /**
-     * "7.50" becomes 750, with integers only: adding decimals as floating point numbers can give
-     * results such as 0.1 + 0.2 = 0.30000000000000004.
-     */
-    private static function cents(string $price): int
-    {
-        [$units, $decimals] = array_pad(explode('.', $price, 2), 2, '');
-
-        return (int) $units * 100 + (int) str_pad(substr($decimals, 0, 2), 2, '0');
     }
 }

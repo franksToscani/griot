@@ -27,12 +27,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from '@/hooks/use-translation';
-import {
-    centsToPrice,
-    formatLongDate,
-    formatPrice,
-    priceToCents,
-} from '@/lib/format';
+import { formatCents, formatLongDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 // Explicit names: '@/routes/bookings' has the customer's own "cancel".
@@ -340,19 +335,18 @@ function BookingCard({ booking }: { booking: ProviderBooking }) {
                                 <li key={position} className="break-words">
                                     {option.name}
                                     {/* Only an extra that actually adds something. */}
-                                    {priceToCents(option.extra_price) !== 0 &&
-                                        ` (${t('providers.show.option_extra_price', { price: formatPrice(locale, option.extra_price) })})`}
+                                    {option.extra_price_cents !== 0 &&
+                                        ` (${t('providers.show.option_extra_price', { price: formatCents(locale, option.extra_price_cents) })})`}
                                 </li>
                             ))}
                         </ul>
                     )}
                 </div>
 
-                <p>
-                    {t('provider.bookings.price_note')}:{' '}
-                    <span className="font-medium">
-                        {formatPrice(locale, centsToPrice(booking.price_cents))}
-                    </span>
+                <p className="font-medium">
+                    {t('provider.bookings.saved_price', {
+                        price: formatCents(locale, booking.price_cents),
+                    })}
                 </p>
 
                 {/* Only the actions the server allows now: after an answer the flags come back false. */}

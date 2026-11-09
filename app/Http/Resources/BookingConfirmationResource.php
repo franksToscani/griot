@@ -39,18 +39,20 @@ class BookingConfirmationResource extends JsonResource
                 // page; only while the booking is still on (pending or confirmed).
                 'whatsapp_url' => in_array($this->status, [BookingStatus::Pending, BookingStatus::Confirmed], true) ? $this->provider->whatsappUrl() : null,
             ],
+            // The prices saved when the booking was made, in whole cents (issue #97): a later
+            // change of the catalog does not change them. The page only formats them.
             'service' => [
                 'name' => $this->service->name,
-                // Decimal string such as "90.00": the page formats it and adds the options.
-                'price' => $this->service->price,
+                'price_cents' => $this->service_price_cents,
             ],
             'options' => array_values($this->options
                 ->sortBy('id')
                 ->map(fn (ServiceOption $option) => [
                     'name' => $option->name,
-                    'extra_price' => $option->extra_price,
+                    'extra_price_cents' => Booking::optionPriceCents($option),
                 ])
                 ->all()),
+            'total_cents' => $this->totalCents(),
             'local_date' => $start->format('Y-m-d'),
             'local_start' => $start->format('H:i'),
             'local_end' => $end->format('H:i'),

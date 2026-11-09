@@ -197,7 +197,7 @@ test('the options appear only when there are some, ordered by id', function () {
     $second = ServiceOption::factory()->for($booking->service)->create(['name' => 'Perline']);
     $first = ServiceOption::factory()->for($booking->service)->create(['name' => 'Extension']);
     ServiceOption::factory()->for($booking->service)->create(['name' => 'Non scelta']);
-    $booking->options()->attach([$first->id, $second->id]);
+    attachBookingOptions($booking, [$first->id, $second->id]);
     $mail = ccnMail($booking);
 
     expect(ccnText($mail))->toContain('Opzioni: Perline, Extension')->not->toContain('Non scelta');

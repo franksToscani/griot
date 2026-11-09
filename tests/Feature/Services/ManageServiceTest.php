@@ -6,6 +6,7 @@ use App\Models\Service;
 use App\Models\ServiceOption;
 use App\Profile\CannotDeleteService;
 use App\Profile\ManageService;
+use App\Support\Money;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,7 @@ function msvInsertBooking(Service $service): void
     DB::table('bookings')->insert([
         'provider_id' => $service->provider_id,
         'service_id' => $service->id,
+        'service_price_cents' => Money::cents($service->price),
         'customer_name' => 'Cliente',
         'customer_phone' => '+39 333 000 0000',
         'starts_at' => '2026-10-29 08:00:00',
@@ -121,7 +123,7 @@ test('an option chosen in a booking of another service blocks the deletion', fun
     $option = ServiceOption::factory()->for($service)->create();
     $other = Service::factory()->for($service->provider)->create();
     $booking = Booking::factory()->for($service->provider)->for($other)->create();
-    DB::table('booking_service_option')->insert(['booking_id' => $booking->id, 'service_option_id' => $option->id]);
+    DB::table('booking_service_option')->insert(['booking_id' => $booking->id, 'service_option_id' => $option->id, 'extra_price_cents' => Money::cents($option->extra_price)]);
 
     expect(msvManager()->blockedBy($service))->toBe('booked_options');
     expect(fn () => msvManager()->delete($service))->toThrow(CannotDeleteService::class);

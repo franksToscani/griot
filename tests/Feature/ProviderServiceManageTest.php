@@ -9,6 +9,7 @@ use App\Models\Provider;
 use App\Models\Service;
 use App\Models\ServiceOption;
 use App\Models\User;
+use App\Support\Money;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -286,7 +287,7 @@ test('editing a service does not change its existing bookings', function () {
         'starts_at' => CarbonImmutable::parse('2026-10-26 07:00', 'UTC'),
         'ends_at' => CarbonImmutable::parse('2026-10-26 08:00', 'UTC'),
     ]);
-    $booking->options()->attach($option->id);
+    attachBookingOptions($booking, $option->id);
 
     $this->actingAs($provider->user)
         ->put(route('provider.services.update', $service->id), psmForm(['duration_min' => 120, 'duration_max' => 180]))
@@ -413,7 +414,7 @@ test('a service whose option was chosen in a booking is not deleted', function (
     $service = psmService($provider);
     $option = ServiceOption::factory()->for($service)->create();
     $booking = Booking::factory()->for($provider)->for(psmService($provider, ['name' => 'Altro']))->create();
-    DB::table('booking_service_option')->insert(['booking_id' => $booking->id, 'service_option_id' => $option->id]);
+    DB::table('booking_service_option')->insert(['booking_id' => $booking->id, 'service_option_id' => $option->id, 'extra_price_cents' => Money::cents($option->extra_price)]);
 
     $this->actingAs($provider->user)
         ->delete(route('provider.services.destroy', $service->id))
@@ -434,6 +435,7 @@ test('a booking arriving just before the delete gets the message, not a 500', fu
             DB::table('bookings')->insert([
                 'provider_id' => $deleting->provider_id,
                 'service_id' => $deleting->id,
+                'service_price_cents' => Money::cents($deleting->price),
                 'customer_name' => 'Cliente',
                 'customer_phone' => '+39 333 000 0000',
                 'starts_at' => '2026-10-26 07:00:00',
