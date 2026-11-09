@@ -1,6 +1,6 @@
 # Griot: checklist di produzione
 
-Cosa deve essere vero prima di aprire Griot a persone reali (issue #58, #59, #86 e Sprint 9 in [roadmap.md](roadmap.md)). Il deploy su Render (#60), l'email (#62) e il monitoraggio (#63) hanno le loro pagine quando arrivano.
+Cosa deve essere vero prima di aprire Griot a persone reali (issue #58, #59, #86 e Sprint 9 in [roadmap.md](roadmap.md)). Come fare il deploy su Render, la posta, le foto, i log, i job falliti, il rollback e i backup, passo per passo: [deploy.md](deploy.md).
 
 ## Variabili d'ambiente
 
@@ -46,7 +46,7 @@ Cosa deve essere vero prima di aprire Griot a persone reali (issue #58, #59, #86
 Finché i testi legali non sono rivisti ([legal.md](legal.md)) il sito è online ma privato: `SITE_NOINDEX=true` (`config/app.php`, `noindex`).
 
 - Ogni risposta ha `X-Robots-Tag: noindex, nofollow` (`App\Http\Middleware\NoIndexSite`), anche `/up` e le pagine d'errore; i file statici serviti da Caddy hanno lo stesso header (`docker/Caddyfile`).
-- `/robots.txt` è una rotta (`RobotsController`), non più un file in `public/`: con l'interruttore acceso vieta tutto (`Disallow: /`); spento, è il testo di prima (`Disallow:` vuoto, tutto permesso).
+- `/robots.txt` è una rotta (`RobotsController`), non più un file in `public/`: con l'interruttore acceso vieta tutto (`Disallow: /`); spento, è il testo di prima (`Disallow:` vuoto, tutto permesso). È registrata fuori dal gruppo `web` (`bootstrap/app.php`): nessuna sessione, nessun cookie e nessun token CSRF per un crawler.
 - Spento è il valore predefinito, come in sviluppo. All'apertura al pubblico: `SITE_NOINDEX=false`.
 - Nessuna password: il sito resta raggiungibile da chi ha l'indirizzo.
 

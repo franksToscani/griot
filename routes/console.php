@@ -26,3 +26,9 @@ Schedule::command('queue:prune-failed --hours=720')
 Schedule::command('auth:clear-resets')
     ->daily()
     ->withoutOverlapping();
+
+// The warning about the failed jobs (issue #63, docs/deploy.md): once an hour, the number of new
+// rows of failed_jobs in the log, with Log::error, without personal data.
+Schedule::command('jobs:report-failed')
+    ->hourly()
+    ->withoutOverlapping();

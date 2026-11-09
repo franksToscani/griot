@@ -403,3 +403,79 @@ test('no robots.txt file in public/ hides the route any more', function () {
         ->and(RobotsController::PRIVATE)->toBe("User-agent: *\nDisallow: /\n");
     expect(dplSource('bootstrap/app.php'))->toContain('$middleware->append(NoIndexSite::class);');
 });
+
+test('robots.txt sets no cookie and starts no session, with the switch on and off', function (bool $noindex, string $text) {
+    config()->set('app.noindex', $noindex);
+
+    $response = $this->get('/robots.txt')->assertOk()->assertHeaderMissing('Set-Cookie');
+
+    expect($response->getContent())->toBe($text)
+        ->and($response->headers->getCookies())->toBe([]);
+    // Outside the "web" group: no session, no cookie, no CSRF token for a crawler.
+    expect(app('router')->getRoutes()->getByName('robots')?->gatherMiddleware())->not->toContain('web');
+    if ($noindex) {
+        $response->assertHeader('X-Robots-Tag', 'noindex, nofollow');
+    }
+})->with([
+    'off' => [false, "User-agent: *\nDisallow:\n"],
+    'on' => [true, "User-agent: *\nDisallow: /\n"],
+]);
+
+// ---------------------------------------------------------------------------------------------
+// The runbook (docs/deploy.md)
+// ---------------------------------------------------------------------------------------------
+
+test('docs/deploy.md has every section of the runbook', function () {
+    $runbook = dplSource('docs/deploy.md');
+
+    foreach ([
+        '## 1. Che cosa c\'è e quanto costa',
+        '## 2. Prima di cominciare',
+        '## 3. Primo deploy passo per passo',
+        '## 4. Posta con Gmail (fase privata)',
+        '## 5. Foto',
+        '## 6. Il primo professionista',
+        '## 7. Deploy normale, log e job falliti',
+        '## 8. Rollback',
+        '## 9. Backup e ripristino di PostgreSQL (#63)',
+        '## 10. Aggiornare un segreto',
+        '## 11. Se la coda o lo scheduler si fermano',
+        '## 12. Primo deploy: cose da controllare',
+        '## 13. Da privato a pubblico',
+    ] as $heading) {
+        expect($runbook)->toContain("\n{$heading}\n");
+    }
+
+    expect($runbook)
+        ->toContain('php artisan key:generate --show')
+        ->toContain('php artisan db:seed --class=CategorySeeder --force')
+        ->toContain('php artisan provider:create "Nome della vetrina" persona@example.test Città')
+        ->toContain('php artisan queue:retry all')
+        ->toContain('php artisan jobs:report-failed')
+        ->toContain('https://render.com/docs/postgresql-backups');
+    expect(dplSource('docs/production.md'))->toContain('[deploy.md](deploy.md)');
+});
+
+test('every variable that render.yaml leaves to the dashboard is explained in docs/deploy.md', function () {
+    $runbook = dplSource('docs/deploy.md');
+    $synced = array_keys(array_filter(dplEnv(), fn (array $variable) => ($variable['sync'] ?? null) === false));
+
+    expect($synced)->not->toBeEmpty();
+    foreach ($synced as $key) {
+        // A row of the table of the variables, whatever the spaces the formatter puts.
+        expect($runbook)->toMatch('/\|\s*`'.preg_quote($key, '/').'`\s*\|/');
+    }
+});
+
+// CLAUDE.md is not in the repository (.gitignore): only the docs that GitHub sees.
+test('the deploy docs hold no secret and no real contact', function (string $path) {
+    $text = dplSource($path);
+    $withoutExamples = (string) preg_replace('/[\w.+-]+@example\.(test|com)/', '', $text);
+
+    expect($withoutExamples)->not->toMatch('/[\w.+-]+@[\w-]+\.[a-z]{2,}/i')
+        ->and($text)->not->toMatch('/\+\d{2}[\s\d]{6,}/')
+        ->and($text)->not->toMatch('/base64:[A-Za-z0-9+\/]{20,}/')
+        // Keys that look like real ones: AWS, Scaleway.
+        ->and($text)->not->toMatch('/\b(AKIA|SCW)[A-Z0-9]{16,}\b/')
+        ->and($text)->not->toMatch('/postgres(ql)?:\/\/[^<\s]+:[^<\s@]+@/');
+})->with(['docs/deploy.md', 'docs/production.md']);
