@@ -738,5 +738,6 @@
     "home.carousel.sentence.ristorazione": "Cuisine africaine : découvrez qui la prépare et réservez.",
     "console.provider_create.done": "Professionnel « :name » (:slug) créé, non publié.",
     "console.provider_create.password": "Mot de passe initial, affiché seulement maintenant : :password",
-    "console.provider_create.change": "Transmettez-le au professionnel de manière sûre : il pourra le changer dans Paramètres → Sécurité."
+    "console.provider_create.change": "Transmettez-le au professionnel de manière sûre : il pourra le changer dans Paramètres → Sécurité.",
+    "console.failed_jobs.summary": ":count tâches échouées nouvelles depuis le dernier contrôle."
 }

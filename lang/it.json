@@ -738,5 +738,6 @@
     "home.carousel.sentence.ristorazione": "Cucina africana: scopri chi la prepara e prenota.",
     "console.provider_create.done": "Creato il professionista « :name » (:slug), non pubblicato.",
     "console.provider_create.password": "Password iniziale, mostrata solo ora: :password",
-    "console.provider_create.change": "Comunicala al professionista in modo sicuro: potrà cambiarla in Impostazioni → Sicurezza."
+    "console.provider_create.change": "Comunicala al professionista in modo sicuro: potrà cambiarla in Impostazioni → Sicurezza.",
+    "console.failed_jobs.summary": ":count job falliti nuovi dall'ultimo controllo."
 }

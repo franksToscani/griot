@@ -43,7 +43,6 @@ use App\Http\Controllers\ProviderSlotsController;
 use App\Http\Controllers\ProviderStoreController;
 use App\Http\Controllers\ProviderUnpublishController;
 use App\Http\Controllers\ProviderUpdateController;
-use App\Http\Controllers\RobotsController;
 use App\Http\Controllers\TermsController;
 use App\Http\Middleware\PrivateBookingPage;
 use App\Http\Middleware\PrivateProviderPage;
@@ -55,10 +54,6 @@ Route::get('/', HomeController::class)->name('home');
 
 // The language selector, for everyone: it only writes the "locale" cookie and goes back.
 Route::post('locale', LocaleController::class)->name('locale.update');
-
-// The rules for crawlers, from the config: everything disallowed while the site is private
-// (SITE_NOINDEX, docs/production.md). A route, not a file in public/, which would win over it.
-Route::get('robots.txt', RobotsController::class)->name('robots');
 
 // The privacy page, for everyone.
 Route::get('privacy', PrivacyController::class)->name('privacy');

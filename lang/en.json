@@ -738,5 +738,6 @@
     "home.carousel.sentence.ristorazione": "African food: find who cooks it and book.",
     "console.provider_create.done": "Created the provider \":name\" (:slug), not published.",
     "console.provider_create.password": "Initial password, shown only now: :password",
-    "console.provider_create.change": "Give it to the provider in a safe way: they can change it in Settings → Security."
+    "console.provider_create.change": "Give it to the provider in a safe way: they can change it in Settings → Security.",
+    "console.failed_jobs.summary": ":count new failed jobs since the last check."
 }
