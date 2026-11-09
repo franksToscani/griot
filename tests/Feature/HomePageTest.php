@@ -131,7 +131,7 @@ test('with no category to book, the list is empty', function () {
 // ---------------------------------------------------------------------------------------------
 
 test('the home page has the public layout, not the one with the side menu', function () {
-    expect(hpSource('app.tsx'))->toMatch("/case name === 'privacy':\\s*case name === 'home':\\s*return PublicLayout;/");
+    expect(hpSource('app.tsx'))->toMatch("/case name === 'privacy':\\s*case name === 'terms':\\s*case name === 'home':\\s*return PublicLayout;/");
 });
 
 test('one h1, in the band at the top; an h2 per section and an h3 per step, without a skipped level', function () {

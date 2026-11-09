@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\LocaleController;
+use Illuminate\Auth\SessionGuard;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -79,21 +81,21 @@ test('the page is in the chosen language, with its title and lang', function (st
         ->and($props['translations']['privacy.title'])->toBe($title)
         ->and(__('privacy.retention.bookings', ['months' => 6], $locale))->toContain($months);
 })->with([
-    'Italian' => ['it', 'Informativa sulla privacy', '6 mesi dopo la fine della prenotazione'],
-    'French' => ['fr', 'Politique de confidentialité', '6 mois après la fin de la réservation'],
-    'English' => ['en', 'Privacy notice', '6 months after the end of the booking'],
+    'Italian' => ['it', 'Informativa sulla privacy', "6 mesi dopo la fine dell'appuntamento"],
+    'French' => ['fr', 'Politique de confidentialité', '6 mois après la fin du rendez-vous'],
+    'English' => ['en', 'Privacy notice', '6 months after the end of the appointment'],
 ]);
 
 test('the page uses the public layout and a translated title', function () {
-    expect((string) file_get_contents(resource_path('js/app.tsx')))->toMatch("/case name\.startsWith\('bookings\/'\):\s*case name === 'privacy':\s*case name === 'home':\s*return PublicLayout;/");
+    expect((string) file_get_contents(resource_path('js/app.tsx')))->toMatch("/case name\.startsWith\('bookings\/'\):\s*case name === 'privacy':\s*case name === 'terms':\s*case name === 'home':\s*return PublicLayout;/");
     expect((string) file_get_contents(resource_path('js/pages/privacy.tsx')))->toContain("<Head title={t('privacy.title')} />");
 });
 
 test('the page has every section asked for', function () {
     $source = (string) file_get_contents(resource_path('js/pages/privacy.tsx'));
 
-    foreach (['controller', 'data', 'purpose', 'retention', 'recipients', 'rights', 'contact', 'cookies'] as $section) {
-        expect($source)->toContain("<Section title={t('privacy.{$section}.heading')}>");
+    foreach (['controller', 'data', 'purpose', 'visibility', 'photos', 'retention', 'recipients', 'rights', 'sensitive', 'contact', 'cookies'] as $section) {
+        expect($source)->toContain("<LegalSection title={t('privacy.{$section}.heading')}>");
     }
 
     expect($source)->toContain("t('privacy.updated', {");
@@ -111,7 +113,9 @@ test('the draft notice is shown while the text is not reviewed, and not after', 
 
 test('the page shows the notice only when the text is not reviewed', function () {
     expect((string) file_get_contents(resource_path('js/pages/privacy.tsx')))
-        ->toMatch("/\{!reviewed && \(\s*<Alert[^>]*>\s*<AlertTitle>\{t\('privacy\.draft\.title'\)\}<\/AlertTitle>/");
+        ->toMatch("/\{!reviewed && \(\s*<DraftNotice\s+title=\{t\('privacy\.draft\.title'\)\}\s+body=\{t\('privacy\.draft\.body'\)\}\s*\/>\s*\)\}/");
+    expect((string) file_get_contents(resource_path('js/components/legal-page.tsx')))
+        ->toMatch('/export function DraftNotice[\s\S]*?<Alert[^>]*>\s*<AlertTitle>\{title\}<\/AlertTitle>/');
 });
 
 test('PRIVACY_REVIEWED is false unless the environment says true', function () {
@@ -183,6 +187,7 @@ test('no email address or name is written in the privacy sources and texts', fun
         app_path('Http/Controllers/PrivacyController.php'),
         resource_path('js/pages/privacy.tsx'),
         resource_path('js/components/privacy-link.tsx'),
+        resource_path('js/components/legal-page.tsx'),
     ];
 
     foreach ($sources as $path) {
@@ -208,7 +213,7 @@ test('the number of months comes from the config', function () {
     config()->set('booking.anonymize_after_months', 9);
 
     expect(prvProps($this->get(route('privacy')))['retentionMonths'])->toBe(9)
-        ->and(__('privacy.retention.bookings', ['months' => 9]))->toContain('9 mesi dopo la fine della prenotazione');
+        ->and(__('privacy.retention.bookings', ['months' => 9]))->toContain("9 mesi dopo la fine dell'appuntamento");
     expect((string) file_get_contents(resource_path('js/pages/privacy.tsx')))
         ->toMatch("/t\('privacy\.retention\.bookings', \{\s*months: retentionMonths,\s*\}\)/");
 });
@@ -235,10 +240,13 @@ test('the cookies of the page are the real ones, with their real duration', func
         'session' => config('session.cookie'),
         'sessionMinutes' => 120,
         'locale' => 'locale',
+        'remember' => Auth::guard('web')->getRecallerName(),
+        'rememberDays' => 400,
     ]);
 
     $page = (string) file_get_contents(resource_path('js/pages/privacy.tsx'));
     expect($page)
+        ->toContain('name: cookies.remember,')
         ->toContain("name: 'XSRF-TOKEN',")
         ->toContain("name: 'appearance',")
         ->toContain("name: 'sidebar_state',");
@@ -249,6 +257,49 @@ test('the cookies of the page are the real ones, with their real duration', func
     expect((string) file_get_contents(resource_path('js/components/ui/sidebar.tsx')))->toContain('const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7');
     expect(__('privacy.cookies.duration_year'))->toBe('1 anno')
         ->and(__('privacy.cookies.duration_week'))->toBe('7 giorni');
+});
+
+test('the retention counts from the end of the appointment, as the code does, in every language', function () {
+    // Booking::dueForAnonymization() compares ends_at only, for every status: a request that never
+    // got an answer too. No text may speak of the start.
+    $scope = (string) file_get_contents(app_path('Models/Booking.php'));
+    expect($scope)->toMatch("/function dueForAnonymization[\\s\\S]*?->where\\('ends_at', '<'/")
+        ->and($scope)->not->toMatch('/function dueForAnonymization[^}]*starts_at/');
+
+    foreach (['it' => ['fine', 'inizio'], 'fr' => ['fin', 'début'], 'en' => ['end', 'start']] as $locale => [$end, $start]) {
+        $text = __('privacy.retention.bookings', ['months' => 6], $locale);
+        expect($text)->toContain($end)
+            ->and(mb_strtolower($text))->not->toContain($start);
+    }
+
+    expect((string) file_get_contents(config_path('booking.php')))
+        ->toContain('after the end of the appointment (ends_at)')
+        ->not->toContain('after it started');
+});
+
+test('the "remember me" cookie of the login is the real one, with the duration the guard uses', function () {
+    $guard = Auth::guard('web');
+    expect($guard)->toBeInstanceOf(SessionGuard::class);
+
+    $props = prvProps($this->get(route('privacy')));
+    // The duration the guard really applies, read from its protected getter.
+    $minutes = (new ReflectionMethod($guard, 'getRememberDuration'))->invoke($guard);
+
+    expect($props['cookies']['remember'])->toStartWith('remember_web_')
+        ->and($minutes)->toBe(config('auth.guards.web.remember'))
+        ->and($props['cookies']['rememberDays'] * 60 * 24)->toBe($minutes)
+        ->and(__('privacy.cookies.duration_days', ['days' => 400]))->toBe('400 giorni');
+    // The check box exists: the cookie is offered on the login page.
+    expect((string) file_get_contents(resource_path('js/pages/auth/login.tsx')))->toContain('<Checkbox id="remember" name="remember" />');
+});
+
+test('the hours to cancel come from the config', function () {
+    config()->set('booking.cancellation_notice_minutes', 2880);
+
+    expect(prvProps($this->get(route('privacy')))['cancellationHours'])->toBe(48)
+        ->and(__('privacy.rights.customers', ['hours' => 48]))->toContain('48 ore prima');
+    expect((string) file_get_contents(resource_path('js/pages/privacy.tsx')))
+        ->toMatch("/t\\('privacy\\.rights\\.customers', \\{\\s*hours: cancellationHours,\\s*\\}\\)/");
 });
 
 // ---------------------------------------------------------------------------------------------
@@ -282,7 +333,7 @@ test('no registration page any more, so no note of its own (#58)', function () {
 
 test('the public layout has the link in its footer', function () {
     expect((string) file_get_contents(resource_path('js/layouts/public-layout.tsx')))
-        ->toContain("import { dashboard, home, login, privacy } from '@/routes';")
+        ->toContain("import { dashboard, home, login, privacy, terms } from '@/routes';")
         ->toMatch("/<footer[^>]*>[\s\S]*<Link\s+href=\{privacy\(\)\}[\s\S]*\{t\('privacy\.link'\)\}[\s\S]*<\/footer>/");
 });
 

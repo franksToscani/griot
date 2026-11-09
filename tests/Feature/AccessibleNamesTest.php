@@ -137,17 +137,24 @@ test('the headings of the provider\'s area go h1 first, one h1, and never skip a
     'providers/index', 'providers/show', 'bookings/show',
 ]);
 
-test('the privacy page has one h1, an h2 per section and h3 inside the sections', function () {
-    // Read apart: its Section component, written above the page, holds the h2.
-    $source = acnSource('js/pages/privacy.tsx');
+test('the legal pages have one h1, an h2 per section and h3 inside the sections', function (string $page, string $prefix, int $sections) {
+    // The h2 is in the shared LegalSection component (#131): the pages write no h2 of their own.
+    $component = acnSource('js/components/legal-page.tsx');
+    $source = acnSource("js/pages/{$page}.tsx");
 
-    expect(substr_count($source, '<h1'))->toBe(1)
-        ->and($source)->toMatch('/function Section\(\{ title, children \}[\s\S]*?<section[^>]*>\s*<h2 className="text-lg font-semibold">\{title\}<\/h2>/')
-        ->and(substr_count($source, '<h2'))->toBe(1)
-        ->and(preg_match_all('/<Section title=\{t\(\'privacy\.[a-z]+\.heading\'\)\}>/', $source))->toBe(8)
+    expect($component)->toMatch('/export function LegalSection\(\{[\s\S]*?<section[^>]*>\s*<h2 className="text-lg font-semibold">\{title\}<\/h2>/')
+        ->and(substr_count($component, '<h2'))->toBe(1)
+        ->and(substr_count($source, '<h1'))->toBe(1)
+        ->and(substr_count($source, '<h2'))->toBe(0)
+        ->and(preg_match_all("/<LegalSection title=\\{t\\('{$prefix}\\.[a-z]+\\.heading'\\)\\}>/", $source))->toBe($sections);
+    if ($page === 'privacy') {
         // The three h3 are inside the "data" section.
-        ->and($source)->toMatch("/<Section title=\\{t\\('privacy\\.data\\.heading'\\)\\}>\\s*<h3/");
-});
+        expect($source)->toMatch("/<LegalSection title=\\{t\\('privacy\\.data\\.heading'\\)\\}>\\s*<h3/");
+    }
+})->with([
+    'privacy' => ['privacy', 'privacy', 11],
+    'terms' => ['terms', 'terms', 9],
+]);
 
 test('the status messages of the login pages are in a live region that is always on the page', function (string $page, string $message) {
     expect(acnSource("js/pages/{$page}.tsx"))

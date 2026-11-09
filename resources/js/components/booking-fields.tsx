@@ -377,8 +377,12 @@ export function CustomerFields({
                     name="notes"
                     maxLength={1000}
                     className={cn(textareaClass)}
-                    {...fieldA11y('notes', errors.notes)}
+                    {...fieldA11y('notes', errors.notes, 'notes-help')}
                 />
+                {/* The notes reach the professional, also by email: no sensitive data (#131). */}
+                <p id="notes-help" className="text-sm text-muted-foreground">
+                    {t('booking.form.notes_help')}
+                </p>
                 <InputError id={errorId('notes')} message={errors.notes} />
             </div>
         </div>

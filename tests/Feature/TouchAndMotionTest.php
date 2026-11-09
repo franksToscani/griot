@@ -190,9 +190,9 @@ test('every lone link uses it, and only those: the links inside a sentence are l
     expect($source)->toContain("import { touchTarget } from '@/lib/touch-target';")
         ->and(substr_count($source, 'touchTarget') - 1)->toBe($uses);
 })->with([
-    // The logo, "dashboard" or "log in", the privacy link in the footer, and the site's email and
-    // WhatsApp in the footer (#144, step 4).
-    'public layout' => ['layouts/public-layout.tsx', 6],
+    // The logo, "dashboard" or "log in", the privacy and terms links in the footer (#131), and the
+    // site's email and WhatsApp in the footer (#144, step 4).
+    'public layout' => ['layouts/public-layout.tsx', 7],
     // WhatsApp and Instagram (externalLink), the way back.
     'provider page' => ['pages/providers/show.tsx', 2],
     // The provider, in the booking's details; WhatsApp for a question (#140).
@@ -201,6 +201,8 @@ test('every lone link uses it, and only those: the links inside a sentence are l
     'booking form' => ['components/booking-sheet.tsx', 1],
     // The email in the controller's details; not the one in the "contact" sentence.
     'privacy' => ['pages/privacy.tsx', 1],
+    // The contact in the publisher's details (#131).
+    'terms' => ['pages/terms.tsx', 1],
     // "Forgot password"; not "sign up" in the sentence below.
     'login' => ['pages/auth/login.tsx', 1],
     'verify email' => ['pages/auth/verify-email.tsx', 1],

@@ -41,6 +41,9 @@ return [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
+            // Minutes the "remember me" cookie of the login lasts: 400 days, Laravel's default,
+            // written here so that the privacy page reads it (PrivacyController).
+            'remember' => 60 * 24 * 400,
         ],
     ],
 

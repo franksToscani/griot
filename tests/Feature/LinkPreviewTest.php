@@ -212,7 +212,7 @@ test('a provider that is not published, or does not exist, is a 404 that says no
 // The other public pages
 // ---------------------------------------------------------------------------------------------
 
-test('the list and the privacy page have the preview of the site', function (string $url, string $title, string $description) {
+test('the list and the legal pages have the preview of the site', function (string $url, string $title, string $description) {
     $html = (string) lpGet($url)->assertHeaderMissing('X-Robots-Tag')->getContent();
     $tags = lpTags($html);
 
@@ -225,6 +225,7 @@ test('the list and the privacy page have the preview of the site', function (str
 })->with([
     'list' => ['/providers', 'Trova un professionista', 'Trova un professionista vicino a te e prenota online, senza creare un account.'],
     'privacy' => ['/privacy', 'Informativa sulla privacy', 'Come Griot usa i dati di chi prenota e per quanto tempo li conserva.'],
+    'terms' => ['/terms', "Termini d'uso", "Che cos'è Griot e le regole per usarlo."],
 ]);
 
 test('the home page has the preview of the site and is indexed', function (string $locale, string $description, string $ogLocale) {
@@ -368,6 +369,7 @@ test('the texts of the previews exist in Italian, French and English, with the s
         'link_preview.provider.title_no_categories' => [':name', ':city'],
         'link_preview.provider.description' => [':name', ':city'],
         'link_preview.privacy.description' => [],
+        'link_preview.terms.description' => [],
         'link_preview.image_alt' => [],
     ];
 
