@@ -293,9 +293,10 @@ test('a deletion refused by the database (a provider with bookings) leaves every
     $photo = guPhoto($provider, 1);
     Booking::factory()->for($provider)->create();
 
-    $this->actingAs($provider->user)
+    // In a savepoint: on PostgreSQL the refused delete spoils the transaction of the test.
+    failingRequestInSavepoint(fn () => $this->actingAs($provider->user)
         ->delete(route('profile.destroy'), ['password' => 'password'])
-        ->assertServerError();
+        ->assertServerError());
 
     expect($photo->fresh())->not->toBeNull();
     foreach ($photo->paths() as $path) {

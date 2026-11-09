@@ -98,3 +98,61 @@ test('a real unique violation of the database of the tests is a UniqueConstraint
     expect($unique)->toBeInstanceOf(UniqueConstraintViolationException::class)
         ->and(ForeignKeyViolation::from($unique))->toBeFalse();
 });
+
+/**
+ * The tables created by the migrations without an "id" column: a primary key of another name or
+ * of two columns.
+ *
+ * @return list<string>
+ */
+function pgcTablesWithoutId(): array
+{
+    $tables = [];
+
+    foreach (glob(database_path('migrations/*.php')) ?: [] as $file) {
+        preg_match_all("/Schema::create\('(\w+)', function \(Blueprint \\\$table\) \{(.*?)\n        \}\);/s", (string) file_get_contents($file), $creates, PREG_SET_ORDER);
+
+        foreach ($creates as [, $table, $body]) {
+            if (! str_contains($body, '->id()') && ! str_contains($body, "'id'")) {
+                $tables[] = $table;
+            }
+        }
+    }
+
+    return $tables;
+}
+
+test('no query names an id column on a table without one', function () {
+    // SQLite reads an unknown "id" as a string and says nothing; PostgreSQL refuses the query
+    // (42703, column "id" does not exist), as it did on the pivot in DataRetentionTest.
+    $tables = pgcTablesWithoutId();
+    expect($tables)->toEqualCanonicalizing(['password_reset_tokens', 'cache', 'cache_locks', 'booking_service_option']);
+
+    $files = [];
+    foreach (['app', 'database', 'tests'] as $directory) {
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator(base_path($directory))) as $file) {
+            if ($file->getExtension() === 'php' && $file->getRealPath() !== __FILE__) {
+                $files[] = $file->getRealPath();
+            }
+        }
+    }
+    expect(count($files))->toBeGreaterThan(100);
+
+    $pattern = "/DB::table\\('(?:".implode('|', $tables).")'\\)[^;]*;/s";
+    $found = [];
+    foreach ($files as $path) {
+        preg_match_all($pattern, (string) file_get_contents($path), $queries);
+
+        foreach ($queries[0] as $query) {
+            // A subquery on another table, such as $service->options()->select('id'), is not this
+            // table's column: the expressions that start from a variable are left out.
+            $own = (string) preg_replace('/\$\w+(?:->\w+(?:\([^()]*\))?)+/', '', $query);
+
+            if (preg_match('/[\'"](?:\w+\.)?id[\'"]/', $own) === 1) {
+                $found[] = str_replace(base_path().'/', '', $path).': '.$query;
+            }
+        }
+    }
+
+    expect($found)->toBe([]);
+});

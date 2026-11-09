@@ -175,9 +175,10 @@ test('a deletion refused by the database (a provider with bookings) leaves the p
     Booking::factory()->for($provider)->create();
 
     // Issue #133: today the database refuses, and the answer is an error page.
-    $this->actingAs($provider->user)
+    // In a savepoint: on PostgreSQL the refused delete spoils the transaction of the test.
+    failingRequestInSavepoint(fn () => $this->actingAs($provider->user)
         ->delete(route('profile.destroy'), ['password' => 'password'])
-        ->assertServerError();
+        ->assertServerError());
 
     expect($provider->user->fresh())->not->toBeNull();
     MediaDisk::get()->assertExists('avatars/foto-del-provider.webp');

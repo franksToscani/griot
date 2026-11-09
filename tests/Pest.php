@@ -200,3 +200,28 @@ function skipOnPostgresSameTransactionRace(): void
         Assert::markTestSkipped('PostgreSQL: the race is simulated inside the transaction of the test, which a failed statement spoils (docs/ci.md).');
     }
 }
+
+/**
+ * Run a request whose database statement fails on purpose, answered with the error page, inside
+ * a savepoint: the request does not throw, so DB::transaction() cannot undo it by itself.
+ *
+ * - On PostgreSQL the failed statement spoils the transaction of the test (25P02, "current
+ *   transaction is aborted"): going back to the savepoint makes it usable for the checks after.
+ * - On SQLite the savepoint is only released: whatever the request wrote stays, exactly as without
+ *   the savepoint, so a write made before the failure is still seen by the test.
+ *
+ * @template TResult
+ *
+ * @param  Closure(): TResult  $request
+ * @return TResult
+ */
+function failingRequestInSavepoint(Closure $request): mixed
+{
+    DB::beginTransaction();
+
+    try {
+        return $request();
+    } finally {
+        DB::connection()->getDriverName() === 'pgsql' ? DB::rollBack() : DB::commit();
+    }
+}
