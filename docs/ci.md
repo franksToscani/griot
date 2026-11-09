@@ -109,7 +109,7 @@ PostgreSQL è più severo di SQLite (e di MySQL). Quello che è già sistemato, 
     - il codice fa lo stesso: `ManageService` e `ManageOption` cancellano dentro `DB::transaction` e leggono l'errore fuori.
 - **Le quattro prove di gara sullo slug** (tre in `ProviderProfileCreateTest`, una in `ProviderProfileEditTest`) simulano l'altra richiesta con un insert nella stessa transazione del test. Su PostgreSQL non si può e sono saltate con il loro motivo (`skipOnPostgresSameTransactionRace()` in `tests/Pest.php`). In produzione la gara vera arriva da un'altra connessione, e il codice la gestisce.
     - Totale dei saltati: 3 su SQLite, 7 su PostgreSQL.
-- **Chiave esterna violata**: SQLSTATE `23503` su PostgreSQL, `23000` su SQLite e MySQL (`App\Profile\ForeignKeyViolation` riconosce tutti e tre).
+- **Chiave esterna violata e unicità**: codici diversi per database, nella tabella sotto.
 - **Booleani letti senza modello** (`DB::table(...)->value('is_published')`): `1` su SQLite e MySQL, `true` su PostgreSQL. Si confrontano con `(bool)`, o si legge dal modello che ha il cast.
 - **LIKE distingue le maiuscole**: la ricerca usa `lower()` su colonna e testo (`App\Support\LikePattern`, [search.md](search.md)).
 - **Ordine alfabetico**: PostgreSQL ordina secondo la lingua (maiuscole e minuscole insieme), SQLite per codice (tutte le maiuscole prima). I test usano nomi con l'iniziale maiuscola, uguali nei due ordini.
@@ -118,3 +118,19 @@ PostgreSQL è più severo di SQLite (e di MySQL). Quello che è già sistemato, 
     - `LikePattern` usa `lower() like ? escape '!'`.
     - L'ordine delle prenotazioni usa `case when status = ? then 0 else 1 end`.
     - Una migrazione copia `updated_at` con `DB::raw`.
+
+## Codici SQLSTATE per database
+
+Gli errori di integrità che il codice legge. Il primo valore di `errorInfo` è lo SQLSTATE, il secondo il codice del driver.
+
+| Errore                                    | SQLite                                                          | MySQL                              | PostgreSQL                                       | Chi lo riconosce                              |
+| ----------------------------------------- | --------------------------------------------------------------- | ---------------------------------- | ------------------------------------------------ | --------------------------------------------- |
+| riga ancora usata, cancellazione bloccata | `23000`, codice 19, messaggio « FOREIGN KEY constraint failed » | `23000`, codice 1451               | `23001` (restrict_violation, `restrictOnDelete`) | `App\Profile\ForeignKeyViolation`             |
+| chiave esterna violata in generale        | come sopra                                                      | `23000`, codice 1452 (inserimento) | `23503` (foreign_key_violation)                  | `App\Profile\ForeignKeyViolation`             |
+| valore già usato (unique)                 | `23000`, codice 19, messaggio « UNIQUE constraint failed »      | `23000`, codice 1062               | `23505` (unique_violation)                       | Laravel: `UniqueConstraintViolationException` |
+
+- `ForeignKeyViolation` è usata da `ManageService` e `ManageOption`: un servizio o un'opzione prenotati non si cancellano, e il provider vede il messaggio « ha prenotazioni » invece di un errore 500.
+- L'unicità (slug in `CreateProviderProfile` e `UpdateProviderProfile`) la riconosce Laravel per ogni database: il codice prende solo `UniqueConstraintViolationException`, senza leggere codici.
+- `PostgresCompatibilityTest` prova i codici della tabella, e provoca una violazione vera di ogni tipo sul database su cui girano i test: SQLite in locale, PostgreSQL nel job `tests-postgres`.
+
+**La lezione**: i codici di errore vanno verificati su PostgreSQL vero, non dedotti dalla documentazione o da un altro database. La prima versione di `ForeignKeyViolation` riconosceva `23503`, il codice « generale »; PostgreSQL però, per una cancellazione bloccata da `restrictOnDelete`, dà `23001`, e il primo giro di `tests-postgres` ha avuto 8 test rossi. Un codice nuovo si aggiunge alla tabella solo dopo averlo visto in un errore vero (il log del job o un test che lo provoca).

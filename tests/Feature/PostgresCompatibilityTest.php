@@ -2,8 +2,10 @@
 
 use App\Models\Booking;
 use App\Models\Category;
+use App\Models\Provider;
 use App\Profile\ForeignKeyViolation;
 use Illuminate\Database\QueryException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
 /*
@@ -24,9 +26,26 @@ function pgcError(array $errorInfo): QueryException
     return new QueryException('testing', 'delete from "services" where "id" = ?', [1], $pdo);
 }
 
+test('every code of a row still referenced is recognised: 23000, 23001 and 23503', function () {
+    // As the databases give them: SQLite and MySQL (23000), PostgreSQL with ON DELETE RESTRICT
+    // (23001, seen in the tests-postgres job) and the general foreign key violation (23503).
+    $errors = [
+        'SQLite 23000' => ['23000', 19, 'SQLSTATE[23000]: Integrity constraint violation: 19 FOREIGN KEY constraint failed'],
+        'MySQL 23000/1451' => ['23000', 1451, 'Cannot delete or update a parent row: a foreign key constraint fails'],
+        'MySQL 23000/1452' => ['23000', 1452, 'Cannot add or update a child row: a foreign key constraint fails'],
+        'PostgreSQL 23001' => ['23001', 7, 'ERROR:  update or delete on table "services" violates RESTRICT setting of foreign key constraint'],
+        'PostgreSQL 23503' => ['23503', 7, 'ERROR:  update or delete on table "services" violates foreign key constraint'],
+    ];
+
+    foreach ($errors as $name => $errorInfo) {
+        expect(ForeignKeyViolation::from(pgcError($errorInfo)))->toBeTrue("Not recognised: {$name}");
+    }
+});
+
 test('a foreign key violation is told apart from the other errors on every database', function (array $errorInfo, bool $foreignKey) {
     expect(ForeignKeyViolation::from(pgcError($errorInfo)))->toBe($foreignKey);
 })->with([
+    'PostgreSQL, restrict' => [['23001', 7, 'ERROR:  update or delete on table "services" violates RESTRICT setting of foreign key constraint'], true],
     'PostgreSQL, foreign key' => [['23503', 7, 'ERROR:  update or delete on table "services" violates foreign key constraint'], true],
     'PostgreSQL, unique' => [['23505', 7, 'ERROR:  duplicate key value violates unique constraint'], false],
     'PostgreSQL, not null' => [['23502', 7, 'ERROR:  null value in column violates not-null constraint'], false],
@@ -61,4 +80,21 @@ test('a real foreign key violation of the database of the tests is recognised, a
         ->and($unique)->toBeInstanceOf(QueryException::class)
         ->and(ForeignKeyViolation::from($unique))->toBeFalse();
     $this->assertModelExists($booking->service);
+});
+
+test('a real unique violation of the database of the tests is a UniqueConstraintViolationException', function () {
+    // CreateProviderProfile and UpdateProviderProfile catch this class for a taken slug. Laravel
+    // chooses it for each database (SQLite and MySQL by the message, PostgreSQL by 23505): this
+    // checks it on the database the suite runs on.
+    $provider = Provider::factory()->create();
+
+    $unique = null;
+    try {
+        DB::transaction(fn () => Provider::factory()->create(['slug' => $provider->slug]));
+    } catch (QueryException $exception) {
+        $unique = $exception;
+    }
+
+    expect($unique)->toBeInstanceOf(UniqueConstraintViolationException::class)
+        ->and(ForeignKeyViolation::from($unique))->toBeFalse();
 });
