@@ -4,6 +4,7 @@ use App\Models\Category;
 use App\Models\Provider;
 use App\Models\Service;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 
 test('a service can be created with the factory', function () {
     $service = Service::factory()->create();
@@ -73,7 +74,9 @@ test('deleting a provider deletes their services', function () {
 test('a category with services cannot be deleted', function () {
     $service = Service::factory()->create();
 
-    expect(fn () => $service->category->delete())
+    // In its own transaction (a savepoint): on PostgreSQL a failed statement spoils the test's
+    // transaction, and the next query would fail too (docs/ci.md).
+    expect(fn () => DB::transaction(fn () => $service->category->delete()))
         ->toThrow(QueryException::class);
 
     $this->assertModelExists($service->category);

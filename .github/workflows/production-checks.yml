@@ -1,0 +1,269 @@
+# The checks for production (issue #57, docs/ci.md), next to the "ci" job of tests.yml, which
+# stays as it is: the dependencies with no known advisory, the production build that really
+# starts, and the whole suite on PostgreSQL. No real secret and no real contact: the application
+# key is generated here and thrown away, the mail host is example.test and nothing is sent.
+name: production-checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+# A new push on the same branch cancels the run still going; on main every run ends.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Get the Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer downloads
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      # The packages of the lock, without running the application: only their versions count.
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --no-progress --no-scripts
+          npm ci --ignore-scripts --no-audit --no-fund
+
+      # Each command fails on an advisory.
+      - name: Composer audit (all packages)
+        run: composer audit
+
+      - name: Composer audit (production packages)
+        run: composer audit --no-dev
+
+      - name: npm audit (production packages)
+        run: npm audit --omit=dev
+
+  production-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # The variables of .env.production.example that matter here, with values for a throwaway
+    # copy: SQLite in a temporary file instead of the managed database, the local disk instead of
+    # the S3 bucket. APP_KEY and DB_DATABASE are added by the first step.
+    env:
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      APP_URL: http://127.0.0.1:8000
+      LOG_CHANNEL: stderr
+      LOG_LEVEL: info
+      TRUSTED_PROXIES: '*'
+      DB_CONNECTION: sqlite
+      SESSION_DRIVER: database
+      SESSION_SECURE_COOKIE: 'true'
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      # A real mailer, as ProductionMailer wants; the host does not exist and nothing is sent.
+      MAIL_MAILER: smtp
+      MAIL_HOST: smtp.example.test
+      MAIL_PORT: '587'
+      MAIL_FROM_ADDRESS: noreply@example.test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Get the Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer downloads
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      # A key made here for this run only, hidden in the log; the database is a temporary file.
+      - name: Prepare a throwaway key and database
+        run: |
+          key="base64:$(openssl rand -base64 32)"
+          echo "::add-mask::$key"
+          echo "APP_KEY=$key" >> "$GITHUB_ENV"
+          touch "$RUNNER_TEMP/production.sqlite"
+          echo "DB_DATABASE=$RUNNER_TEMP/production.sqlite" >> "$GITHUB_ENV"
+
+      - name: Install production dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+      - name: Build the frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+
+      # route:cache fails on two routes with the same name; config:cache on a config that cannot
+      # be serialized.
+      - name: Cache config, routes, views and events
+        run: |
+          php artisan config:cache
+          php artisan route:cache
+          php artisan view:cache
+          php artisan event:cache
+
+      - name: Check that the application boots
+        run: |
+          php artisan about --only=environment,cache,drivers
+          php artisan route:list --except-vendor > /dev/null
+
+      - name: Migrate and seed the categories
+        run: |
+          php artisan migrate --force
+          php artisan db:seed --class=CategorySeeder --force
+
+      # DatabaseSeeder writes example accounts with a known password: it must stop, before
+      # writing anything, and name the command for the categories.
+      - name: Check that the development seeders refuse production
+        run: |
+          if php artisan db:seed --force > "$RUNNER_TEMP/seed.log" 2>&1; then
+            cat "$RUNNER_TEMP/seed.log"
+            echo "::error::db:seed (DatabaseSeeder) ran in production"
+            exit 1
+          fi
+          cat "$RUNNER_TEMP/seed.log"
+          grep -q 'db:seed --class=CategorySeeder --force' "$RUNNER_TEMP/seed.log"
+          users="$(php artisan tinker --execute='echo App\Models\User::query()->count();')"
+          echo "users: $users"
+          test "$users" = "0"
+
+      - name: Start the server and request /up and /
+        run: |
+          php artisan serve --host=127.0.0.1 --port=8000 --no-reload > "$RUNNER_TEMP/server.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            curl -s -o /dev/null http://127.0.0.1:8000/up && break
+            sleep 1
+          done
+          for path in /up /; do
+            code="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8000$path")"
+            echo "$path $code"
+            if [ "$code" != "200" ]; then
+              cat "$RUNNER_TEMP/server.log"
+              exit 1
+            fi
+          done
+          curl -s -D - -o /dev/null http://127.0.0.1:8000/ | grep -qi '^x-content-type-options: nosniff'
+
+  tests-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # The database of the tests only, in a container that lives as long as the job: no password
+    # (trust), reachable from the runner alone.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: griot
+          POSTGRES_DB: griot_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U griot -d griot_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # phpunit.xml writes DB_CONNECTION and DB_DATABASE without force: these values win.
+    env:
+      DB_CONNECTION: pgsql
+      DB_HOST: 127.0.0.1
+      DB_PORT: '5432'
+      DB_DATABASE: griot_test
+      DB_USERNAME: griot
+      DB_PASSWORD: ''
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.5'
+          tools: composer:v2
+          coverage: none
+          extensions: pdo_pgsql
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Get the Composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Composer downloads
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      # Like "composer setup", without its migrate: the tests migrate the database themselves.
+      - name: Setup Application
+        run: |
+          composer install --no-interaction --no-progress
+          cp .env.example .env
+          php artisan key:generate
+          npm ci --no-audit --no-fund
+          npm run build
+
+      - name: Check the database of the tests
+        run: php -r 'new PDO("pgsql:host=127.0.0.1;port=5432;dbname=griot_test", "griot", ""); echo "PostgreSQL reachable\n";'
+
+      - name: Run the tests on PostgreSQL
+        run: php artisan test

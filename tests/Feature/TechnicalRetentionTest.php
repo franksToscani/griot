@@ -127,8 +127,12 @@ function trtExpectRefusedWithoutSecrets(string $output): void
 }
 
 test('the tests run on the database of the tests, never the real one', function () {
-    expect(config('database.default'))->toBe('sqlite')
-        ->and(config('database.connections.sqlite.database'))->toBe(':memory:')
+    // SQLite in memory (phpunit.xml), or a database whose name ends in "_test", like the
+    // PostgreSQL one of the tests-postgres job (docs/ci.md).
+    $connection = config('database.default');
+    $database = config("database.connections.{$connection}.database");
+
+    expect($connection === 'sqlite' ? $database === ':memory:' : str_ends_with((string) $database, '_test'))->toBeTrue()
         ->and(config('queue.failed.driver'))->toBe('database-uuids')
         ->and(config('queue.failed.table'))->toBe('failed_jobs');
 });

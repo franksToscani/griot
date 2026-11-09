@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Assert;
 use Tests\TestCase;
 
 /*
@@ -174,4 +176,27 @@ function accRatio(array $first, array $second): float
 function withoutMotionSafe(string $source): string
 {
     return (string) preg_replace('/(?<![\w:-])motion-safe:(?:\[[^\]]*\]|[^\s\'"`\[])+/', '', $source);
+}
+
+/*
+|--------------------------------------------------------------------------
+| PostgreSQL
+|--------------------------------------------------------------------------
+|
+| The same suite runs on SQLite (here, phpunit.xml) and on PostgreSQL (the tests-postgres job,
+| docs/ci.md).
+|
+*/
+
+/**
+ * Skip a test that simulates two requests at the same moment with an insert on the same
+ * connection, inside the transaction of the test (RefreshDatabase). On PostgreSQL the failed
+ * statement that follows spoils that whole transaction, so the code under test cannot read again
+ * as it would after a real race: there the test is skipped, with its reason; SQLite runs it.
+ */
+function skipOnPostgresSameTransactionRace(): void
+{
+    if (DB::connection()->getDriverName() === 'pgsql') {
+        Assert::markTestSkipped('PostgreSQL: the race is simulated inside the transaction of the test, which a failed statement spoils (docs/ci.md).');
+    }
 }

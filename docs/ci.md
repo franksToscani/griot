@@ -1,0 +1,120 @@
+# Griot: i controlli automatici su GitHub (CI)
+
+Cosa gira da solo a ogni push su `main` e a ogni Pull Request (issue #57), come leggerlo e come rifarlo in locale. I file sono in `.github/workflows/`; `tests/Feature/WorkflowFilesTest.php` li legge e fallisce se un job sparisce, cambia nome o perde un controllo.
+
+## I quattro job
+
+| Job (nome esatto)  | File                    | Cosa controlla                                                                                         |
+| ------------------ | ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| `ci`               | `tests.yml`             | `composer ci:check`: formattazione e lint del frontend, `tsc`, Pint, PHPStan, tutta la suite su SQLite |
+| `audit`            | `production-checks.yml` | nessun avviso di sicurezza noto nei pacchetti Composer (con e senza dev) e npm (solo produzione)       |
+| `production-build` | `production-checks.yml` | la build di produzione si costruisce, si avvia e risponde                                              |
+| `tests-postgres`   | `production-checks.yml` | tutta la suite su PostgreSQL, il database probabile della produzione                                   |
+
+**Protezione di `main`** (si imposta a mano su GitHub: Settings → Branches → la regola di `main` → « Require status checks to pass »): i quattro nomi sopra, `ci`, `audit`, `production-build`, `tests-postgres`. GitHub li propone solo dopo che hanno girato almeno una volta. Nella pagina della PR compaiono come « tests / ci » e « production-checks / audit » e così via: il nome da scegliere nella protezione è quello del job.
+
+Tutti e due i workflow:
+
+- leggono soltanto la repository (`permissions: contents: read`); nessun job chiede di più;
+- non usano segreti di GitHub e non contengono contatti veri: la chiave dell'applicazione è generata nel job e nascosta nel log, gli indirizzi sono su `example.test`;
+- usano le azioni fissate a un commit (lo SHA, con la versione in commento), lo stesso commit in tutti i file;
+- non hanno `continue-on-error`: un job che fallisce è rosso.
+
+In `production-checks.yml` un push nuovo sulla stessa PR annulla il giro ancora in corso (`concurrency`); su `main` ogni giro arriva in fondo. Il job `ci` resta com'era.
+
+### `ci`
+
+Lo stesso `composer ci:check` di prima di ogni PR. Se è rosso, si rifà in locale con lo stesso comando.
+
+### `audit`
+
+Installa i pacchetti del lock (senza avviare l'applicazione) e lancia:
+
+- `composer audit`: tutti i pacchetti PHP, anche quelli di sviluppo;
+- `composer audit --no-dev`: quelli che vanno in produzione;
+- `npm audit --omit=dev`: i pacchetti npm che finiscono nella build.
+
+Se è rosso: il log dice il pacchetto, l'avviso e la versione corretta. Si aggiorna quel pacchetto con un aggiornamento mirato (`composer update vendor/pacchetto -w`, oppure `npm update pacchetto`), si rilancia `composer audit` in locale e si apre una PR solo per quello. Un avviso può comparire anche senza nessuna modifica al codice, quando viene pubblicato: per questo il job gira a ogni push.
+
+### `production-build`
+
+Rifà i passi del deploy in [production.md](production.md) su una copia usa e getta:
+
+1. variabili come `.env.production.example` (`APP_ENV=production`, `APP_DEBUG=false`, `SESSION_SECURE_COOKIE=true`, `TRUSTED_PROXIES=*`, sessioni, cache e code nel database), ma SQLite in un file temporaneo al posto del database gestito, il disco locale al posto del bucket e un mailer `smtp` verso `smtp.example.test`: `ProductionMailer` vuole un mailer vero, e nessuna email parte;
+2. una `APP_KEY` generata nel job;
+3. `composer install --no-dev --optimize-autoloader`, `npm ci`, `npm run build`;
+4. `php artisan config:cache`, `route:cache`, `view:cache`, `event:cache`;
+5. `php artisan about` e `route:list`: l'applicazione si avvia con la cache;
+6. `migrate --force` e `db:seed --class=CategorySeeder --force`;
+7. `db:seed --force` (DatabaseSeeder) deve **rifiutarsi**, con il messaggio che indica il comando delle categorie, e nessun utente deve esistere dopo;
+8. avvia `php artisan serve` e chiede `/up` e `/`: 200 tutte e due, con `X-Content-Type-Options: nosniff`.
+
+Come leggerlo: il passo rosso dice cosa si è rotto.
+
+- `Install production dependencies`: un pacchetto di sviluppo usato dal codice di produzione.
+- `Build the frontend`: la build.
+- `Cache config, routes, views and events`: una configurazione che non si può mettere in cache, una vista che non compila, due rotte con lo stesso nome.
+    - Le closure nelle rotte invece funzionano: Laravel le serializza, quindi `Route::get('x', fn () => redirect('/y'))` va bene.
+- `Check that the development seeders refuse production`: la protezione di #59 non c'è più.
+- `Start the server…`: il log del server è stampato sotto il codice di risposta.
+
+### `tests-postgres`
+
+Un contenitore `postgres:18` (immagine ufficiale) accanto al job, con un controllo di salute (`pg_isready`): il job parte solo quando il database risponde. È solo per i test: nessuna password (`trust`), raggiungibile solo dal job, cancellato alla fine. PHP ha l'estensione `pdo_pgsql`; le variabili sono `DB_CONNECTION=pgsql`, `DB_DATABASE=griot_test` e le altre `DB_*`. Poi `php artisan test`, la suite intera.
+
+È un job separato da `ci` per distinguere subito un errore di PostgreSQL da uno di tutto il resto: se `ci` è verde e `tests-postgres` è rosso, il problema è una differenza tra i due database (sotto).
+
+## Riprodurre in locale
+
+### La build di produzione
+
+**In una copia della repository, mai nella cartella di lavoro:** `config:cache` e `route:cache` scrivono in `bootstrap/cache/` e lo sviluppo userebbe quella cache. Per esempio:
+
+```bash
+rsync -a --exclude vendor --exclude node_modules --exclude .env --exclude public/build --exclude public/hot ./ /tmp/griot-prod/
+cd /tmp/griot-prod
+export APP_ENV=production APP_DEBUG=false APP_URL=http://127.0.0.1:8000 LOG_CHANNEL=stderr \
+  TRUSTED_PROXIES='*' SESSION_DRIVER=database SESSION_SECURE_COOKIE=true CACHE_STORE=database \
+  QUEUE_CONNECTION=database MAIL_MAILER=smtp MAIL_HOST=smtp.example.test MAIL_PORT=587 \
+  MAIL_FROM_ADDRESS=noreply@example.test DB_CONNECTION=sqlite DB_DATABASE=/tmp/griot-prod/production.sqlite
+export APP_KEY="base64:$(openssl rand -base64 32)"
+touch "$DB_DATABASE"
+composer install --no-dev --optimize-autoloader
+npm ci && npm run build
+php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan event:cache
+php artisan migrate --force && php artisan db:seed --class=CategorySeeder --force
+php artisan db:seed --force   # deve rifiutarsi
+php artisan serve --port=8000 # poi /up e / nel browser
+```
+
+Se per sbaglio la cache finisce nella cartella di lavoro: `php artisan optimize:clear`.
+
+### I test su un altro database
+
+`phpunit.xml` scrive `DB_CONNECTION=sqlite` e `DB_DATABASE=:memory:` **senza** `force`: una variabile d'ambiente già impostata vince. Senza variabili i test restano su SQLite in memoria, come sempre. Con PostgreSQL acceso in locale:
+
+```bash
+DB_CONNECTION=pgsql DB_HOST=127.0.0.1 DB_PORT=5432 DB_DATABASE=griot_test DB_USERNAME=griot DB_PASSWORD= php artisan test
+```
+
+- Il nome del database deve finire in `_test`: `TechnicalRetentionTest` lo controlla, perché i test lo svuotano a ogni giro (`RefreshDatabase`).
+- Mai il database di sviluppo.
+
+## Differenze di PostgreSQL da ricordare
+
+PostgreSQL è più severo di SQLite (e di MySQL). Quello che è già sistemato, e le regole per il codice nuovo:
+
+- **Un errore SQL dentro una transazione la rovina tutta**: ogni query dopo fallisce (« current transaction is aborted ») finché non si torna indietro. I test girano dentro una transazione (`RefreshDatabase`). Quindi:
+    - un test che aspetta un errore del database e poi fa altre query mette l'istruzione che fallisce in `DB::transaction(...)` (un savepoint, annullato da solo);
+    - il codice fa lo stesso: `ManageService` e `ManageOption` cancellano dentro `DB::transaction` e leggono l'errore fuori.
+- **Le quattro prove di gara sullo slug** (tre in `ProviderProfileCreateTest`, una in `ProviderProfileEditTest`) simulano l'altra richiesta con un insert nella stessa transazione del test. Su PostgreSQL non si può e sono saltate con il loro motivo (`skipOnPostgresSameTransactionRace()` in `tests/Pest.php`). In produzione la gara vera arriva da un'altra connessione, e il codice la gestisce.
+    - Totale dei saltati: 3 su SQLite, 7 su PostgreSQL.
+- **Chiave esterna violata**: SQLSTATE `23503` su PostgreSQL, `23000` su SQLite e MySQL (`App\Profile\ForeignKeyViolation` riconosce tutti e tre).
+- **Booleani letti senza modello** (`DB::table(...)->value('is_published')`): `1` su SQLite e MySQL, `true` su PostgreSQL. Si confrontano con `(bool)`, o si legge dal modello che ha il cast.
+- **LIKE distingue le maiuscole**: la ricerca usa `lower()` su colonna e testo (`App\Support\LikePattern`, [search.md](search.md)).
+- **Ordine alfabetico**: PostgreSQL ordina secondo la lingua (maiuscole e minuscole insieme), SQLite per codice (tutte le maiuscole prima). I test usano nomi con l'iniziale maiuscola, uguali nei due ordini.
+- **Lunghezza delle stringhe**: SQLite non controlla `string(..., 150)`, PostgreSQL sì. La validazione (Form Request) deve avere lo stesso limite della colonna.
+- **Nessun SQL grezzo nuovo senza una ragione**: oggi ce ne sono solo tre e funzionano sui tre database.
+    - `LikePattern` usa `lower() like ? escape '!'`.
+    - L'ordine delle prenotazioni usa `case when status = ? then 0 else 1 end`.
+    - Una migrazione copia `updated_at` con `DB::raw`.

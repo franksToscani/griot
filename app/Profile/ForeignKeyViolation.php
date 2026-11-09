@@ -12,15 +12,22 @@ use Illuminate\Database\QueryException;
 final class ForeignKeyViolation
 {
     /**
-     * SQLSTATE 23000 is shared by every integrity violation, so the driver tells them apart:
-     * MySQL code 1451 ("Cannot delete or update a parent row"); SQLite has one code (19) for all
-     * of them, so its message is read. A unique violation (MySQL 1062) is never matched.
+     * PostgreSQL has a SQLSTATE of its own for it, 23503 ("foreign_key_violation"); a unique
+     * violation is 23505. MySQL and SQLite share 23000 among every integrity violation, so the
+     * driver tells them apart: MySQL code 1451 ("Cannot delete or update a parent row"); SQLite
+     * has one code (19) for all of them, so its message is read. A unique violation (MySQL 1062)
+     * is never matched.
      */
     public static function from(QueryException $exception): bool
     {
         $errorInfo = $exception->errorInfo ?? [];
+        $state = $errorInfo[0] ?? null;
 
-        if (($errorInfo[0] ?? null) !== '23000') {
+        if ($state === '23503') {
+            return true;
+        }
+
+        if ($state !== '23000') {
             return false;
         }
 

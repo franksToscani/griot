@@ -90,7 +90,8 @@ test('an old model that says published, while the row is not: the row decides an
 
     pppPublisher()->publish($provider);
 
-    expect(DB::table('providers')->where('id', $provider->id)->value('is_published'))->toBe(1);
+    // The raw value is 1 on SQLite and MySQL, true on PostgreSQL.
+    expect((bool) DB::table('providers')->where('id', $provider->id)->value('is_published'))->toBeTrue();
 });
 
 test('unpublish works without requirements and twice in a row', function () {

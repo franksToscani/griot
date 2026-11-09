@@ -8,6 +8,7 @@ use App\Profile\WebpVariant;
 use App\Support\MediaDisk;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -232,7 +233,9 @@ test('the photos go with their provider (cascade in the database)', function () 
 test('two photos cannot share a name, and consent_at is required', function () {
     ProviderPhoto::factory()->create(['name' => str_repeat('a', 40)]);
 
-    expect(fn () => ProviderPhoto::factory()->create(['name' => str_repeat('a', 40)]))->toThrow(QueryException::class);
+    // In its own transaction (a savepoint): on PostgreSQL a failed statement spoils the test's
+    // transaction, and the next query would fail too (docs/ci.md).
+    expect(fn () => DB::transaction(fn () => ProviderPhoto::factory()->create(['name' => str_repeat('a', 40)])))->toThrow(QueryException::class);
     expect(fn () => ProviderPhoto::factory()->create(['consent_at' => null]))->toThrow(QueryException::class);
 });
 
