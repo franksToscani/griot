@@ -40,8 +40,15 @@ final class StoreProviderPhoto
             throw InvalidAvatar::notEncoded();
         }
         $name = Str::random(40);
-        $disk = MediaDisk::get();
         $written = [];
+
+        // In production the disk is made here, at the first use: with the AWS_* variables empty it
+        // is refused already at this point. A problem of the disk, never an error page.
+        try {
+            $disk = MediaDisk::get();
+        } catch (Throwable $exception) {
+            throw PhotoNotStored::because($exception);
+        }
 
         try {
             return DB::transaction(function () use ($provider, $variants, $largest, $name, $altText, $disk, &$written): ProviderPhoto {
@@ -84,9 +91,10 @@ final class StoreProviderPhoto
                 return $photo;
             });
         } catch (Throwable $exception) {
-            // Nothing of the photo is left: no row (the transaction), no file.
+            // Nothing of the photo is left: no row (the transaction), no file. Quietly: a file
+            // that cannot be removed is only a warning, and never hides the error of the upload.
             foreach ($written as $path) {
-                $disk->delete($path);
+                DeleteProviderPhoto::removeFile($path);
             }
 
             throw $exception;

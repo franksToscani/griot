@@ -147,7 +147,7 @@ Solo per la fase privata, con poche email di prova. Al lancio pubblico serve un 
 
 - `render.yaml` imposta `MEDIA_DISK_DRIVER=s3`: il disco `media` è un bucket S3 (`config/filesystems.php`), con `throw` attivo.
 - Non c'è nessun controllo all'avvio: il disco viene creato solo quando qualcosa lo usa (`App\Support\MediaDisk`). Lo usano il caricamento e la cancellazione di una foto, e l'indirizzo di una foto che esiste (`Provider::avatarUrl()`, `ProviderPhoto::urlFor()`).
-- Quindi, senza foto nel database, le pagine funzionano. Il primo caricamento di una foto, con le variabili `AWS_*` vuote, fallisce. Che cosa vede il professionista (la pagina di errore o il messaggio « foto non salvata ») non è provato: **da verificare** sul primo deploy, dopo aver configurato il bucket.
+- Quindi, senza foto nel database, le pagine funzionano. Il caricamento di una foto (del profilo o della galleria) con le variabili `AWS_*` vuote non salva niente: il professionista resta sulla sua pagina con il messaggio « Non è stato possibile salvare la foto. Riprova più tardi. » sul campo, e il log ha l'errore (`AvatarNotStored` o `PhotoNotStored`, provato nei test con il disco non configurato; [media-storage.md](media-storage.md)).
 - **Le foto « temporanee » sul disco del container non funzionano**: con `MEDIA_DISK_DRIVER=local` i file andrebbero in `storage/app/public`, ma l'immagine non ha il collegamento `public/storage` (nessun `storage:link`), quindi gli indirizzi darebbero 404. In più il disco del container si cancella a ogni deploy.
 
 **Il primo deploy, quindi, si fa senza foto**: i professionisti di prova non caricano foto finché il bucket non c'è.

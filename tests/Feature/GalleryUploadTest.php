@@ -200,7 +200,7 @@ test('if a size cannot be written, nothing of the photo is left', function (stri
     Storage::set(MediaDisk::NAME, $disk);
 
     guPost($provider->user, guValid())
-        ->assertSessionHasErrors(['photo' => 'Non è stato possibile salvare la foto. Riprova.']);
+        ->assertSessionHasErrors(['photo' => 'Non è stato possibile salvare la foto. Riprova più tardi.']);
 
     expect(ProviderPhoto::query()->count())->toBe(0)
         ->and($real->allFiles())->toBe([])

@@ -12,10 +12,8 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
-use Throwable;
 
 class ProfileController extends Controller
 {
@@ -65,8 +63,10 @@ class ProfileController extends Controller
 
         // Only now, with the account gone: a deletion refused by the database (a provider with
         // bookings, issue #133) throws above and leaves the photo where it is.
+        // A failure does not undo the deletion of the account nor reach the user: a warning in
+        // the log, with no personal data.
         if ($photo !== null && $photo !== '') {
-            $this->deletePhoto($photo);
+            MediaDisk::deleteQuietly($photo, 'The photo of a deleted provider account could not be removed from the media disk.');
         }
 
         foreach ($gallery as $path) {
@@ -77,26 +77,5 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
-    }
-
-    /**
-     * The photo of a deleted provider, removed from the media disk. A failure does not undo the
-     * deletion of the account nor reach the user: a warning in the log, with no personal data.
-     */
-    private function deletePhoto(string $path): void
-    {
-        try {
-            $deleted = MediaDisk::get()->delete($path);
-        } catch (Throwable $exception) {
-            Log::warning('The photo of a deleted provider account could not be removed from the media disk.', [
-                'exception' => $exception::class,
-            ]);
-
-            return;
-        }
-
-        if (! $deleted) {
-            Log::warning('The photo of a deleted provider account could not be removed from the media disk.');
-        }
     }
 }

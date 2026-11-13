@@ -7,11 +7,18 @@ import AuthLayout from '@/layouts/auth-layout';
 import PublicLayout, { PublicBookingLayout } from '@/layouts/public-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { syncDocumentLanguage } from '@/lib/document-language';
+import { handleHttpErrors } from '@/lib/http-errors';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Griot';
 
 // Before the app starts: <html lang> and the toasts' label follow every page, the first included.
 syncDocumentLanguage();
+
+// An error during a visit becomes a toast instead of Inertia's window, whose buttons do nothing
+// (lib/http-errors.ts). In development the window stays: it shows Laravel's error.
+if (!import.meta.env.DEV) {
+    handleHttpErrors();
+}
 
 void createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),

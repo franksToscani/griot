@@ -29,13 +29,13 @@ final class StoreProviderAvatar
 
     /**
      * @throws InvalidAvatar when the file cannot be read or written as an image
+     * @throws AvatarNotStored when the new file cannot be written to the media disk
      */
     public function store(Provider $provider, UploadedFile $file): Provider
     {
         // One variant only: the smallest side asked is always made, at most the photo's own size.
         $contents = $this->encoder->encode($file, [self::MAX_SIDE], self::WEBP_QUALITY)[self::MAX_SIDE]->bytes;
 
-        $disk = MediaDisk::get();
         // A random name and the extension of the format chosen here: never the user's file name.
         $path = 'avatars/'.Str::random(40).'.webp';
         $oldPath = $provider->avatar_path;
@@ -43,9 +43,17 @@ final class StoreProviderAvatar
         // Order: write the new file, then save the new path, and only then delete the old file.
         // If writing or saving fails, the old file and the old value stay, and the new file just
         // written is deleted: the provider never points to a missing file.
-        if (! $disk->put($path, $contents)) {
-            // A problem of the disk, not of the user's file: it propagates as an error.
-            throw new RuntimeException('The avatar could not be written to the media disk.');
+        // The disk too is made inside the try: in production, with the AWS_* variables empty, it
+        // is refused already there. Every problem of the disk (not configured, the bucket, its
+        // permissions, the network) is one AvatarNotStored, never an error page.
+        try {
+            $stored = MediaDisk::get()->put($path, $contents);
+        } catch (Throwable $exception) {
+            throw AvatarNotStored::because($exception);
+        }
+
+        if (! $stored) {
+            throw AvatarNotStored::because();
         }
 
         $provider->avatar_path = $path;
@@ -55,14 +63,16 @@ final class StoreProviderAvatar
                 throw new RuntimeException(sprintf('The avatar of provider %d was not saved.', $provider->id));
             }
         } catch (Throwable $exception) {
-            $disk->delete($path);
+            // Quietly: a failed cleaning never hides the error of the database.
+            MediaDisk::deleteQuietly($path, 'A new provider photo could not be removed from the media disk.');
             $provider->avatar_path = $oldPath;
 
             throw $exception;
         }
 
-        if ($oldPath !== null && $oldPath !== '' && $disk->exists($oldPath)) {
-            $disk->delete($oldPath);
+        // The new photo is saved: losing the old file only leaves a warning in the log.
+        if ($oldPath !== null && $oldPath !== '') {
+            MediaDisk::deleteQuietly($oldPath, 'The previous provider photo could not be removed from the media disk.');
         }
 
         return $provider;
