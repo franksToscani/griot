@@ -9,6 +9,7 @@ import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
 import { whatsappLink } from '@/lib/whatsapp';
 import { dashboard, home, login, privacy, terms } from '@/routes';
+import { index as providersIndex } from '@/routes/providers';
 
 // The name of the group of the site's contacts in the footer.
 const FOOTER_CONTACT_ID = 'footer-contact-label';
@@ -18,8 +19,16 @@ const FOOTER_CONTACT_ID = 'footer-contact-label';
 // (docs/providers-list.md). Their sections use the same container as the header and the footer.
 const FULL_WIDTH_PAGES = ['home', 'providers/index'];
 
-// Layout for the public pages that customers see without logging in.
-export default function PublicLayout({ children }: { children: ReactNode }) {
+// Layout for the public pages that customers see without logging in. account: whether the header
+// offers "Accedi" (or "Il mio pannello"); false only on the private page of a booking, which is the
+// customer's own (PublicBookingLayout).
+export default function PublicLayout({
+    children,
+    account = true,
+}: {
+    children: ReactNode;
+    account?: boolean;
+}) {
     const { auth, contact } = usePage().props;
     const { component } = usePage();
     const { t } = useTranslation();
@@ -47,19 +56,31 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                         go one under the other, never off the screen. */}
                     <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
                         <LocaleSwitcher />
-                        <nav className="text-sm">
-                            {auth.user ? (
-                                <Link
-                                    href={dashboard()}
-                                    className={touchTarget}
-                                >
-                                    {t('nav.dashboard')}
-                                </Link>
-                            ) : (
-                                <Link href={login()} className={touchTarget}>
-                                    {t('nav.login')}
-                                </Link>
-                            )}
+                        {/* The list of providers on every public page; the two links wrap on a
+                            narrow phone, never off the screen. */}
+                        <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-sm">
+                            <Link
+                                href={providersIndex()}
+                                className={touchTarget}
+                            >
+                                {t('nav.find_provider')}
+                            </Link>
+                            {account &&
+                                (auth.user ? (
+                                    <Link
+                                        href={dashboard()}
+                                        className={touchTarget}
+                                    >
+                                        {t('nav.dashboard')}
+                                    </Link>
+                                ) : (
+                                    <Link
+                                        href={login()}
+                                        className={touchTarget}
+                                    >
+                                        {t('nav.login')}
+                                    </Link>
+                                ))}
                         </nav>
                     </div>
                 </div>
@@ -95,6 +116,15 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
                         )}
                     >
                         {t('terms.link')}
+                    </Link>
+                    <Link
+                        href={providersIndex()}
+                        className={cn(
+                            'underline underline-offset-4',
+                            touchTarget,
+                        )}
+                    >
+                        {t('nav.find_provider')}
                     </Link>
                     {/* The site's contacts, only those configured (config/contact.php): with none,
                         no group at all. A group with a name, read before its links. */}
@@ -142,4 +172,10 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
             </footer>
         </div>
     );
+}
+
+// The private page of a booking (bookings/show): the customer has no account, so no "Accedi" in
+// the header; the logo, the language and the list stay.
+export function PublicBookingLayout({ children }: { children: ReactNode }) {
+    return <PublicLayout account={false}>{children}</PublicLayout>;
 }

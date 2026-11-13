@@ -43,18 +43,20 @@ function hiwContact(): array
 // ---------------------------------------------------------------------------------------------
 
 test('three steps, each with its decorative icon in an amber circle', function () {
-    $page = hiwSource('pages/home.tsx');
+    // Its own component since the PR of the empty home page, along a line.
+    $page = hiwSource('components/home/how-it-works.tsx');
 
+    expect(hiwSource('pages/home.tsx'))->toContain('<HowItWorks />');
     expect($page)
         ->toContain("import { CalendarCheck, MailCheck, Search } from 'lucide-react';")
         ->toMatch('/const STEP_ICONS = \{\s*choose: Search,\s*book: CalendarCheck,\s*confirm: MailCheck,?\s*\} as const;/')
         ->toContain("const STEPS = ['choose', 'book', 'confirm'] as const;")
         // The circle: the amber of the palette, its brown icon, decorative, a border in forced colours.
-        ->toMatch('/<span\s+aria-hidden="true"\s+className="flex size-12 items-center justify-center rounded-full bg-highlight text-highlight-foreground forced-colors:border"\s*>\s*<Icon className="size-6" \/>\s*<\/span>/');
+        ->toMatch('/<span\s+aria-hidden="true"\s+className="relative flex size-12 items-center justify-center rounded-full bg-highlight text-highlight-foreground forced-colors:border"\s*>\s*<Icon className="size-6" \/>\s*<\/span>/');
 });
 
 test('the number of the step is in the text of its heading, not only in the picture', function () {
-    expect(hiwSource('pages/home.tsx'))
+    expect(hiwSource('components/home/how-it-works.tsx'))
         ->toMatch("/<h3 className=\"font-medium\">\\s*<span className=\"block text-sm font-semibold text-muted-foreground\">\\s*\\{t\\('home\\.steps\\.number', \\{\\s*number: index \\+ 1,?\\s*\\}\\)\\}\\s*<\\/span>\\s*\\{t\\(`home\\.steps\\.\\\$\\{step\\}\\.title`\\)\\}\\s*<\\/h3>/");
     expect(__('home.steps.number', ['number' => 1], 'it'))->toBe('Passo 1')
         ->and(__('home.steps.number', ['number' => 2], 'fr'))->toBe('Étape 2')
@@ -62,14 +64,23 @@ test('the number of the step is in the text of its heading, not only in the pict
 });
 
 test('the orange bar under the title: decorative, without text, gone in forced colours', function () {
-    expect(hiwSource('pages/home.tsx'))
-        ->toMatch("/\\{t\\('home\\.steps\\.title'\\)\\}\\s*<\\/h2>\\s*(\\{\\/\\*[\\s\\S]*?\\*\\/\\}\\s*)?<span\\s+aria-hidden=\"true\"\\s+className=\"block h-1 w-12 rounded-full bg-brand forced-colors:hidden\"\\s*\\/>/")
-        // The orange of the brand nowhere else on the page: never under a text.
-        ->and(substr_count(hiwSource('pages/home.tsx'), 'bg-brand'))->toBe(1);
+    $steps = hiwSource('components/home/how-it-works.tsx');
+
+    expect($steps)
+        ->toMatch("/\\{t\\('home\\.steps\\.title'\\)\\}\\s*<\\/h2>\\s*(\\{\\/\\*[\\s\\S]*?\\*\\/\\}\\s*)?<span\\s+aria-hidden=\"true\"\\s+className=\"block h-1 w-12 rounded-full bg-brand forced-colors:hidden\"\\s*\\/>/");
+    // The orange of the brand: the bar and the two lines between the circles, every one
+    // decorative and gone in forced colours, never under a text. Nowhere else on the page.
+    preg_match_all('/<span\s+aria-hidden="true"\s+className="([^"]*bg-brand[^"]*)"/', $steps, $orange);
+    expect(substr_count($steps, 'bg-brand'))->toBe(3)
+        ->and($orange[1])->toHaveCount(3)
+        ->and(substr_count(hiwSource('pages/home.tsx'), 'bg-brand'))->toBe(0);
+    foreach ($orange[1] as $classes) {
+        expect($classes)->toContain('forced-colors:hidden');
+    }
 });
 
 test('the steps are no links: they appear on scroll, nothing moves under the mouse', function () {
-    $page = hiwSource('pages/home.tsx');
+    $page = hiwSource('components/home/how-it-works.tsx');
     preg_match('/<ol ref=\{steps\}[\s\S]*?<\/ol>/', $page, $list);
 
     expect($list[0] ?? '')->not->toBe('')
@@ -92,7 +103,7 @@ test('the band exists only with a contact of the site: the shared prop, nothing 
         ->toMatch('/\{contact\.email !== null && \(\s*<a href=\{`mailto:\$\{contact\.email\}`\}/')
         ->toMatch('/\{contact\.whatsapp_url !== null && \(\s*<a\s+href=\{whatsappLink\(\s*contact\.whatsapp_url,\s*t\(\'home\.pros\.whatsapp_message\'\),?\s*\)\}/');
     // Under "Come funziona", the last section of the page.
-    expect(hiwSource('pages/home.tsx'))->toMatch('/<\/ol>\s*<\/section>\s*(\{\/\*[\s\S]*?\*\/\}\s*)?<ProfessionalsBand \/>\s*<\/div>/');
+    expect(hiwSource('pages/home.tsx'))->toMatch('/<HowItWorks \/>\s*(\{\/\*[\s\S]*?\*\/\}\s*)?<ProfessionalsBand \/>\s*<\/div>/');
 
     // The prop the band reads: with the contacts, both; without, none (and so no band).
     config(['contact.email' => 'info@example.test', 'contact.whatsapp' => '+390000000000']);
@@ -100,7 +111,7 @@ test('the band exists only with a contact of the site: the shared prop, nothing 
     expect($with['email'])->toBe('info@example.test')->and($with['whatsapp_url'])->toBe('https://wa.me/390000000000');
 
     config(['contact.email' => null, 'contact.whatsapp' => null]);
-    expect(hiwContact())->toBe(['email' => null, 'whatsapp_url' => null]);
+    expect(hiwContact())->toBe(['email' => null, 'whatsapp_url' => null, 'phone_url' => null]);
 });
 
 test('a title, a sentence, the links: underlined, 44px on phones, the cream focus ring, WhatsApp says it opens a new tab', function () {
@@ -171,15 +182,16 @@ test('the band appears on scroll, only without "reduce motion"; no timer, no tra
         ->toContain('const reveal = useReveal<HTMLElement>();')
         ->toContain('className="reveal-item ')
         ->not->toMatch('/\b(setInterval|setTimeout|requestAnimationFrame)\b/');
-    expect(withoutMotionSafe($band.hiwSource('pages/home.tsx')))
+    expect(withoutMotionSafe($band.hiwSource('pages/home.tsx').hiwSource('components/home/how-it-works.tsx')))
         ->not->toMatch('/\b(transition|duration-|animate-|translate-)/');
 });
 
 test('only tokens of the palette, the orange never near an error', function () {
-    $sources = hiwSource('components/home/professionals-band.tsx').hiwSource('pages/home.tsx');
+    $sources = hiwSource('components/home/professionals-band.tsx').hiwSource('pages/home.tsx').hiwSource('components/home/how-it-works.tsx');
     preg_match_all('/(?<![\w-])(?:[\w-]+:)*(?:bg|text|border|ring)-([a-z0-9]+(?:-[a-z0-9]+)*)(?:\/\d+)?(?![\w-])/', $sources, $colours);
     $tokens = array_unique($colours[1]);
-    $allowed = ['hero', 'hero-foreground', 'input', 'highlight', 'highlight-foreground', 'brand', 'card', 'card-foreground', 'muted-foreground', 'xl', 'sm', 'lg'];
+    // primary and primary-foreground: the badge with the number of a step (since the PR of the empty home page).
+    $allowed = ['hero', 'hero-foreground', 'input', 'highlight', 'highlight-foreground', 'brand', 'card', 'card-foreground', 'muted-foreground', 'primary', 'primary-foreground', 'xl', 'sm', 'lg'];
 
     expect(array_values(array_diff($tokens, $allowed)))->toBe([])
         ->and($sources)->not->toMatch('/#[0-9a-fA-F]{6}\b|rgba?\(|oklch\(/')

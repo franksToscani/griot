@@ -49,7 +49,8 @@ function fcFooter(): string
 test('with a valid email and number, the pages get the email and the WhatsApp address', function () {
     config(['contact.email' => 'info@example.test', 'contact.whatsapp' => '+390000000000']);
 
-    expect(fcContact())->toBe(['email' => 'info@example.test', 'whatsapp_url' => 'https://wa.me/390000000000']);
+    // The same number gives the "Chiama" link of the help panel of the home page (tel:).
+    expect(fcContact())->toBe(['email' => 'info@example.test', 'whatsapp_url' => 'https://wa.me/390000000000', 'phone_url' => 'tel:+390000000000']);
 });
 
 test('a missing, empty or invalid value becomes null, and is no error', function (?string $email, ?string $whatsapp, array $expected) {
@@ -57,21 +58,21 @@ test('a missing, empty or invalid value becomes null, and is no error', function
 
     expect(fcContact())->toBe($expected);
 })->with([
-    'nothing configured' => [null, null, ['email' => null, 'whatsapp_url' => null]],
-    'empty' => ['', '', ['email' => null, 'whatsapp_url' => null]],
-    'only spaces' => ['   ', '   ', ['email' => null, 'whatsapp_url' => null]],
-    'not an email' => ['info-example.test', null, ['email' => null, 'whatsapp_url' => null]],
-    'half an email' => ['info@', null, ['email' => null, 'whatsapp_url' => null]],
-    'spaces around the email' => ['  info@example.test ', null, ['email' => 'info@example.test', 'whatsapp_url' => null]],
-    'a number without + or 00' => [null, '3330000000', ['email' => null, 'whatsapp_url' => null]],
-    'only the prefix' => [null, '+', ['email' => null, 'whatsapp_url' => null]],
-    'with spaces and dashes' => [null, '+39 000-000 0000', ['email' => null, 'whatsapp_url' => 'https://wa.me/390000000000']],
-    'with 00' => [null, '0039 000 000 0000', ['email' => null, 'whatsapp_url' => 'https://wa.me/390000000000']],
-    'only the email' => ['info@example.test', null, ['email' => 'info@example.test', 'whatsapp_url' => null]],
-    'only the number' => [null, '+390000000000', ['email' => null, 'whatsapp_url' => 'https://wa.me/390000000000']],
+    'nothing configured' => [null, null, ['email' => null, 'whatsapp_url' => null, 'phone_url' => null]],
+    'empty' => ['', '', ['email' => null, 'whatsapp_url' => null, 'phone_url' => null]],
+    'only spaces' => ['   ', '   ', ['email' => null, 'whatsapp_url' => null, 'phone_url' => null]],
+    'not an email' => ['info-example.test', null, ['email' => null, 'whatsapp_url' => null, 'phone_url' => null]],
+    'half an email' => ['info@', null, ['email' => null, 'whatsapp_url' => null, 'phone_url' => null]],
+    'spaces around the email' => ['  info@example.test ', null, ['email' => 'info@example.test', 'whatsapp_url' => null, 'phone_url' => null]],
+    'a number without + or 00' => [null, '3330000000', ['email' => null, 'whatsapp_url' => null, 'phone_url' => null]],
+    'only the prefix' => [null, '+', ['email' => null, 'whatsapp_url' => null, 'phone_url' => null]],
+    'with spaces and dashes' => [null, '+39 000-000 0000', ['email' => null, 'whatsapp_url' => 'https://wa.me/390000000000', 'phone_url' => 'tel:+390000000000']],
+    'with 00' => [null, '0039 000 000 0000', ['email' => null, 'whatsapp_url' => 'https://wa.me/390000000000', 'phone_url' => 'tel:+390000000000']],
+    'only the email' => ['info@example.test', null, ['email' => 'info@example.test', 'whatsapp_url' => null, 'phone_url' => null]],
+    'only the number' => [null, '+390000000000', ['email' => null, 'whatsapp_url' => 'https://wa.me/390000000000', 'phone_url' => 'tel:+390000000000']],
 ]);
 
-test('the prop has the two values only, never the privacy contact', function () {
+test('the prop has the three values only, never the privacy contact', function () {
     config([
         'contact.email' => 'info@example.test',
         'contact.whatsapp' => '+390000000000',
@@ -81,7 +82,7 @@ test('the prop has the two values only, never the privacy contact', function () 
 
     $contact = fcContact();
 
-    expect(array_keys($contact))->toBe(['email', 'whatsapp_url'])
+    expect(array_keys($contact))->toBe(['email', 'whatsapp_url', 'phone_url'])
         ->and((string) json_encode($contact))->not->toContain('privacy@example.test')->not->toContain('Example Controller');
 
     // Not even as a fallback: without the site's own email, there is no email.
@@ -194,8 +195,9 @@ test('the footer has no heading, no language selector, nothing written by hand, 
         ->not->toContain('LocaleSwitcher')
         ->not->toMatch('/aria-label(?!ledby)/')
         ->not->toMatch('/sticky|fixed|animate-|transition/');
-    // Exactly the links of before plus the two contacts: privacy, terms (#131), mailto, WhatsApp.
-    expect(substr_count($footer, '<Link'))->toBe(2)
+    // Exactly the links of before plus the two contacts: privacy, terms (#131), the list of
+    // providers (the PR of the empty home page), mailto, WhatsApp.
+    expect(substr_count($footer, '<Link'))->toBe(3)
         ->and(substr_count($footer, '<a'))->toBe(2);
 });
 

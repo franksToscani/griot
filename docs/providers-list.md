@@ -52,7 +52,7 @@ La pagina `/providers` (« Trova un professionista »): chi c'è, cosa mostra la
 
 1. Titolo (h1).
 2. **Barra di ricerca** (`ProviderSearchBar` in `components/provider-filters.tsx`): gli stessi campi della home (`SearchFields`, `docs/search.md`) in un form GET con `onSubmit`, che fa una visita di Inertia con `preserveScroll` e `preserveState`. La città è un `<select>` nativo e si applica con « Cerca », non più subito. Gli altri filtri e l'ordinamento viaggiano come campi nascosti. Il form riparte (nuova `key`) quando ricerca o città cambiano da fuori.
-3. **Riga dei risultati**: « Filtri » (« Filtri (2) » con due filtri del pannello attivi), « Ordina per », poi il paragrafo `role="status"` con il numero dei risultati o lo stato vuoto. Il paragrafo è sempre presente, fuori da ogni condizione, e cambia dopo ogni visita: un lettore di schermo lo annuncia.
+3. **Riga dei risultati**: « Filtri » (« Filtri (2) » con due filtri del pannello attivi), « Ordina per », poi il paragrafo `role="status"` con il numero dei risultati o lo stato vuoto. Il paragrafo è sempre presente, fuori da ogni condizione, e cambia dopo ogni visita: un lettore di schermo lo annuncia. Lo stato vuoto senza alcun filtro né ricerca (nessun professionista ancora pubblicato) ha un testo caldo, « I primi professionisti stanno arrivando. Torna a trovarci presto. », e, solo se un contatto del sito è configurato, l'invito « Sei un professionista? Scrivici » con i link email e WhatsApp (`components/professionals-invite.tsx`). L'invito sta dentro lo stesso paragrafo `role="status"`, così viene annunciato con il testo.
 4. « Azzera filtri », quando un filtro è attivo.
 5. Le schede in `ResultsLayout`, poi la paginazione.
 

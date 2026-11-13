@@ -1,10 +1,13 @@
+import { Link } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { HomeCarousel } from '@/components/home/home-carousel';
 import { HomeSearch } from '@/components/home/home-search';
 import { useTranslation } from '@/hooks/use-translation';
 import type { Slide } from '@/lib/home-carousel';
 import { HERO } from '@/lib/home-hero';
+import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
+import { index } from '@/routes/providers';
 
 // The band at the top of the home page (docs/home.md): from edge to edge, dark brown, square
 // corners; its content in the site's container. On the left the page's one h1, a sentence and
@@ -52,6 +55,11 @@ export function HomeHero({
                         {t('home.intro.text')}
                     </p>
                     <HomeSearch cities={cities} />
+                    {/* The whole list, without a search: always there, even before the first
+                        professional (the list then says who is coming). */}
+                    <Link href={index()} className={cn(HERO.link, touchTarget)}>
+                        {t('home.intro.all_providers')}
+                    </Link>
                 </div>
                 <HomeCarousel slides={slides} />
             </div>

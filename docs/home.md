@@ -4,13 +4,14 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 
 ## Struttura decisa (dall'alto in basso)
 
-1. Testata: quella del layout pubblico (logo provvisorio, lingua, accesso; [brand.md](brand.md)).
-2. Fascia marrone a tutta larghezza: a sinistra l'h1, una frase e la ricerca per servizio e città; a destra il carousel delle categorie con foto (sotto, sui telefoni).
-3. Categorie: una fila sottile di schede con foto (o un riquadro colorato) che si scorre di lato.
+1. Testata: quella del layout pubblico (logo provvisorio, lingua, « Trova un professionista », accesso; [brand.md](brand.md)).
+2. Fascia marrone a tutta larghezza: a sinistra l'h1, una frase, la ricerca per servizio e città e il link « Vedi tutti i professionisti »; a destra il carousel delle categorie offerte con foto (sotto, sui telefoni).
+3. Categorie: una fila sottile di schede con foto (o un riquadro colorato) che si scorre di lato; tutte le categorie, prima quelle con qualcosa da prenotare, poi le altre con « In arrivo ».
 4. Professionisti in evidenza: provider pubblicati con almeno una foto, i più recenti per `published_at` (passo 3).
-5. Come funziona: tre passi, ognuno con un'icona in un cerchio ambra e il suo numero.
+5. Come funziona: tre passi lungo una linea, ognuno con un'icona in un cerchio ambra, il suo numero e la sua scheda.
 6. Fascia per i professionisti: titolo, frase e i contatti del gestore; solo se ce n'è almeno uno.
-7. Piè di pagina: privacy e contatti del gestore da configurazione (passo 4).
+7. Piè di pagina: privacy, termini, « Trova un professionista » e contatti del gestore da configurazione (passo 4).
+8. In basso a destra, solo nella home: « Torna in cima » e il pulsante di aiuto « ? » (passo 12).
 
 ## Piano dei passi
 
@@ -26,15 +27,16 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 | 8     | Fila delle categorie con foto                                       | fatto     |
 | 9     | Rifinitura grafica della fascia                                     | fatto     |
 | 10    | Animazioni e reattività di fascia, carousel e schede                | fatto     |
-| 11    | « Come funziona » con icone e fascia per i professionisti           | questa PR |
+| 11    | « Come funziona » con icone e fascia per i professionisti           | fatto     |
+| 12    | Home e lista utili anche senza professionisti                       | questa PR |
 
 ## Cosa c'è oggi
 
 - Rotta `home` (`/`) → `HomeController`, pagina Inertia `home` (`resources/js/pages/home.tsx`), layout pubblico (`resources/js/app.tsx`).
-- Prop `categories`: le categorie `offered()` (almeno un servizio attivo di un provider pubblicato) con `id`, `slug` e `name` tradotto (`displayName()`), ordinate sul nome mostrato, che cambia con la lingua. Una query.
+- Prop `categories`: **tutte** le categorie (`Category::withOffered()`), con `id`, `slug`, `name` tradotto (`displayName()`) e `offered` (almeno un servizio attivo di un provider pubblicato: la stessa regola di `offered()`, scritta una volta), da `HomeCategoryResource`. Prima le offerte, poi le altre, ogni gruppo ordinato sul nome mostrato, che cambia con la lingua. Una query (`withExists`).
 - Prop `cities`: `Provider::publishedCities()`, le città dei provider pubblicati, senza doppioni, in ordine alfabetico; la stessa lista che `ProviderIndexRequest` accetta come filtro. Una query.
 - In tutto la home fa **6 query** quando ci sono professionisti in evidenza (le categorie, le città e le 4 dei professionisti in evidenza: provider, foto, servizi, categorie dei servizi) e **4** quando non ce ne sono (provider e foto soltanto, senza servizi né categorie da caricare); mai di più con più categorie, città o provider (`HomeHeroSearchTest`). La ricerca ne aggiunge una, le città; le foto della fila delle categorie nessuna (sono file del frontend).
-- « Categorie » (h2): nella fila condivisa `ScrollRow`, una scheda per categoria (vedi « Fila delle categorie »). Senza categorie offerte la sezione non c'è.
+- « Categorie » (h2): nella fila condivisa `ScrollRow`, una scheda per categoria (vedi « Fila delle categorie »). C'è anche senza nessun professionista: un sito appena nato mostra cosa offrirà. Solo senza nessuna categoria nel database la sezione non c'è.
 - « Professionisti in evidenza » (h2), tra le categorie e « Come funziona »: prop `featured`, scelta da `App\Home\FeaturedProviders`.
     - Chi: provider pubblicati con almeno una foto nella galleria e almeno un servizio attivo (la regola di `Category::offered()`: senza, non si prenota niente).
     - Ordine: `published_at` decrescente, a parità `id` decrescente; al massimo 8.
@@ -45,6 +47,7 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 - Fila condivisa `components/home/scroll-row.tsx`: una `<section>` con il suo h2, una regione `role="region"` con `aria-labelledby` sul titolo e `tabIndex={0}`, e il `<ul>` con `snap-x` (vedi `docs/accessibility.md`). La usano le categorie e i professionisti in evidenza.
 - « Come funziona » (h2), vedi la sezione « Come funziona » qui sotto.
 - « Sei un professionista? » (h2), vedi la sezione « Fascia per i professionisti » qui sotto.
+- In basso a destra, solo qui: « Torna in cima » e « ? », vedi « Pulsanti in basso a destra » qui sotto.
 - Anteprima dei link: `LinkPreview::publicPage()` senza titolo, quindi « Griot », la descrizione del sito e l'immagine predefinita; pagina indicizzabile.
 
 ## Fascia in alto
@@ -53,7 +56,8 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 
 - **A tutta larghezza**: per la home il layout pubblico lascia `<main>` senza contenitore (`FULL_WIDTH_PAGES` in `public-layout.tsx`); la pagina mette la fascia da bordo a bordo e le sezioni sotto nello stesso contenitore della testata (`max-w-6xl`, `px-4`). Niente `100vw`, che con una barra di scorrimento visibile fa scorrere la pagina di lato.
 - **Colori**: i token `hero` (marrone scuro) e `hero-foreground` (crema) di `resources/css/app.css`, gli stessi nei due temi come ruolo; non `primary`, che nel tema scuro è ambra con il testo scuro. Nel tema scuro la fascia è vicina al marrone della pagina: ha un bordo sottile sopra e sotto (`dark:border-y dark:border-input`). Spigoli vivi, nessun `rounded` sulla fascia e sulle foto. Altezza minima e spazio verticale in rem (`md:min-h-[32rem]`, `py-12 md:py-16 lg:py-20`), quindi crescono con lo zoom; l'altezza la decide il contenuto.
-- **Colonne**: da 768 px in su due metà (a sinistra testo e ricerca, a destra il carousel); sotto, una colonna sola: prima titolo e ricerca, poi il carousel. Senza nessuna categoria con foto il carousel non c'è e la fascia ha una colonna.
+- **Colonne**: da 768 px in su due metà (a sinistra testo e ricerca, a destra il carousel); sotto, una colonna sola: prima titolo e ricerca, poi il carousel. Senza nessuna categoria offerta con foto il carousel non c'è e la fascia ha una colonna.
+- **« Vedi tutti i professionisti »**: sotto la ricerca, un link all'elenco intero (`home.intro.all_providers`), sempre presente; crema e sottolineato, l'anello del focus crema (`HERO.link`), 44 px sui telefoni. Con un sito appena nato l'elenco dice chi sta arrivando (`docs/providers-list.md`).
 - **Testi**: l'h1 di sempre (« Il savoir-faire africano, vicino a te », `home.intro.title`), `text-3xl`, `md:text-4xl` e `lg:text-5xl` da 1024 px, con `leading-tight`, `text-balance` e al massimo `max-w-2xl`, così il titolo francese, più lungo, non lascia una parola sola su una riga; poi la frase `home.intro.text` (`md:text-lg`, `max-w-xl`). Il pulsante « Trova un professionista » non c'è più: la ricerca fa lo stesso, e con i campi vuoti porta all'elenco completo.
 - **Ricerca** (`docs/search.md`): un `<form role="search" method="get">` HTML verso `/providers` (l'indirizzo da Wayfinder, `index().url`), che funziona anche senza JavaScript e non ne usa.
     - « Servizio o professionista »: campo `q`, `type="search"`, al massimo 100 caratteri come `ProviderIndexRequest`. Dentro il campo una lente (`Search` di lucide, `aria-hidden`, che non intercetta i clic) e un esempio come placeholder (`home.search.placeholder`, « Treccine, barbiere, unghie… »): l'esempio non sostituisce l'etichetta, che resta visibile sopra.
@@ -66,7 +70,7 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 
 `resources/js/components/home/home-carousel.tsx`, nella colonna destra della fascia; le regole pure in `resources/js/lib/home-carousel.ts`.
 
-- **Slide**: una per ogni categoria offerta **che ha una foto** in `HOME_PHOTOS` (oggi barbiere, nails e treccine), nell'ordine della prop `categories` (nessuna query in più). Le categorie senza foto restano nella fila « Categorie ». Nessuna slide: nessun carousel. Una sola: la slide, senza Precedente, Successiva né punti.
+- **Slide**: una per ogni categoria **offerta** che ha una foto in `HOME_PHOTOS` (oggi barbiere, nails e treccine), nell'ordine della prop `categories` (nessuna query in più): la pagina passa solo quelle con `offered`. Una categoria « In arrivo » non ha slide: il suo « Vedi i professionisti » porterebbe a un elenco vuoto. Le categorie senza foto restano nella fila « Categorie ». Nessuna slide: nessun carousel. Una sola: la slide, senza Precedente, Successiva né punti.
 - **Contenuto**: la foto (3:2, spigoli vivi), e **sotto** il nome della categoria (un `<p>`, non un titolo), una frase (`home.carousel.sentence.<slug>`, o `home.carousel.sentence.default`) e « Vedi i professionisti », che porta all'elenco filtrato (`/providers?category=slug`) e per i lettori di schermo dice anche la categoria. Il testo non sta mai sulla foto: è sul marrone della fascia.
 - **Disposizione**: sotto la foto, a sinistra il testo della slide e a destra i controlli, sulla stessa riga quando c'è posto (il testo almeno 16rem), altrimenti i controlli vanno sotto. Per questo foto e testi sono due pile separate, ognuna con tutte le slide nella stessa cella: i controlli restano gli stessi per ogni slide e non diventano mai invisibili sotto il focus. Il gruppo della slide contiene il suo testo; la foto è decorativa.
 - **Comportamento** (schema APG del carousel senza rotazione automatica): nessun autoplay né timer; il cambio è una dissolvenza incrociata di 300 ms, solo senza « riduci movimento » (altrimenti immediato). Precedente e Successiva mostrano solo la freccia (il nome è un testo sr-only da `t()`, nessun `aria-label`), 44 px sotto 768 px e 36 px sopra; circolari (`nextIndex()` e `previousIndex()` di `lib/gallery.ts`); un punto per slide, pulsante con `aria-current` e nome « Vai alla slide N »; dopo ogni cambio una regione `role="status"` dice « Slide N di M » (vuota all'apertura della pagina); il focus resta sul pulsante premuto.
@@ -80,7 +84,9 @@ La pagina di `/` (issue #144). È per tutti: anche un provider loggato vede la h
 
 `CategoriesSection` in `resources/js/pages/home.tsx`, con la scheda in `resources/js/components/home/category-card.tsx` e le regole pure in `resources/js/lib/home-categories.ts`.
 
-- **Schede**: una per categoria offerta, nell'ordine della prop `categories`, costruite da `categoryCards()`; nessuna query in più. Ogni scheda è **un solo link** all'elenco filtrato (`index({ query: { category: slug } })`), larga `w-36` (9rem), con angoli `rounded-md` come il resto del sito.
+- **Schede**: una per categoria, nell'ordine della prop `categories` (prima le offerte), costruite da `categoryCards()`; nessuna query in più. Larghe `w-36` (9rem), angoli `rounded-md`.
+    - **Offerta**: la scheda è **un solo link** all'elenco filtrato (`index({ query: { category: slug } })`), con il movimento delle schede.
+    - **In arrivo** (nessun servizio attivo di un provider pubblicato): la stessa foto o lo stesso riquadro e il nome, ma **non è un link**, non riceve il focus e non si muove; sotto il nome l'etichetta scritta « In arrivo » (`home.categories.coming_soon`), mai affidata al colore. Un professionista non pubblicato non conta.
 - **Sopra**: la foto della categoria, alta `h-24` (6rem), `object-cover`. **Sotto**: il nome, sullo sfondo della pagina, quindi con il contrasto normale del testo. Il nome è il testo del link, non un titolo; non sta mai sopra la foto, quindi nessuna sfumatura scura.
 - **Foto** (`HOME_PHOTOS`, le stesse del carousel): decorativa (`alt=""`), `loading="lazy"`, `decoding="async"`, `width` e `height` veri (niente salti), `src` la variante da 640, `srcset` di tutte e `sizes="9rem"`: il browser prende la 640 anche su uno schermo a 3x.
 - **Senza foto**: al posto della foto un riquadro pieno, decorativo (`aria-hidden`), con un colore dei token a rotazione tra le categorie senza foto: marrone (`bg-primary`), ambra (`bg-highlight`), verde chiaro (`bg-info`), bianco (`bg-card`); mai rosso né arancio. Ogni riquadro ha il bordo `border-input`: ambra, verde chiaro e bianco sono troppo vicini allo sfondo della pagina (sotto 3:1), il bordo no (`AccessibilityContrastTest`), e resta visibile nei colori forzati.
@@ -98,13 +104,17 @@ Le regole sono in `docs/accessibility.md` (« Movimento »); il codice in `hooks
 
 ## Come funziona
 
-In `resources/js/pages/home.tsx`, dopo i professionisti in evidenza.
+In `resources/js/components/home/how-it-works.tsx`, dopo i professionisti in evidenza.
 
 - Titolo h2 « Come funziona » e sotto una barra arancio di 4 px (`bg-brand`): decorativa, senza testo e senza significato (`aria-hidden`); nei colori forzati sparisce (`forced-colors:hidden`), senza perdere niente.
-- Un `<ol>` di tre schede (`STEPS`: scegli, prenota, ricevi la conferma), con i testi di sempre (`home.steps.*`). Ogni scheda:
+- Un `<ol>` di tre passi (`STEPS`: scegli, prenota, ricevi la conferma), con i testi di sempre (`home.steps.*`), **lungo una linea**:
+    - da 768 px i tre cerchi stanno in fila, uniti da una linea sottile del colore d'accento (`bg-brand`), dal centro del primo al centro dell'ultimo; sotto ogni cerchio la sua scheda;
+    - sui telefoni i passi stanno uno sotto l'altro: il cerchio a sinistra, la scheda a destra, e la linea scende tra un cerchio e il successivo nella colonna dei cerchi, mai sopra un testo;
+    - la linea è decorativa (`aria-hidden`) e sparisce nei colori forzati.
+- Ogni passo:
     - un'icona di lucide (`Search`, `CalendarCheck`, `MailCheck`, in `STEP_ICONS`) in un cerchio ambra (`bg-highlight`, icona `text-highlight-foreground`, 9,2:1 e 11,8:1). Decorativa (`aria-hidden`); nei colori forzati il cerchio ha un bordo;
-    - un h3 che comincia con il numero del passo in parole, « Passo 1 » (`home.steps.number`): il numero è nel testo, non solo nell'icona;
-    - la frase.
+    - una scheda con il numero in un badge (`bg-primary`, decorativo: il numero è anche nel titolo), un h3 che comincia con il numero del passo in parole, « Passo 1 » (`home.steps.number`), e la frase.
+- Il titolo h2 ha `tabIndex={-1}`: il pannello « ? » ci porta il focus (mai il Tab).
 - Le schede compaiono allo scorrimento (`useReveal`, una dopo l'altra), solo senza « riduci movimento ». Non sono link: niente effetto sotto il mouse (`CARD_MOTION` resta per le schede cliccabili).
 
 ## Fascia per i professionisti
@@ -117,13 +127,26 @@ In `resources/js/pages/home.tsx`, dopo i professionisti in evidenza.
 - Marrone con testo crema (`bg-hero`, `text-hero-foreground`, gli stessi token della fascia in alto); nel tema scuro un bordo sottile (`dark:border-input`). Link sottolineati, 44 px sui telefoni (`touchTarget`), anello del focus crema.
 - Compare allo scorrimento (`useReveal`), solo senza « riduci movimento ». Nessuna query in più: la prop `contact` è già condivisa da tutte le pagine.
 
+## Pulsanti in basso a destra
+
+`resources/js/components/home/floating-actions.tsx`, solo nella home (`<HomeFloatingActions />` in fondo a `home.tsx`). Le regole di accessibilità, compreso come non coprono mai il focus, sono in `docs/accessibility.md` (« Elementi che restano fermi »).
+
+- **« Torna in cima »** (sopra): una freccia (nome sr-only « Torna in cima », `home.back_to_top`). Compare quando una sentinella alta quanto il primo schermo esce di vista (IntersectionObserver, nessun ascoltatore dello scorrimento né timer); lo stato nascosto lo mette solo il JavaScript dopo il montaggio. Al clic la pagina torna in cima subito (niente scorrimento morbido) e il focus va all'inizio del contenuto (`<main>`).
+- **« ? »** (sotto, nome sr-only « Aiuto »): apre un pannello (lo `Sheet` del kit) con il titolo « Aiuto », la frase « Hai bisogno di una mano? » e:
+    - « Scrivici su WhatsApp » (nuova scheda, messaggio già scritto `home.help.whatsapp_message`), « Chiama » (`tel:`, dallo stesso numero, `phone_url`), « Scrivici un'email » (`mailto:`): ognuno solo se il contatto è configurato, dalla prop condivisa `contact`;
+    - sempre: « Come funziona » (chiude il pannello e porta il focus sul titolo di quella sezione) e « Trova un professionista » (l'elenco).
+
+    Nessun modulo, nessun orario. Senza contatti restano i due link.
+
+- Pulsanti tondi di 3rem con un'ombra, a 1rem dal bordo (o dall'area sicura del telefono).
+
 ## Piè di pagina e contatti
 
 Il footer è quello del layout pubblico (`resources/js/layouts/public-layout.tsx`), quindi vale per tutte le pagine pubbliche: home, elenco, pagina di un provider, privacy, pagina di una prenotazione.
 
-- Il link alla privacy c'è sempre.
+- I link alla privacy, ai termini e all'elenco dei professionisti (« Trova un professionista ») ci sono sempre.
 - I contatti del gestore vengono da `config/contact.php`, che legge solo l'ambiente: `CONTACT_EMAIL` e `CONTACT_WHATSAPP` (formato internazionale con `+` o `00`, per esempio `+39…`). Non sono il contatto della privacy (`PRIVACY_CONTACT_EMAIL`), che serve alle richieste sui dati personali.
-- `App\Support\SiteContact` li pulisce: un'email che non passa `filter_var` o un numero senza `+` o `00` diventano `null`, senza errore. Arrivano al frontend nella prop condivisa `contact` (`email`, `whatsapp_url`), una closure in `HandleInertiaRequests`.
+- `App\Support\SiteContact` li pulisce: un'email che non passa `filter_var` o un numero senza `+` o `00` diventano `null`, senza errore. Arrivano al frontend nella prop condivisa `contact` (`email`, `whatsapp_url`, `phone_url`), una closure in `HandleInertiaRequests`. `phone_url` (`tel:+…`) viene dallo stesso numero di WhatsApp, con le stesse cifre internazionali (`WhatsApp::internationalDigits()`), e serve al link « Chiama » del pannello « ? ».
 - Il link WhatsApp usa la stessa regola dei provider, scritta una volta in `App\Support\WhatsApp::url()` (anche `Provider::whatsappUrl()` la usa), e un messaggio già scritto e generico (`footer.contact.whatsapp_message`, « Ciao, ho una domanda su Griot. ») aggiunto con `whatsappLink()`.
 - Nel footer: « Scrivici » (`mailto:`) e « WhatsApp » (nuova scheda, con l'avviso per i lettori di schermo), ognuno solo se configurato, in un gruppo con nome sr-only (« Contatti di Griot »). Nessun titolo: il footer è in tutte le pagine e non deve cambiare l'ordine dei loro titoli.
 - Senza configurazione resta solo la privacy, come prima, e nessun gruppo vuoto.
@@ -131,7 +154,7 @@ Il footer è quello del layout pubblico (`resources/js/layouts/public-layout.tsx
 
 ## Decisioni
 
-- Solo le categorie offerte: un link a un elenco vuoto non aiuta, e `ProviderIndexRequest` ignora una categoria non offerta e mostrerebbe tutti i provider.
+- Tutte le categorie, ma solo quelle offerte sono link: un sito appena nato mostra cosa offrirà, senza mandare a un elenco vuoto (`ProviderIndexRequest` ignora una categoria non offerta). Il filtro dell'elenco non cambia.
 - Nessun redirect per chi è loggato: un provider può vedere il sito come lo vedono i clienti.
 - Il cambio lingua resta solo in testata.
 

@@ -83,7 +83,8 @@ test('"Slide N di M", and previous and next go round with 1, 2 and 7 slides', fu
 
 test('in the band at the top, before the categories; the slides are built once by the page', function () {
     expect(hcSource('js/pages/home.tsx'))
-        ->toContain('const slides = buildSlides(t, categories, HOME_PHOTOS);')
+        // Only the offered categories: a slide leads to the list of its category.
+        ->toMatch('/const slides = buildSlides\(\s*t,\s*categories\.filter\(\(category\) => category\.offered\),\s*HOME_PHOTOS,?\s*\);/')
         ->toMatch('/<HomeHero cities=\{cities\} slides=\{slides\} \/>[\s\S]*<CategoriesSection/');
     expect(hcSource('js/components/home/home-hero.tsx'))->toContain('<HomeCarousel slides={slides} />');
     expect(hcSource())

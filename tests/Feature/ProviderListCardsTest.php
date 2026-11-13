@@ -335,7 +335,7 @@ test('"Ordina per" is a native select with a visible label, 44px on phones, next
     $page = plcSource('pages/providers/index.tsx');
     expect($page)
         // Since the list's PR B one row: "Filtri (n)", "Ordina per", the number of results.
-        ->toMatch('/<div className="flex flex-wrap items-end gap-4">\s*<ProviderFiltersPanel[^>]*\/>\s*<ProviderSort filters=\{filters\} \/>\s*(\{\/\*[\s\S]*?\*\/\}\s*)?<p role="status" className="text-muted-foreground">\s*\{resultsText\(\s*t,\s*providers\.meta\.total,\s*filters,\s*filtered,?\s*\)\}\s*<\/p>\s*<\/div>/')
+        ->toMatch('/<div className="flex flex-wrap items-end gap-4">\s*<ProviderFiltersPanel[^>]*\/>\s*<ProviderSort filters=\{filters\} \/>\s*(\{\/\*[\s\S]*?\*\/\}\s*)?<p role="status" className="text-muted-foreground">\s*\{resultsText\(\s*t,\s*providers\.meta\.total,\s*filters,\s*filtered,?\s*\)\}\s*(\{\/\*[\s\S]*?\*\/\}\s*)?(<ProfessionalsInvite[\s\S]*?\/>\s*)?<\/p>\s*<\/div>/')
         // The status is outside every condition: before the first one of the page.
         ->and(strpos($page, 'role="status"'))->toBeLessThan(strpos($page, '&&'));
 });

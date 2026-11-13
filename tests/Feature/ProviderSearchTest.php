@@ -299,7 +299,7 @@ test('the number of results, or the empty state, is announced in a status always
     $source = searchSource('pages/providers/index.tsx');
 
     expect($source)
-        ->toMatch('/<p role="status" className="text-muted-foreground">\s*\{resultsText\(\s*t,\s*providers\.meta\.total,\s*filters,\s*filtered,?\s*\)\}\s*<\/p>/')
+        ->toMatch('/<p role="status" className="text-muted-foreground">\s*\{resultsText\(\s*t,\s*providers\.meta\.total,\s*filters,\s*filtered,?\s*\)\}\s*(\{\/\*[\s\S]*?\*\/\}\s*)?(<ProfessionalsInvite[\s\S]*?\/>\s*)?<\/p>/')
         ->toContain("t('providers.list.results_one')")
         ->toContain("t('providers.list.results', { count: total })")
         ->toContain("t('providers.list.empty_search')")

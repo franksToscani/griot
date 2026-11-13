@@ -202,7 +202,7 @@ test('the section sits between the categories and the steps, in the shared row, 
     expect($page)
         ->toContain("const FEATURED_TITLE_ID = 'home-featured-title';")
         ->toMatch("/\\{featured\\.length > 0 && \\(\\s*<ScrollRow\\s+titleId=\\{FEATURED_TITLE_ID\\}\\s+title=\\{t\\('home\\.featured\\.title'\\)\\}\\s+items=\\{featured\\}\\s+renderItem=\\{\\(provider\\) => \\(\\s*<FeaturedProviderCard provider=\\{provider\\} \\/>\\s*\\)\\}\\s*\\/>\\s*\\)\\}/")
-        ->toMatch('/<CategoriesSection categories=\{categories\} \/>[\s\S]*\{featured\.length > 0[\s\S]*\{t\(\'home\.steps\.title\'\)\}/');
+        ->toMatch('/<CategoriesSection categories=\{categories\} \/>[\s\S]*\{featured\.length > 0[\s\S]*<HowItWorks \/>/');
 });
 
 test('the card: a link to the page with its touch target, the name as h3 with the city, the categories', function () {
