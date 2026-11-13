@@ -31,7 +31,7 @@ Cosa deve essere vero prima di aprire Griot a persone reali (issue #58, #59, #86
     - `php artisan queue:work --sleep=3 --max-time=3600 --memory=128` (tentativi e attese li decidono le notifiche);
     - `php artisan schedule:work`.
 
-    La coda e lo scheduler ripartono da soli. Se si ferma il server web, si ferma il container e Render ne avvia uno nuovo (`docker/stop-on-web-exit.sh`). Utente non root; scrivibili solo `storage/`, `bootstrap/cache/` e le cartelle di Caddy.
+    La coda e lo scheduler ripartono da soli. Se si ferma il server web, si ferma il container e Render ne avvia uno nuovo (`docker/stop-on-web-exit.sh`). Utente non root; scrivibili solo `storage/`, `bootstrap/cache/` e le cartelle di Caddy. Il binario `frankenphp` non ha capability sui file (`setcap -r` nel `Dockerfile`): l'immagine base gli dà `cap_net_bind_service`, che Render rifiuta all'avvio (`EPERM`) e che la porta `$PORT`, sopra 1024, non richiede.
 
 - **Avvio** (`docker/start.sh`): si ferma subito se manca `APP_KEY`; poi `config:cache`, `route:cache`, `view:cache`, `event:cache` con le variabili del servizio. **Nessuna migrazione all'avvio**: le fa Render prima di ogni deploy (`preDeployCommand: php artisan migrate --force`).
 - **Blueprint** (`render.yaml`):

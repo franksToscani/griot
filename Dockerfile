@@ -72,7 +72,10 @@ COPY --from=assets /app/public/build /app/public/build
 # Not root. Writable: storage/ and bootstrap/cache/ only, and Caddy's own folders (XDG_DATA_HOME
 # and XDG_CONFIG_HOME of the base image, /data and /config). The port comes from Render ($PORT,
 # above 1024): no capability to bind a low port.
-RUN useradd --create-home --uid 10001 griot \
+# The base image gives frankenphp the file capability cap_net_bind_service: Render (and the CI,
+# with --cap-drop=ALL) refuses to exec it (EPERM), and port $PORT does not need it.
+RUN setcap -r /usr/local/bin/frankenphp \
+    && useradd --create-home --uid 10001 griot \
     && mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views \
         storage/logs bootstrap/cache \
     && chmod 0755 /usr/local/bin/griot-start /usr/local/bin/griot-stop-on-web-exit \

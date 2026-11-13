@@ -70,12 +70,13 @@ Un contenitore `postgres:18` (immagine ufficiale) accanto al job, con un control
 L'immagine di produzione non si può costruire sui computer di sviluppo (Docker non c'è): la costruisce questo job, solo con i comandi `docker` del runner, senza azioni di terzi.
 
 1. `docker build` del `Dockerfile` (vendor, assets, runtime).
-2. Avvia il container come su Render, con valori usa e getta: una `APP_KEY` generata nel job, un database e un server di posta su `example.test` che non vengono mai raggiunti (`/up` non li usa), `SITE_NOINDEX=true`.
-3. Aspetta `/up` con 200.
-4. Controlla il sito privato: `X-Robots-Tag: noindex, nofollow` su `/up` e su un file statico (`/favicon.ico`, servito da Caddy), `/robots.txt` che vieta tutto, nessun `X-Powered-By`.
-5. Controlla che nessun processo giri come root.
-6. Controlla le estensioni (`pdo_pgsql`, `gd` con WebP, `exif`, OPcache) e i valori di `docker/php.ini`.
-7. Ferma il server web dentro il container e controlla che il container esca, così Render ne avvia uno nuovo (`docker/stop-on-web-exit.sh`).
+2. Avvia il container con le restrizioni di Render (`--cap-drop=ALL`, `--security-opt=no-new-privileges`) e valori usa e getta: una `APP_KEY` generata nel job, un database e un server di posta su `example.test` che non vengono mai raggiunti (`/up` non li usa), `SITE_NOINDEX=true`.
+3. Aspetta `/up` con 200: se il server web non parte con quelle restrizioni, il job è rosso.
+4. Controlla con `getcap` che `frankenphp` e gli altri binari di `/usr/local/bin` non abbiano capability sui file.
+5. Controlla il sito privato: `X-Robots-Tag: noindex, nofollow` su `/up` e su un file statico (`/favicon.ico`, servito da Caddy), `/robots.txt` che vieta tutto, nessun `X-Powered-By`.
+6. Controlla che nessun processo giri come root.
+7. Controlla le estensioni (`pdo_pgsql`, `gd` con WebP, `exif`, OPcache) e i valori di `docker/php.ini`.
+8. Ferma il server web dentro il container e controlla che il container esca, così Render ne avvia uno nuovo (`docker/stop-on-web-exit.sh`).
 
 Se è rosso: il passo dice che cosa manca; i log del container sono stampati sotto. Un errore nel passo di build è quasi sempre una dipendenza o un'estensione mancante.
 

@@ -122,7 +122,8 @@ test('the runtime runs as a normal user, writes only in storage/ and bootstrap/c
         ->toContain('chown -R griot:griot /app/storage /app/bootstrap/cache /data /config')
         ->toContain('XDG_DATA_HOME=/data')
         ->toContain('XDG_CONFIG_HOME=/config')
-        ->not->toContain('setcap')
+        // setcap only to remove a capability, never to give one.
+        ->not->toMatch('/setcap\s+(?!-r\s)/')
         ->not->toMatch('/^USER root$/m');
     // The last USER of the file is the normal one.
     preg_match_all('/^USER (\S+)$/m', dplSource('Dockerfile'), $users);
@@ -479,3 +480,34 @@ test('the deploy docs hold no secret and no real contact', function (string $pat
         ->and($text)->not->toMatch('/\b(AKIA|SCW)[A-Z0-9]{16,}\b/')
         ->and($text)->not->toMatch('/postgres(ql)?:\/\/[^<\s]+:[^<\s@]+@/');
 })->with(['docs/deploy.md', 'docs/production.md']);
+
+test('the runtime removes the file capability of frankenphp, as root, before switching to the normal user', function () {
+    $runtime = dplStage('runtime');
+    $remove = strpos($runtime, 'setcap -r /usr/local/bin/frankenphp');
+    $user = strpos($runtime, "\nUSER griot\n");
+
+    // The base image gives it cap_net_bind_service: Render refuses to exec it (EPERM).
+    expect($remove)->not->toBeFalse()
+        ->and($user)->not->toBeFalse()
+        ->and($remove)->toBeLessThan($user)
+        // In the instructions, not in the comment that explains the fix: no capability given back.
+        ->and((string) preg_replace('/^\s*#.*$/m', '', $runtime))->not->toMatch('/cap_net_bind_service|\+ep\b|\+eip\b/');
+});
+
+test('the docker-build job starts the container as restricted as Render and checks the file capabilities', function () {
+    $job = Yaml::parseFile(base_path('.github/workflows/production-checks.yml'))['jobs']['docker-build'];
+    $start = collect($job['steps'])->firstWhere('name', 'Start the container as on Render');
+    $check = collect($job['steps'])->firstWhere('name', 'Check that no binary of the image has a file capability');
+
+    expect($start['run'] ?? '')
+        ->toContain('--cap-drop=ALL')
+        ->toContain('--security-opt=no-new-privileges')
+        ->not->toContain('--cap-add')
+        ->not->toContain('--privileged');
+    expect($check['run'] ?? '')
+        ->toContain('caps="$(docker exec "$CONTAINER" getcap /usr/local/bin/frankenphp)"')
+        ->toContain('caps="$(docker exec "$CONTAINER" getcap -r /usr/local/bin)"')
+        ->toContain('if [ -n "$caps" ]; then');
+    // getcap is in the base image (libcap2-bin): nothing is added to the final image for it.
+    expect(dplStage('runtime'))->not->toContain('libcap');
+});
