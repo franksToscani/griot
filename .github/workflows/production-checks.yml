@@ -289,11 +289,15 @@ jobs:
       - name: Build the image
         run: docker build --pull --tag "$IMAGE" .
 
+      # As restrictive as Render: no capability in the bounding set and no new privileges, so that
+      # a binary with a file capability cannot start here either (EPERM, docs/deploy.md).
       - name: Start the container as on Render
         run: |
           key="base64:$(openssl rand -base64 32)"
           echo "::add-mask::$key"
           docker run --detach --name "$CONTAINER" --publish 8080:8080 \
+            --cap-drop=ALL \
+            --security-opt=no-new-privileges \
             --env PORT=8080 \
             --env APP_KEY="$key" \
             --env APP_ENV=production \
@@ -325,6 +329,20 @@ jobs:
           done
           echo "::error::/up never answered 200"
           exit 1
+
+      # getcap comes with the base image (libcap2-bin): no output means no file capability.
+      - name: Check that no binary of the image has a file capability
+        run: |
+          caps="$(docker exec "$CONTAINER" getcap /usr/local/bin/frankenphp)"
+          if [ -n "$caps" ]; then
+            echo "::error::frankenphp still has a file capability: $caps"
+            exit 1
+          fi
+          caps="$(docker exec "$CONTAINER" getcap -r /usr/local/bin)"
+          if [ -n "$caps" ]; then
+            echo "::error::binaries with a file capability: $caps"
+            exit 1
+          fi
 
       # SITE_NOINDEX=true: the header on a Laravel response and on a static file served by Caddy,
       # and /robots.txt that disallows everything.
