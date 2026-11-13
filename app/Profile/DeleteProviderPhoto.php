@@ -6,8 +6,6 @@ use App\Models\Provider;
 use App\Models\ProviderPhoto;
 use App\Support\MediaDisk;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Throwable;
 
 /**
  * Removes a photo from the provider's gallery (issue #143): the row first, with the positions of
@@ -40,20 +38,11 @@ final class DeleteProviderPhoto
 
     /**
      * A file of the media disk, removed; a failure is only a warning, with the class of the error
-     * and nothing else (no path, no name, no email).
+     * and nothing else (no path, no name, no email). MediaDisk::deleteQuietly() with the message of
+     * the gallery.
      */
     public static function removeFile(string $path): void
     {
-        try {
-            $deleted = MediaDisk::get()->delete($path);
-        } catch (Throwable $exception) {
-            Log::warning('A gallery photo could not be removed from the media disk.', ['exception' => $exception::class]);
-
-            return;
-        }
-
-        if (! $deleted) {
-            Log::warning('A gallery photo could not be removed from the media disk.');
-        }
+        MediaDisk::deleteQuietly($path, 'A gallery photo could not be removed from the media disk.');
     }
 }

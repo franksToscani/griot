@@ -7,6 +7,8 @@ import { useSyncExternalStore } from 'react';
 // the Inertia app, where usePage() has no page: it reads its label from here.
 
 let notificationsLabel: string | undefined;
+// The texts of the page shown, for the code outside the page components (lib/http-errors.ts).
+let pageTranslations: Record<string, string> = {};
 const listeners = new Set<() => void>();
 
 // Called once in app.tsx, before the app starts, so that the first "navigate" (the initial page)
@@ -17,6 +19,7 @@ export function syncDocumentLanguage(): void {
 
         document.documentElement.lang = locale.replace('_', '-');
         notificationsLabel = translations['common.notifications'];
+        pageTranslations = translations;
         listeners.forEach((listener) => listener());
     });
 }
@@ -30,4 +33,10 @@ function subscribe(listener: () => void): () => void {
 // The translated name of the notifications region; undefined until the first page is shown.
 export function useNotificationsLabel(): string | undefined {
     return useSyncExternalStore(subscribe, () => notificationsLabel);
+}
+
+// A text of lang/{locale}.json in the language of the page shown, outside React. As t(), a missing
+// key is shown as the key itself.
+export function pageText(key: string): string {
+    return pageTranslations[key] ?? key;
 }

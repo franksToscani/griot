@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProviderAvatarRequest;
+use App\Profile\AvatarNotStored;
 use App\Profile\InvalidAvatar;
 use App\Profile\StoreProviderAvatar;
 use Illuminate\Http\RedirectResponse;
@@ -35,6 +36,11 @@ class ProviderAvatarController extends Controller
         } catch (InvalidAvatar) {
             // It passed the rules but GD cannot read it, for example a truncated image.
             throw ValidationException::withMessages(['avatar' => __('provider.validation.avatar_unreadable')]);
+        } catch (AvatarNotStored $exception) {
+            // A problem of the disk, not of the photo: reported, and the provider can try again.
+            report($exception);
+
+            throw ValidationException::withMessages(['avatar' => __('provider.validation.avatar_not_saved')]);
         }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('provider.avatar.saved')]);

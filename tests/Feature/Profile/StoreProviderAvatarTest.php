@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Provider;
+use App\Profile\AvatarNotStored;
 use App\Profile\InvalidAvatar;
 use App\Profile\StoreProviderAvatar;
 use App\Support\MediaDisk;
@@ -197,7 +198,7 @@ test('if the disk refuses to write, nothing changes', function () {
     Storage::set(MediaDisk::NAME, $refusing);
 
     expect(fn () => app(StoreProviderAvatar::class)->store($provider, spaUpload('nuova.jpg', spaImageBytes(300, 300))))
-        ->toThrow(RuntimeException::class, 'could not be written');
+        ->toThrow(AvatarNotStored::class, 'The avatar could not be written to the media disk.');
 
     expect($provider->fresh()->avatar_path)->toBe('avatars/vecchia.webp');
     expect($disk->allFiles())->toBe(['avatars/vecchia.webp']);
