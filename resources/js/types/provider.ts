@@ -4,6 +4,11 @@ export type Category = {
     name: string;
 };
 
+// A category of the home page (HomeCategoryResource): offered when something can be booked in it.
+export type HomeCategory = Category & {
+    offered: boolean;
+};
+
 // The orders of the provider list (ProviderIndexRequest::SORTS); null is the default, by name.
 export type ProviderSort = 'name' | 'recent' | 'price_asc' | 'price_desc';
 

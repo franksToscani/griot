@@ -209,6 +209,21 @@
 }
 
 /*
+ * The two buttons that stay at the bottom right of the home page (components/home/floating-actions,
+ * docs/accessibility.md, "Elementi che restano fermi"): 3rem each, 0.75rem between them, 1rem from
+ * the edge, so 8rem in all. They must never hide what has the focus (WCAG 2.4.11): an element that
+ * gets the focus is scrolled into view above them, and the page ends with the same room, so at the
+ * very bottom the footer is never under them. Only on a page that has them.
+ */
+html:has([data-floating-actions]) {
+    scroll-padding-bottom: 8rem;
+}
+
+body:has([data-floating-actions]) {
+    padding-bottom: calc(8rem + env(safe-area-inset-bottom));
+}
+
+/*
  * The motion of the home page (docs/accessibility.md, "Movimento"): declared only for who has not
  * asked for less motion, so with "reduce motion" none of it exists (and the rule above ends what
  * is left at once). Only opacity and transform move; nothing loops.

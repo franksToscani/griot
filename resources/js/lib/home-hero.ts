@@ -24,4 +24,6 @@ export const HERO = {
     dot: 'border-hero-foreground',
     dotCurrent: 'bg-hero-foreground',
     ring: 'focus-visible:ring-hero-foreground',
+    // "Vedi tutti i professionisti" under the search: cream text, underlined, the band's focus ring.
+    link: 'w-fit underline underline-offset-4 outline-none focus-visible:ring-[3px] focus-visible:ring-hero-foreground focus-visible:outline-hidden',
 } as const;

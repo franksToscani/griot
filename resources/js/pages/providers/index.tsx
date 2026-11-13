@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Pagination } from '@/components/pagination';
+import { ProfessionalsInvite } from '@/components/professionals-invite';
 import { ProviderCard } from '@/components/provider-card';
 import {
     hasActiveFilters,
@@ -95,6 +96,14 @@ export default function ProvidersIndex({
                             filters,
                             filtered,
                         )}
+                        {/* Nobody yet, without a search or a filter: a new site. */}
+                        <ProfessionalsInvite
+                            empty={
+                                providers.meta.total === 0 &&
+                                !filtered &&
+                                filters.q === null
+                            }
+                        />
                     </p>
                 </div>
 

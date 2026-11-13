@@ -476,9 +476,9 @@ Chi arriva su Griot capisce subito cosa offre e trova un professionista in pochi
 
 Gli issue di questo sprint sono #57, #58, #59, #60 (deploy su Render), #62, #63, #64, #86 (campi di `auth.user` condivisi con le pagine), #97 (prezzo salvato sulla prenotazione), #131 (revisione del testo di `/privacy`) e #175 (audit con axe); #61 (archiviazione delle immagini) è già chiuso. Griot va online in modo sicuro, prima per i provider pilota e poi per un pubblico più ampio; a fine sprint il sito è su un indirizzo vero, la registrazione è chiusa, i controlli girano da soli su GitHub e sai cosa fare se qualcosa si rompe. Stima: 2 settimane, con possibili imprevisti di configurazione.
 
-**Stato (10 novembre 2026)**
+**Stato (13 novembre 2026)**
 
-- Fatti: #57 (CI), #58 (registrazione chiusa), #59 (configurazione di produzione), #86 (`auth.user`), #97 (prezzo salvato), la parte tecnica di #131 (bozze di informativa e termini d'uso, [legal.md](legal.md)) e la parte tecnica di #60 (immagine Docker, `render.yaml`, job `docker-build`), con il runbook di #63 e #64 ([deploy.md](deploy.md)) e l'avviso orario sui job falliti.
+- Fatti: #57 (CI), #58 (registrazione chiusa), #59 (configurazione di produzione), #86 (`auth.user`), #97 (prezzo salvato), la parte tecnica di #131 (bozze di informativa e termini d'uso, [legal.md](legal.md)) e la parte tecnica di #60 (immagine Docker, `render.yaml`, job `docker-build`), con il runbook di #63 e #64 ([deploy.md](deploy.md)) e l'avviso orario sui job falliti. Fuori dagli issue: la home e la lista sono utili anche senza professionisti (tutte le categorie con « In arrivo », link alla lista, stato vuoto con invito, « Come funziona » lungo una linea, pulsanti « ? » e « torna in cima » nella home, [home.md](home.md)).
 - Aperti: il deploy vero su Render (#60), la posta con un fornitore e un dominio (#62), la prova di ripristino del database e un avviso fuori dai log (#63), la revisione dei testi legali (#131), l'audit con axe (#175), i dati dei clienti nei log e nell'URL (#186).
 
 **Decisioni da fissare all'inizio**
@@ -583,6 +583,8 @@ Dopo il primo deploy si chiudono i promemoria e i debiti tecnici raccolti negli 
 - Anticipo minimo di prenotazione e messaggio « contatta il professionista » (#110), da decidere con i provider.
 - Contenuti dei provider in più lingue: nomi, descrizioni, opzioni (#132), da decidere dopo i feedback.
 - Ordinamento delle foto del lavoro: « Sposta prima » e « Sposta dopo » accessibili da tastiera e con lettore di schermo (#156).
+- Video incorporato nella vetrina del professionista, caricato solo al click (click-to-load), senza contenuti di terzi prima del consenso.
+- Mosaico delle foto: stile e UX da decidere.
 
 **Piccoli difetti noti**
 

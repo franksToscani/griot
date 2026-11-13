@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Home\FeaturedProviders;
-use App\Http\Resources\CategoryResource;
 use App\Http\Resources\FeaturedProviderResource;
+use App\Http\Resources\HomeCategoryResource;
 use App\Models\Category;
 use App\Models\Provider;
 use App\Support\LinkPreview;
@@ -25,18 +25,21 @@ class HomeController extends Controller
     {
         $preview->publicPage();
 
-        // Only the categories with something to book (an active service of a published provider):
-        // a link to an empty list would not help. One query; sorted on the name shown, which
-        // depends on the language.
-        $categories = Category::query()
-            ->offered()
+        // Every category, so that a new site still shows what it will offer (docs/home.md). The
+        // offered ones first (something to book: an active service of a published provider), then
+        // the others, each group sorted on the name shown, which depends on the language. One query.
+        $byName = fn (Category $category) => $category->displayName();
+        [$offered, $comingSoon] = Category::query()
+            ->withOffered()
             ->get()
-            ->sortBy(fn (Category $category) => $category->displayName(), SORT_NATURAL | SORT_FLAG_CASE)
+            ->partition(fn (Category $category) => (bool) $category->offered);
+        $categories = $offered->sortBy($byName, SORT_NATURAL | SORT_FLAG_CASE)
+            ->concat($comingSoon->sortBy($byName, SORT_NATURAL | SORT_FLAG_CASE))
             ->values();
 
         return Inertia::render('home', [
             // resolve(): a plain list, without the "data" wrapper.
-            'categories' => CategoryResource::collection($categories)->resolve($request),
+            'categories' => HomeCategoryResource::collection($categories)->resolve($request),
             // "Professionisti in evidenza": at most 8, the most recently published first.
             'featured' => FeaturedProviderResource::collection($featured->get())->resolve($request),
             // The cities of the search in the band at the top: the same list, and the same order,

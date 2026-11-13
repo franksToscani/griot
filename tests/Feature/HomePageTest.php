@@ -50,7 +50,7 @@ test('"/" shows the home page to everyone, without a redirect', function (Closur
         ->assertInertia(fn (Assert $page) => $page
             ->component('home')
             ->has('categories', 1)
-            ->where('categories.0', fn ($category) => array_keys($category->all()) === ['id', 'slug', 'name']));
+            ->where('categories.0', fn ($category) => array_keys($category->all()) === ['id', 'slug', 'name', 'offered']));
     expect(route('home'))->toBe(url('/'));
 })->with([
     'a guest' => [fn () => null],
@@ -65,7 +65,7 @@ test('three props of its own: the categories, the featured providers and the cit
     });
 });
 
-test('only the categories with something to book, with their translated name', function () {
+test('every category, the offered ones first, each with its translated name and whether it is offered', function () {
     $offered = hpOffered('treccine', 'Treccine');
     // Only an inactive service.
     $inactive = Category::factory()->create(['slug' => 'ciglia', 'name' => 'Ciglia']);
@@ -74,10 +74,16 @@ test('only the categories with something to book, with their translated name', f
     $hidden = Category::factory()->create(['slug' => 'nails', 'name' => 'Nails']);
     Service::factory()->for(Provider::factory())->for($hidden)->create(['is_active' => true]);
     // No service at all.
-    Category::factory()->create(['slug' => 'couture', 'name' => 'Couture']);
+    $couture = Category::factory()->create(['slug' => 'couture', 'name' => 'Couture']);
 
     $this->withCookie('locale', 'en')->get('/')->assertInertia(fn (Assert $page) => $page
-        ->where('categories', [['id' => $offered->id, 'slug' => 'treccine', 'name' => 'Braids']]));
+        ->where('categories', [
+            ['id' => $offered->id, 'slug' => 'treccine', 'name' => 'Braids', 'offered' => true],
+            // Then the others, by their English name: an unpublished provider does not count.
+            ['id' => $couture->id, 'slug' => 'couture', 'name' => 'Couture', 'offered' => false],
+            ['id' => $inactive->id, 'slug' => 'ciglia', 'name' => 'Lashes', 'offered' => false],
+            ['id' => $hidden->id, 'slug' => 'nails', 'name' => 'Nails', 'offered' => false],
+        ]));
 });
 
 test('sorted on the name shown, which depends on the language', function () {
@@ -120,9 +126,14 @@ test('one query for the categories, however many there are', function () {
     expect($count())->toBe($one);
 });
 
-test('with no category to book, the list is empty', function () {
-    Category::factory()->create(['slug' => 'treccine', 'name' => 'Treccine']);
+test('with no category to book, every category is still there, none offered', function () {
+    $category = Category::factory()->create(['slug' => 'treccine', 'name' => 'Treccine']);
 
+    $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->where('categories', [['id' => $category->id, 'slug' => 'treccine', 'name' => 'Treccine', 'offered' => false]]));
+});
+
+test('without any category at all, the list is empty', function () {
     $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page->where('categories', []));
 });
 
@@ -147,8 +158,14 @@ test('one h1, in the band at the top; an h2 per section and an h3 per step, with
         return $found[1];
     };
 
+    // Since the PR of the empty home page "Come funziona" is its own component, with its h2 and h3.
+    $steps = hpSource('components/home/how-it-works.tsx');
+
     expect($levels($intro))->toBe(['1'])
-        ->and(array_count_values($levels($page)))->toBe(['2' => 1, '3' => 1])
+        ->and($levels($page))->toBe([])
+        ->and(array_count_values($levels($steps)))->toBe(['2' => 1, '3' => 1])
+        // The help panel and the arrow: no heading of their own (the Sheet's title is the kit's).
+        ->and($levels(hpSource('components/home/floating-actions.tsx')))->toBe([])
         ->and($levels($row))->toBe(['2'])
         ->and($levels($card))->toBe(['3'])
         // The carousel (#144 step 5) has no heading: the name of a category is a paragraph.
@@ -158,7 +175,8 @@ test('one h1, in the band at the top; an h2 per section and an h3 per step, with
         // Nor the search: its fields have labels.
         ->and($levels(hpSource('components/home/home-search.tsx').hpSource('components/search-fields.tsx')))->toBe([])
         // The band comes first, then the sections; the h3 are inside the steps' list.
-        ->and($page)->toMatch('/<HomeHero[\s\S]*<CategoriesSection[\s\S]*<ScrollRow[\s\S]*<h2[\s\S]*<ol[^>]*>[\s\S]*<h3[\s\S]*<\/ol>/')
+        ->and($page)->toMatch('/<HomeHero[\s\S]*<CategoriesSection[\s\S]*<ScrollRow[\s\S]*<HowItWorks \/>[\s\S]*<ProfessionalsBand \/>[\s\S]*<HomeFloatingActions \/>/')
+        ->and($steps)->toMatch('/<h2[\s\S]*<ol[^>]*>[\s\S]*<h3[\s\S]*<\/ol>/')
         // The row's h2 comes before its items: the cards' h3 are under it.
         ->and($row)->toMatch('/<h2 id=\{titleId\}[\s\S]*<ul[\s\S]*\{renderItem\(item\)\}/');
     expect($intro)->toMatch("/<h1 className=\"max-w-2xl text-3xl leading-tight font-semibold text-balance break-words md:text-4xl lg:text-5xl\">\\s*\\{t\\('home\\.intro\\.title'\\)\\}\\s*<\\/h1>/");
@@ -166,15 +184,18 @@ test('one h1, in the band at the top; an h2 per section and an h3 per step, with
 
 test('the steps are an ordered list, the categories a list in a region that scrolls sideways', function () {
     $page = hpSource('pages/home.tsx');
+    $steps = hpSource('components/home/how-it-works.tsx');
     // The row that scrolls is the shared ScrollRow since #144 step 3: the same rules, in its file.
     $row = hpSource('components/home/scroll-row.tsx');
 
-    expect($page)
+    expect($steps)
         ->toContain("const STEPS = ['choose', 'book', 'confirm'] as const;")
-        // Since #144 step 10 the steps appear when scrolled to (HomeMotionTest).
-        ->toMatch('/<ol ref=\{steps\} className="grid gap-4 md:grid-cols-3">\s*\{STEPS\.map\(\(step, index\) => \{\s*const Icon = STEP_ICONS\[step\];\s*return \(\s*<li/')
+        // Since #144 step 10 the steps appear when scrolled to (HomeMotionTest); since the PR of
+        // the empty home page they stand along a line (HomeHowItWorksTest).
+        ->toMatch('/<ol ref=\{steps\} className="relative grid gap-6 md:grid-cols-3">[\s\S]*?\{STEPS\.map\(\(step, index\) => \{\s*const Icon = STEP_ICONS\[step\];\s*return \(\s*<li/')
         // Since the PR of the icons the h3 starts with the number of the step (HomeHowItWorksTest).
-        ->toMatch('/<h3 className="font-medium">\\s*<span className="[^"]*">\\s*\\{t\\(\'home\\.steps\\.number\', \\{\\s*number: index \\+ 1,?\\s*\\}\\)\\}\\s*<\\/span>\\s*\\{t\\(`home\\.steps\\.\\$\\{step\\}\\.title`\\)\\}/')
+        ->toMatch('/<h3 className="font-medium">\\s*<span className="[^"]*">\\s*\\{t\\(\'home\\.steps\\.number\', \\{\\s*number: index \\+ 1,?\\s*\\}\\)\\}\\s*<\\/span>\\s*\\{t\\(`home\\.steps\\.\\$\\{step\\}\\.title`\\)\\}/');
+    expect($page)
         // The categories go in the shared row, named by their own title.
         ->toMatch("/<ScrollRow\\s+titleId=\\{CATEGORIES_TITLE_ID\\}\\s+title=\\{t\\('home\\.categories\\.title'\\)\\}\\s+items=\\{categoryCards\\(categories, HOME_PHOTOS\\)\\}/");
 
@@ -203,8 +224,11 @@ test('the section of the categories is there only with categories', function () 
 test('nothing written by hand: no aria-label, no category name; nothing that moves or sticks', function () {
     $sources = hpSource('pages/home.tsx').hpSource('components/home/home-hero.tsx').hpSource('components/home/home-search.tsx').hpSource('components/search-fields.tsx').hpSource('components/home/scroll-row.tsx')
         .hpSource('components/home/featured-provider-card.tsx').hpSource('components/home/home-carousel.tsx').hpSource('lib/home-carousel.ts').hpSource('lib/home-hero.ts')
-        .hpSource('components/home/category-card.tsx').hpSource('lib/home-categories.ts').hpSource('components/home/professionals-band.tsx');
+        .hpSource('components/home/category-card.tsx').hpSource('lib/home-categories.ts').hpSource('components/home/professionals-band.tsx')
+        .hpSource('components/home/how-it-works.tsx');
 
+    // The two buttons that stay at the bottom right are the one exception, in their own file
+    // (docs/accessibility.md, "Elementi che restano fermi"; HomeFloatingActionsTest).
     expect($sources)
         // aria-labelledby is fine: it points to a visible title.
         ->not->toMatch('/aria-label(?!ledby)/')
@@ -244,13 +268,16 @@ test('the texts of the home page exist in Italian, French and English, with the 
     // shared with the list (HomeHeroSearchTest). "home.intro.cta" is gone with its button: the
     // search does the same.
     // 6 more since the PR of the icons: the number of a step and the band for the professionals.
-    expect($keys)->toHaveCount(36)
+    // 10 more since the PR of the empty home page: "Vedi tutti i professionisti", "In arrivo", the
+    // arrow and the 7 of the help panel.
+    expect($keys)->toHaveCount(46)
         ->and($keys)->not->toContain('home.search.q')
         ->and($keys)->not->toContain('home.intro.cta');
 
     // Every key the page uses, the steps and the sentences of the categories included.
     $used = hpSource('pages/home.tsx').hpSource('components/home/home-hero.tsx').hpSource('components/home/home-search.tsx').hpSource('components/home/featured-provider-card.tsx').hpSource('components/home/professionals-band.tsx')
-        .hpSource('components/home/home-carousel.tsx').hpSource('lib/home-carousel.ts');
+        .hpSource('components/home/home-carousel.tsx').hpSource('lib/home-carousel.ts').hpSource('components/home/how-it-works.tsx')
+        .hpSource('components/home/floating-actions.tsx').hpSource('components/home/category-card.tsx');
     foreach ($keys as $key) {
         $step = preg_match('/^home\.steps\.(choose|book|confirm)\.(title|text)$/', $key, $match) === 1;
         // The sentence of a category is read by its slug (lib/home-carousel.ts).

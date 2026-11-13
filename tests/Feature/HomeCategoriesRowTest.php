@@ -54,6 +54,26 @@ function hcrCard(): string
 }
 
 /**
+ * The photo or the tile of a card, shared by the two kinds of card: the function CardImage.
+ */
+function hcrImage(): string
+{
+    expect(preg_match('/function CardImage[\s\S]*$/', hcrSource('components/home/category-card.tsx'), $match))->toBe(1);
+
+    return $match[0];
+}
+
+/**
+ * The card of a category not offered yet: between "if (!card.offered) {" and its "</div>".
+ */
+function hcrComingSoon(): string
+{
+    expect(preg_match('/if \(!card\.offered\) \{[\s\S]*?<\/div>/', hcrSource('components/home/category-card.tsx'), $match))->toBe(1);
+
+    return $match[0];
+}
+
+/**
  * A category with something to book: an active service of a published provider.
  */
 function hcrOffered(string $slug): Category
@@ -108,13 +128,17 @@ test('the whole card is one link to the list filtered on its category, made by W
 
 test('the name under the photo or the tile, never on it: the image first, then the name, nothing absolute', function () {
     expect(hcrCard())
-        ->toMatch('/\{card\.image !== null \? \([\s\S]*<img[^>]*\/>\s*<\/span>\s*\) : \(\s*<span[^>]*\/>\s*\)\}\s*<span className="[^"]*">\s*\{card\.name\}\s*<\/span>\s*<\/Link>$/')
-        ->and(substr_count(hcrCard(), '{card.name}'))->toBe(1)
-        ->and(hcrCard())->not->toMatch('/\b(absolute|inset-|bg-gradient|from-black|bg-black)/');
+        ->toMatch('/<CardImage card=\{card\} \/>\s*<span className="[^"]*">\s*\{card\.name\}\s*<\/span>\s*<\/Link>$/')
+        ->and(substr_count(hcrCard(), '{card.name}'))->toBe(1);
+    // The photo or the tile (CardImage, shared by both cards): one or the other, never a text.
+    expect(hcrImage())
+        ->toMatch('/if \(card\.image === null\) \{\s*return \(\s*<span[^>]*\/>\s*\);\s*\}\s*return \(\s*<span[^>]*>\s*<img[^>]*\/>\s*<\/span>\s*\);/')
+        ->not->toContain('{card.name}');
+    expect(hcrCard().hcrImage())->not->toMatch('/\b(absolute|inset-|bg-gradient|from-black|bg-black)/');
 });
 
 test('the photo is decorative, lazy, with its width and height: nothing jumps', function () {
-    expect(preg_match_all('/<img[\s\S]*?\/>/', hcrCard(), $images))->toBe(1);
+    expect(preg_match_all('/<img[\s\S]*?\/>/', hcrImage(), $images))->toBe(1);
 
     expect($images[0][0])
         ->toContain('src={card.image.src}')
@@ -132,7 +156,7 @@ test('the photo is decorative, lazy, with its width and height: nothing jumps', 
 });
 
 test('a category without a photo: a tile filled with its token, with the measured border, decorative', function () {
-    expect(hcrCard())->toMatch("/<span\\s+aria-hidden=\"true\"\\s+className=\\{cn\\(\\s*'block h-24 w-full rounded-md',\\s*CATEGORY_TILE_EDGE,\\s*card\\.tone,?\\s*\\)\\}\\s*\\/>/");
+    expect(hcrImage())->toMatch("/<span\\s+aria-hidden=\"true\"\\s+className=\\{cn\\(\\s*'block h-24 w-full rounded-md',\\s*CATEGORY_TILE_EDGE,\\s*card\\.tone,?\\s*\\)\\}\\s*\\/>/");
     expect(hcrSource('lib/home-categories.ts'))
         ->toMatch("/export const CATEGORY_TONES = \\[\\s*'bg-primary',\\s*'bg-highlight',\\s*'bg-info',\\s*'bg-card',?\\s*\\] as const;/")
         ->toContain("export const CATEGORY_TILE_EDGE = 'border border-input';");
@@ -142,7 +166,8 @@ test('no colour written by hand, never red: only tokens of the theme', function 
     $sources = hcrSource('components/home/category-card.tsx').hcrSource('lib/home-categories.ts');
 
     preg_match_all('/(?<![\w-])(?:hover:|focus-visible:|group-hover:)?(?:bg|text|border|ring)-([a-z]+(?:-[a-z]+)*)(?:\/\d+)?(?![\w-])/', $sources, $colours);
-    expect(array_values(array_diff(array_unique($colours[1]), ['primary', 'highlight', 'info', 'card', 'input', 'muted', 'ring'])))->toBe([])
+    // muted-foreground and the size xs: the label "In arrivo" (since the PR of the empty home page).
+    expect(array_values(array_diff(array_unique($colours[1]), ['primary', 'highlight', 'info', 'card', 'input', 'muted', 'muted-foreground', 'ring', 'xs'])))->toBe([])
         ->and($sources)->not->toMatch('/#[0-9a-f]{3,8}\b|oklch\(|rgba?\(|hsla?\(|\[(?:#|rgb|oklch)/i')
         ->and($sources)->not->toMatch('/\b(bg|text|border|ring)-(decor|destructive|red|rose|orange|[a-z]+-\d{2,3})\b/');
 });

@@ -71,7 +71,7 @@ Costi, dalla pagina dei prezzi (https://render.com/pricing):
     | `TERMS_PUBLISHER_ADDRESS`    | l'indirizzo dell'editore                                   | decisione di Franks                                   | `Via Esempio 1, 00000 Città`                     |
     | `TERMS_PUBLISHER_VAT_NUMBER` | la partita IVA dell'editore                                | decisione di Franks                                   | `IT-ESEMPIO`                                     |
 
-    Le variabili `AWS_*` servono solo con le foto (sezione 5). Se Render accetta valori vuoti per le variabili `sync: false` è **da verificare**. I contatti e i dati dell'editore vuoti mostrano un segnaposto o nessun contatto.
+    Le variabili `AWS_*` servono solo con le foto (sezione 5). Se Render accetta valori vuoti per le variabili `sync: false` è **da verificare**. I contatti e i dati dell'editore vuoti mostrano un segnaposto o nessun contatto. `CONTACT_WHATSAPP` serve anche al link « Chiama » (`tel:`) del pannello di aiuto della home: lo stesso numero, solo le cifre con il `+` davanti.
 
 4. **Aspettare il `preDeployCommand`** (`php artisan migrate --force`): crea le tabelle prima che la nuova versione parta. È disponibile sui servizi web a pagamento (https://render.com/docs/blueprint-spec). Se fallisce, il deploy si ferma: leggere i log (sezione 7).
 

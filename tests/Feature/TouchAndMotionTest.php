@@ -190,9 +190,10 @@ test('every lone link uses it, and only those: the links inside a sentence are l
     expect($source)->toContain("import { touchTarget } from '@/lib/touch-target';")
         ->and(substr_count($source, 'touchTarget') - 1)->toBe($uses);
 })->with([
-    // The logo, "dashboard" or "log in", the privacy and terms links in the footer (#131), and the
-    // site's email and WhatsApp in the footer (#144, step 4).
-    'public layout' => ['layouts/public-layout.tsx', 7],
+    // The logo, "Trova un professionista", "dashboard" or "log in", the privacy, terms and list
+    // links in the footer (#131, the PR of the empty home page), and the site's email and
+    // WhatsApp in the footer (#144, step 4).
+    'public layout' => ['layouts/public-layout.tsx', 9],
     // WhatsApp and Instagram (externalLink), the way back.
     'provider page' => ['pages/providers/show.tsx', 2],
     // The provider, in the booking's details; WhatsApp for a question (#140).
@@ -209,8 +210,12 @@ test('every lone link uses it, and only those: the links inside a sentence are l
     // The logo above the login forms.
     'login layout' => ['layouts/auth/auth-simple-layout.tsx', 1],
     'pagination' => ['components/pagination.tsx', 1],
-    // Each card of the row "Categorie" on the home page (#144, step 8).
+    // Each card of the row "Categorie" on the home page (#144, step 8); a card "In arrivo" is no link.
     'category card' => ['components/home/category-card.tsx', 1],
+    // "Vedi tutti i professionisti" under the search of the band (the PR of the empty home page).
+    'band at the top' => ['components/home/home-hero.tsx', 1],
+    // The email and the WhatsApp of the invitation in the empty list.
+    'invitation of the empty list' => ['components/professionals-invite.tsx', 1],
     // Each card of "Professionisti in evidenza" (#144, step 3).
     'featured provider card' => ['components/home/featured-provider-card.tsx', 1],
 ]);
@@ -222,8 +227,9 @@ test('the lone links get it where they are', function () {
     expect(tamSource('js/pages/auth/verify-email.tsx'))
         ->toMatch("/href=\\{logout\\(\\)\\}\\s+className=\\{cn\\(\\s*'[^']*\\bmax-md:justify-center\\b[^']*',\\s*touchTarget,\\s*\\)\\}/");
     expect(tamSource('js/layouts/public-layout.tsx'))
-        ->toContain('<Link href={login()} className={touchTarget}>')
+        ->toMatch('/<Link\s+href=\{login\(\)\}\s+className=\{touchTarget\}\s*>/')
         ->toMatch('/<Link\s+href=\{dashboard\(\)\}\s+className=\{touchTarget\}\s*>/')
+        ->toMatch('/<Link\s+href=\{providersIndex\(\)\}\s+className=\{touchTarget\}\s*>/')
         ->toMatch("/<Link\s+href=\{home\(\)\}\s+className=\{cn\(\s*'flex shrink-0 items-center',\s*touchTarget,?\s*\)\}\s*>/");
     expect(tamSource('js/pages/providers/show.tsx'))
         ->toContain("className: cn('underline underline-offset-4', touchTarget),");

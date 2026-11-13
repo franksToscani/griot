@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Lang;
 
+/**
+ * @property bool|int|null $offered from withOffered() only: whether something can be booked in it
+ */
 class Category extends Model
 {
     /** @use HasFactory<CategoryFactory> */
@@ -25,9 +28,30 @@ class Category extends Model
     #[Scope]
     protected function offered(Builder $query): void
     {
-        $query->whereHas('services', fn (Builder $services) => $services
-            ->where('is_active', true)
-            ->whereHas('provider', fn (Builder $provider) => $provider->where('is_published', true)));
+        $query->whereHas('services', fn (Builder $services) => self::offeredServices($services));
+    }
+
+    /**
+     * Every category, with "offered" (true or false) by the same rule as offered(), in the same
+     * query: the home page shows them all, the offered ones as links (docs/home.md).
+     *
+     * @param  Builder<Category>  $query
+     */
+    #[Scope]
+    protected function withOffered(Builder $query): void
+    {
+        $query->withExists(['services as offered' => fn (Builder $services) => self::offeredServices($services)]);
+    }
+
+    /**
+     * The one rule of an offered category: an active service of a published provider.
+     *
+     * @param  Builder<Service>  $services
+     */
+    private static function offeredServices(Builder $services): void
+    {
+        $services->where('is_active', true)
+            ->whereHas('provider', fn (Builder $provider) => $provider->where('is_published', true));
     }
 
     /**

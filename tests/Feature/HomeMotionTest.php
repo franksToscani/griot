@@ -20,7 +20,8 @@ function hmSources(): string
         'js/pages/home.tsx', 'js/components/home/home-hero.tsx', 'js/components/home/home-search.tsx', 'js/components/search-fields.tsx',
         'js/components/home/home-carousel.tsx', 'js/components/home/category-card.tsx',
         'js/components/home/featured-provider-card.tsx', 'js/components/home/scroll-row.tsx', 'js/components/home/professionals-band.tsx',
-        'js/lib/home-hero.ts', 'js/lib/motion.ts', 'js/hooks/use-reveal.ts',
+        'js/lib/home-hero.ts', 'js/lib/motion.ts', 'js/hooks/use-reveal.ts', 'js/components/home/how-it-works.tsx',
+        'js/components/home/floating-actions.tsx',
     ];
 
     return implode("\n", array_map(fn (string $file) => hmSource($file), $files));
@@ -253,7 +254,8 @@ test('the rows and the steps appear on scroll, one item after the other', functi
         ->toContain('const reveal = useReveal<HTMLUListElement>();')
         ->toContain('<ul ref={reveal}')
         ->toMatch('/className="reveal-item shrink-0 snap-start"\s+style=\{revealDelay\(index\)\}/');
-    expect(hmSource('js/pages/home.tsx'))
+    // "Come funziona" is its own component since the PR of the empty home page.
+    expect(hmSource('js/components/home/how-it-works.tsx'))
         ->toContain('const steps = useReveal<HTMLOListElement>();')
         ->toContain('<ol ref={steps}')
         ->toMatch('/className="reveal-item [^"]*"\s+style=\{revealDelay\(index\)\}/');

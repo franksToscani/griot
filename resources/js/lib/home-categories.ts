@@ -1,10 +1,11 @@
 // The row "Categorie" of the home page (docs/home.md): the small rules, apart from React so that
-// they can be tested with Node. One card per category with something to book, in the order of the
-// prop: the photo of HOME_PHOTOS, or a coloured tile when the category has none.
+// they can be tested with Node. One card per category, in the order of the prop (the offered ones
+// first): the photo of HOME_PHOTOS, or a coloured tile when the category has none. An offered card
+// is a link; the others say "In arrivo".
 // Only types are imported: Node runs this file as it is (HomeCategoriesRowTest), without the "@/"
 // paths of Vite.
 import type { HomePhoto, SlideImage } from '@/lib/home-carousel';
-import type { Category } from '@/types';
+import type { HomeCategory } from '@/types';
 
 // The colours of the tiles of the categories without a photo, in turn: brown, amber, light green,
 // white. Only the tokens of resources/css/app.css; never red. The tile holds no text (the name is
@@ -33,6 +34,8 @@ export type CategoryCard = {
     // The photo, or null: then the tile, with its tone.
     image: SlideImage | null;
     tone: CategoryTone | null;
+    // Something to book: a link to the list. Otherwise a card that says "In arrivo".
+    offered: boolean;
 };
 
 // The photo of a card, or null when the category has none. src is the smallest size (a card is
@@ -62,7 +65,7 @@ export function categoryImage(
 // The cards, in the order of the categories. The tones go in turn over the categories without a
 // photo only: the first tile is brown, the second amber, and so on, whatever photos are between.
 export function categoryCards(
-    categories: Category[],
+    categories: HomeCategory[],
     photos: Record<string, HomePhoto> = {},
 ): CategoryCard[] {
     let tiles = 0;
@@ -73,6 +76,7 @@ export function categoryCards(
             id: category.id,
             slug: category.slug,
             name: category.name,
+            offered: category.offered,
         };
 
         if (image === null) {
