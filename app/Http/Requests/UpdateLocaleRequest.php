@@ -39,4 +39,26 @@ class UpdateLocaleRequest extends FormRequest
     {
         return $this->string('locale')->toString();
     }
+
+    /**
+     * The page where the choice was made, sent by the selector ("return_to", usePage().url), or
+     * null. Not in rules() on purpose: a refused address must not refuse the language too, so it is
+     * only ignored, and the controller goes back() as before.
+     *
+     * Only a path of this site, checked strictly so that the redirect can never leave it:
+     * - it starts with exactly one "/": not "//evil.test" nor "/\evil.test", which browsers read as
+     *   another host, and never a scheme such as "https:" or "javascript:";
+     * - no "\" anywhere, no control character (line breaks and tabs included);
+     * - at most 2048 characters.
+     */
+    public function returnTo(): ?string
+    {
+        $value = $this->input('return_to');
+
+        if (! is_string($value) || strlen($value) > 2048) {
+            return null;
+        }
+
+        return preg_match('~^/[^/\\\\\x00-\x1F\x7F][^\\\\\x00-\x1F\x7F]*$|^/$~D', $value) === 1 ? $value : null;
+    }
 }

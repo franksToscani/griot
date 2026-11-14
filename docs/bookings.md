@@ -112,6 +112,38 @@ Al massimo `config('booking.received_email_per_hour')` email di questo tipo (ogg
 
 Ogni prenotazione dal modulo con un'email ora manda **due email** (al professionista e al cliente), più l'esito. Con Gmail nella fase privata il tetto è di 500 email al giorno ([deploy.md](deploy.md), sezione 4).
 
+## Indietro e Avanti: lo stato di nuovo dal server
+
+Con Indietro e Avanti Inertia mostra di nuovo una pagina con le props salvate nella cronologia del browser quando la pagina è stata lasciata, senza chiedere niente al server. Lo stesso succede quando si esce verso un altro sito e si torna con Indietro: il browser scarica la pagina, ma Inertia usa comunque la cronologia. Una prenotazione confermata o annullata nel frattempo sembrerebbe ancora com'era, fino a un F5.
+
+`resources/js/lib/live-pages.ts` (`refreshLivePagesOnHistory()`) chiede di nuovo al server **solo le props della prenotazione** di tre pagine, con `router.reload({ only })`:
+
+| Pagina                                        | Componente                | Props ricaricate        |
+| --------------------------------------------- | ------------------------- | ----------------------- |
+| Lista del professionista                      | `provider/bookings/index` | `bookings`              |
+| Pagina di una prenotazione del professionista | `provider/bookings/show`  | `booking`               |
+| Pagina privata del cliente                    | `bookings/show`           | `booking`, `can_cancel` |
+
+- **Quando:** all'evento `navigate` di Inertia con `type === 'history'`, e all'evento `pageshow` con `persisted`, cioè una pagina intera ripristinata dalla cache avanti/indietro del browser, che non lancia `navigate`.
+- **Perché globale:** è registrato una volta in `app.tsx`, prima di `createInertiaApp`, come `syncDocumentLanguage()`. Con Indietro la pagina viene montata di nuovo, e un listener dentro la pagina potrebbe non esserci ancora quando arriva l'evento.
+- **Che cosa non fa:** non ricarica la pagina intera, non cambia lo scroll né lo stato dei componenti (il ricarico di Inertia li conserva) e non interroga il server a intervalli. Per un attimo si vede il dato della cronologia, poi quello nuovo.
+- **I filtri della lista** restano: il ricarico usa l'indirizzo della pagina, query compresa.
+- **La pagina pubblica del professionista** non è nella lista: gli orari liberi si chiedono solo dopo aver scelto un giorno, e con Indietro la scheda di prenotazione riparte chiusa.
+
+## Cambio lingua dopo la pagina privata
+
+La pagina privata del cliente aggiunge `<meta name="referrer" content="no-referrer">`, per non mandare il codice segreto ad altri siti. Il browser tiene quella politica per tutta la scheda, anche dopo Indietro, quindi le richieste successive partono senza `Referer`. Il cambio lingua rispondeva con `back()`, che senza `Referer` usa l'ultimo URL salvato in sessione. Quell'URL poteva essere la richiesta degli orari liberi: Inertia riceveva un JSON e mostrava un errore.
+
+- Il selettore (`locale-switcher.tsx`) manda anche l'indirizzo della propria pagina (`return_to`, da `usePage().url`). `LocaleController` lo usa solo se `UpdateLocaleRequest::returnTo()` lo accetta:
+    - inizia con una sola `/`;
+    - non contiene `\` né caratteri di controllo;
+    - è lungo al massimo 2048 caratteri.
+
+    Altrimenti viene ignorato e si usa `back()` come prima; la lingua cambia comunque.
+
+- La richiesta degli orari (`use-free-slots.ts`) manda `X-Requested-With: XMLHttpRequest`, come le visite Inertia, così Laravel non la salva come « URL precedente ».
+- Sulla pagina privata, `return_to` contiene il codice segreto. Viaggia nel corpo di un `POST` verso lo stesso sito, mai in un indirizzo, quindi non finisce nei log di accesso; Griot non lo scrive nei log. Il codice è già nella sessione come « URL precedente » quando la pagina viene aperta dal link.
+
 ## Test
 
 - `tests/Feature/BookingSavedPriceTest.php`:
@@ -124,4 +156,6 @@ Ogni prenotazione dal modulo con un'email ora manda **due email** (al profession
 - `ProviderBookingsListTest` e `BookingConfirmationTest`: i prezzi mostrati sono quelli salvati, anche dopo un cambio del catalogo o un'opzione nascosta.
 - Nei test, una prenotazione fatta con la factory riceve le opzioni con `attachBookingOptions()` (`tests/Pest.php`), che salva il loro prezzo attuale come `CreateBooking`.
 - `tests/Feature/BookingReceivedNotificationTest.php`: l'email « richiesta inviata », cioè quando parte e quando no (senza email, honeypot, prenotazione del professionista), la lingua, il link privato con l'avviso, niente telefono, prezzo e note, l'oggetto, l'escaping, la coda, il payload del job senza il `public_token`, l'errore in coda, il limite per indirizzo (la quarta nell'ora, indirizzi diversi, maiuscole), i testi nelle tre lingue.
+- `tests/Feature/LocaleReturnTest.php`: il cambio lingua torna alla pagina mandata, anche senza `Referer` e con gli orari letti prima; gli indirizzi rifiutati (un altro host, `\`, uno schema, a capo, un array, troppo lungo) lasciano `back()` e cambiano comunque la lingua; la pagina privata; gli orari con `X-Requested-With` non diventano l'« URL precedente »; i sorgenti del selettore e di `use-free-slots.ts`.
+- `tests/Feature/LivePagesTest.php`: il ricarico dopo Indietro. Per le tre pagine, lo stato cambiato con i servizi veri (`ManageBooking`, `CancelBooking`) dopo l'apertura arriva con `reloadOnly()`, senza le altre props; la mappa di `live-pages.ts` corrisponde ai componenti e alle props dei controller; il listener controlla `history` e `persisted` ed è registrato prima di `createInertiaApp`.
 - `tests/Feature/ProviderBookingDetailTest.php`: la pagina di una prenotazione (404 per le altre, login e ritorno, campi), il link dell'email « nuova prenotazione » in HTML e in testo, dove si torna dopo ogni risposta (successo, rifiuto dello stato, messaggio troppo lungo, limite di richieste, valori di `return` diversi da `detail`), i testi nelle tre lingue.
