@@ -17,6 +17,7 @@ use App\Http\Controllers\ProviderBookingController;
 use App\Http\Controllers\ProviderBookingCreateController;
 use App\Http\Controllers\ProviderBookingIndexController;
 use App\Http\Controllers\ProviderBookingRejectController;
+use App\Http\Controllers\ProviderBookingShowController;
 use App\Http\Controllers\ProviderBookingSlotsController;
 use App\Http\Controllers\ProviderBookingStoreController;
 use App\Http\Controllers\ProviderController;
@@ -123,6 +124,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('provider/bookings/slots', ProviderBookingSlotsController::class)
         ->middleware('throttle:provider-bookings')
         ->name('provider.bookings.slots');
+    // One booking of the provider's own, with the same answers as the list: the page of the email
+    // "nuova prenotazione". Digits only, so "create" and "slots" above never reach it.
+    Route::get('provider/bookings/{booking}', ProviderBookingShowController::class)
+        ->whereNumber('booking')
+        ->name('provider.bookings.show');
     Route::post('provider/bookings', ProviderBookingStoreController::class)
         ->middleware('throttle:provider-bookings')
         ->name('provider.bookings.store');

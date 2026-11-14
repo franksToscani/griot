@@ -69,7 +69,7 @@ test('every link that opens a new tab says so to screen readers, and has no open
     // the band for the professionals on the home page, in the help panel of the home page and in
     // the invitation of the empty list (the PR of the empty home page).
     sort($found);
-    expect($found)->toBe(['booking-sheet.tsx', 'floating-actions.tsx', 'index.tsx', 'nav-footer.tsx', 'privacy-link.tsx', 'professionals-band.tsx', 'professionals-invite.tsx', 'public-layout.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx']);
+    expect($found)->toBe(['booking-sheet.tsx', 'floating-actions.tsx', 'nav-footer.tsx', 'privacy-link.tsx', 'professionals-band.tsx', 'professionals-invite.tsx', 'provider-booking-card.tsx', 'public-layout.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx']);
 });
 
 test('the new-tab notice is one translated text, hidden on screen', function () {
@@ -133,7 +133,7 @@ test('the headings of the provider\'s area go h1 first, one h1, and never skip a
         expect($level)->toBeLessThanOrEqual($levels[$position] + 1, "A skipped heading level in {$page}");
     }
 })->with([
-    'dashboard', 'provider/setup', 'provider/edit', 'provider/bookings/index', 'provider/bookings/create',
+    'dashboard', 'provider/setup', 'provider/edit', 'provider/bookings/index', 'provider/bookings/show', 'provider/bookings/create',
     'provider/services/index', 'provider/services/edit', 'provider/services/options', 'provider/availability/index',
     'providers/index', 'providers/show', 'bookings/show',
 ]);

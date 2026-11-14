@@ -16,8 +16,11 @@ use Illuminate\Notifications\Notification;
  *
  * The email is built from its own Blade views, not with MailMessage::line(): line() reads the
  * text as Markdown, so a customer could turn the name or the notes into links or headings.
- * The views print every customer field as plain text. The public_token, the private address
- * and the price are left out on purpose.
+ * The views print every customer field as plain text. The only link is the booking's page in the
+ * provider's area (provider.bookings.show, by its id, behind the login), where the provider
+ * confirms or rejects with the buttons of the page: a link never answers by itself, because mail
+ * scanners open links. The public_token, the customer's private address and the price are left
+ * out on purpose.
  */
 class NewBookingNotification extends Notification implements ShouldQueue
 {
@@ -84,6 +87,8 @@ class NewBookingNotification extends Notification implements ShouldQueue
                 'customerPhone' => $booking->customer_phone,
                 'customerEmail' => $booking->customer_email,
                 'notes' => $booking->notes,
+                // Absolute (APP_URL in the queue worker). The id only: never the public_token.
+                'url' => route('provider.bookings.show', ['booking' => $booking->id]),
             ]);
     }
 }

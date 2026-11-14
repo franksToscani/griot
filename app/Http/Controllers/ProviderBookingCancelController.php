@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Booking\BookingOutcome;
 use App\Booking\ManageBooking;
 use App\Booking\TransitionNotAllowed;
+use App\Http\ProviderBookingReturn;
 use App\Http\Requests\RejectBookingRequest;
 use App\Notifications\BookingStatusNotification;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +20,7 @@ class ProviderBookingCancelController extends Controller
 {
     /**
      * Handle the incoming request. The booking was found among the user's own by the request (404
-     * otherwise); only "reason" is read from the body.
+     * otherwise); only "reason" is read from the body, and "return" for where to go back.
      */
     public function __invoke(RejectBookingRequest $request, ManageBooking $manageBooking): RedirectResponse
     {
@@ -37,7 +38,7 @@ class ProviderBookingCancelController extends Controller
         } catch (TransitionNotAllowed $exception) {
             // redirectTo(): the Referer is not reliable.
             throw ValidationException::withMessages(['booking' => __('provider.bookings.transition.'.$exception->reason())])
-                ->redirectTo(route('provider.bookings.index'));
+                ->redirectTo(ProviderBookingReturn::url($request));
         }
 
         // After the transaction, which is committed: the queued email never runs for a change that was
@@ -46,6 +47,7 @@ class ProviderBookingCancelController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('provider.bookings.cancelled_by_provider')]);
 
-        return to_route('provider.bookings.index');
+        // Back where the answer was given: the booking's page or the list.
+        return redirect(ProviderBookingReturn::url($request));
     }
 }

@@ -14,10 +14,11 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * A booking in the provider's own list. It expects provider, service and options to be already
- * loaded. It leaves out on purpose every internal id but the booking's. The public_token appears in
- * one place only: inside whatsapp_url, the private address the provider sends to the customer,
- * and only for a booking the provider has answered. The customer's fields are data written by
+ * A booking in the provider's own list, and on its own page (ProviderBookingShowController). It
+ * expects provider, service and options to be already loaded. It leaves out on purpose every
+ * internal id but the booking's. The public_token appears in one place only: inside
+ * whatsapp_url, the private address the provider sends to the customer, and only for a booking
+ * the provider has answered. The customer's fields are data written by
  * the customer: the page shows them as plain text. The WhatsApp text is in the customer's language
  * (booking.locale), not in the provider's; the language itself is not sent to the page. An
  * anonymous booking (AnonymizeOldBookings) has no customer's fields and no WhatsApp link: the page

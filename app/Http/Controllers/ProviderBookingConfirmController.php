@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Booking\BookingOutcome;
 use App\Booking\ManageBooking;
 use App\Booking\TransitionNotAllowed;
+use App\Http\ProviderBookingReturn;
 use App\Notifications\BookingStatusNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,7 +20,7 @@ class ProviderBookingConfirmController extends Controller
 {
     /**
      * Handle the incoming request. The booking is searched only among the user's own: any other id
-     * gets the same 404. The request has no fields.
+     * gets the same 404. Only "return" is read from the body, for where to go back.
      */
     public function __invoke(Request $request, ManageBooking $manageBooking): RedirectResponse
     {
@@ -38,7 +39,7 @@ class ProviderBookingConfirmController extends Controller
         } catch (TransitionNotAllowed $exception) {
             // redirectTo(): the Referer is not reliable.
             throw ValidationException::withMessages(['booking' => __('provider.bookings.transition.'.$exception->reason())])
-                ->redirectTo(route('provider.bookings.index'));
+                ->redirectTo(ProviderBookingReturn::url($request));
         }
 
         // After the transaction, which is committed: the queued email never runs for a change that was
@@ -47,6 +48,7 @@ class ProviderBookingConfirmController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('provider.bookings.confirmed')]);
 
-        return to_route('provider.bookings.index');
+        // Back where the answer was given: the booking's page or the list.
+        return redirect(ProviderBookingReturn::url($request));
     }
 }
