@@ -249,18 +249,26 @@ test('options, email and notes appear only when there are some', function () {
 });
 
 test('the phone is plain text, not a link', function () {
-    $html = nbHtml(nbMail(nbBooking()));
+    $booking = nbBooking();
+    $html = nbHtml(nbMail($booking));
 
-    expect($html)->toContain('+39 333 123 4567')->not->toContain('tel:')->not->toContain('<a');
+    // The only link is the booking's page in the provider's area.
+    expect($html)->toContain('+39 333 123 4567')->not->toContain('tel:')
+        ->and(substr_count($html, '<a '))->toBe(1)
+        ->and($html)->toContain('<a href="'.route('provider.bookings.show', ['booking' => $booking->id]).'"');
 });
 
 test('the token and the private address are not in the email', function () {
     $booking = nbBooking(['customer_email' => 'awa@example.com', 'notes' => 'Nota']);
     $mail = nbMail($booking);
     $sent = nbSend($booking);
+    $private = route('bookings.show', ['booking' => $booking->public_token]);
 
+    // The provider's link (/provider/bookings/{id}) is allowed: the customer's page, by its code, never.
     foreach ([$mail->subject, nbHtml($mail), nbText($mail), $sent->toString()] as $part) {
-        expect($part)->not->toContain($booking->public_token)->not->toContain('/bookings/');
+        expect($part)->not->toContain($booking->public_token)
+            ->not->toContain($private)
+            ->not->toMatch('#(?<!/provider)/bookings/[A-Za-z0-9]{20,}#');
     }
 });
 

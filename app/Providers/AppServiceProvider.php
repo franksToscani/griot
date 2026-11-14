@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\ProviderBookingReturn;
 use App\Models\Provider;
 use App\Support\LinkPreview;
 use App\Support\ProductionMailer;
@@ -106,9 +107,10 @@ class AppServiceProvider extends ServiceProvider
                     $exception->redirectTo(route('provider.availability.index'));
                 }
 
-                // The answers to the bookings, too: their buttons live on the bookings page.
+                // The answers to the bookings, too: back to the booking's page or to the list,
+                // where the buttons were pressed (ProviderBookingReturn).
                 if ($request->routeIs('provider.bookings.*')) {
-                    $exception->redirectTo(route('provider.bookings.index'));
+                    $exception->redirectTo(ProviderBookingReturn::url($request));
                 }
             }
 

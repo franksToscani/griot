@@ -374,8 +374,9 @@ test('the texts of the buttons, the windows and the customer page are exactly th
 });
 
 test('the buttons of the bookings page follow the three flags of the server', function () {
-    // Read in the page source: there is no JavaScript test runner.
-    $source = file_get_contents(resource_path('js/pages/provider/bookings/index.tsx'));
+    // Read in the source of the card, shared by the list and the booking's page: there is no
+    // JavaScript test runner.
+    $source = file_get_contents(resource_path('js/components/provider-booking-card.tsx'));
 
     // Each button only under its own flag, sent by the server: the page computes no rule.
     expect($source)

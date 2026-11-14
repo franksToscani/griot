@@ -18,4 +18,7 @@
 {!! $notes !!}
 @endif
 
+{!! __('booking.notification.action') !!}
+{!! $url !!}
+
 {!! __('booking.notification.outro') !!}

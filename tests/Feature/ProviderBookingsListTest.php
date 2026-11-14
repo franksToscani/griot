@@ -490,8 +490,9 @@ test('the texts of the bookings page are exactly the expected ones', function ()
 });
 
 test('the page shows the customer fields as plain text: no phone or mail links, no raw HTML', function () {
-    // Read in the page source: there is no JavaScript test runner.
-    $source = file_get_contents(resource_path('js/pages/provider/bookings/index.tsx'));
+    // Read in the source of the card, shared by the list and the booking's page: there is no
+    // JavaScript test runner.
+    $source = file_get_contents(resource_path('js/components/provider-booking-card.tsx'));
 
     expect($source)
         ->not->toContain('tel:')

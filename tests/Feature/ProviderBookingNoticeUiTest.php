@@ -9,14 +9,14 @@ function pbnSource(string $path): string
 }
 
 test('the WhatsApp button is shown only with whatsapp_url, in a new tab without the opener', function () {
-    $source = pbnSource('js/pages/provider/bookings/index.tsx');
+    $source = pbnSource('js/components/provider-booking-card.tsx');
 
     expect($source)->toMatch('/\{booking\.whatsapp_url !== null && \(\s*<div>\s*<Button\b[^>]*>\s*<a\s+href=\{booking\.whatsapp_url\}\s+target="_blank"\s+rel="noopener noreferrer"\s*>\s*\{t\(\'provider\.bookings\.whatsapp_button\'\)\}\s*<NewTabHint \/>\s*<\/a>/');
     expect(substr_count($source, "'provider.bookings.whatsapp_button'"))->toBe(1);
 });
 
 test('the email line and the "no contact" line follow their exact conditions', function () {
-    $source = pbnSource('js/pages/provider/bookings/index.tsx');
+    $source = pbnSource('js/components/provider-booking-card.tsx');
 
     // The outcome comes from the server: the page no longer works it out from the status.
     // A booking the provider wrote and that is still confirmed got no email (issue #49).
@@ -42,7 +42,7 @@ test('the phone field of the booking form has its help text, linked to the input
 });
 
 test('the notice block reads created_by_provider only in the email line', function () {
-    $source = pbnSource('js/pages/provider/bookings/index.tsx');
+    $source = pbnSource('js/components/provider-booking-card.tsx');
 
     // Once in the whole page: the WhatsApp button and the "no contact" line do not depend on it.
     expect(substr_count($source, 'created_by_provider'))->toBe(1);

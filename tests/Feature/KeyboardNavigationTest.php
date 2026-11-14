@@ -123,7 +123,8 @@ test('the language selector is a Radix Select: no native select that changes pag
 // ---------------------------------------------------------------------------------------------
 
 test('after an answer the focus goes to the card\'s title, or to the page title when the card is gone', function () {
-    $source = kbnSource('js/pages/provider/bookings/index.tsx');
+    // The h1 is on the page, the card and its answers in the shared component.
+    $source = kbnSource('js/pages/provider/bookings/index.tsx').kbnSource('js/components/provider-booking-card.tsx');
 
     expect($source)
         ->toMatch('/document\.getElementById\(cardTitleId\(bookingId\)\) \?\?\s*document\.getElementById\(PAGE_TITLE_ID\)\s*\)\?\.focus\(\);/')

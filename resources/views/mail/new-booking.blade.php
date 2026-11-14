@@ -48,6 +48,9 @@
         @endif
     </table>
 
+    {{-- A plain link to the booking's page, behind the login: it shows the request, it never answers it. --}}
+    <p style="margin-top: 24px;"><a href="{{ $url }}" style="color: #18181b;">{{ __('booking.notification.action') }}</a></p>
+
     <p>{{ __('booking.notification.outro') }}</p>
 </body>
 </html>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\ProviderBookingReturn;
 use App\Models\Booking;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -17,13 +18,6 @@ class RejectBookingRequest extends FormRequest
      * The longest message, in characters.
      */
     public const REASON_MAX = 500;
-
-    /**
-     * Back to the bookings page on any validation error: the Referer is not reliable.
-     *
-     * @var string
-     */
-    protected $redirectRoute = 'provider.bookings.index';
 
     private ?Booking $ownBooking = null;
 
@@ -50,6 +44,15 @@ class RejectBookingRequest extends FormRequest
 
         return $this->ownBooking ??= $provider->bookings()->whereKey($this->route('booking'))->first()
             ?? abort(404);
+    }
+
+    /**
+     * Back to the booking's page or to the list on any validation error, where the form was sent
+     * from (ProviderBookingReturn): the Referer is not reliable.
+     */
+    protected function getRedirectUrl(): string
+    {
+        return ProviderBookingReturn::url($this);
     }
 
     /**

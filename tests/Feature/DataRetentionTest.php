@@ -429,7 +429,8 @@ test('the rules refuse every change of the provider on an anonymous booking, bef
 });
 
 test('the page shows the translated label, and no phone or contact line for an anonymous booking', function () {
-    $source = (string) file_get_contents(resource_path('js/pages/provider/bookings/index.tsx'));
+    // The card is shared by the list and the booking's page.
+    $source = (string) file_get_contents(resource_path('js/components/provider-booking-card.tsx'));
 
     expect($source)
         ->toMatch("/\{booking\.anonymized \? \(\s*<p[^>]*>\s*\{t\('provider\.bookings\.anonymous_customer'\)\}/")

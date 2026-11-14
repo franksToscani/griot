@@ -146,7 +146,7 @@ function trkDynamicKeys(): array
         ...array_map(fn (string $reason) => "provider.bookings.transition.{$reason}", ['not_pending', 'not_confirmed', 'already_started', 'already_cancelled', 'anonymized']),
         // dashboard.tsx (PublishingRequirements' codes).
         ...array_map(fn (string $code) => "provider.publish.missing_{$code}", ['name', 'city', 'service', 'availability']),
-        // provider/bookings/index.tsx.
+        // components/provider-booking-card.tsx (the bookings list and the booking's page).
         ...array_map(fn (BookingStatus $status) => "provider.bookings.status.{$status->value}", BookingStatus::cases()),
         // provider/availability/index.tsx.
         ...array_map(fn (Weekday $weekday) => 'common.weekdays.'.strtolower($weekday->name), Weekday::cases()),
