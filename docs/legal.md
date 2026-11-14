@@ -32,7 +32,9 @@ Chi è Griot, cioè la persona o l'ente titolare e la sua forma giuridica, non �
 - **Il cookie `appearance`** (tema) viene scritto alla prima visita, anche senza una scelta. L'informativa lo dice.
 - **Log che potrebbero contenere dati dei clienti** (non verificato): il messaggio di un errore del database in Laravel contiene i valori della query, quindi un errore durante il salvataggio di una prenotazione potrebbe scrivere nel log nome, telefono o note. Anche `failed_jobs` contiene l'email del cliente, per 30 giorni.
 - **Codice segreto nell'URL:** il link privato di una prenotazione (`/bookings/{codice}`) può finire nei log di accesso dell'hosting e nei messaggi WhatsApp.
-- **Campo note libero:** ora ha un avviso, ma resta un testo libero di 1000 caratteri che arriva al professionista anche per email.
+- **Codice segreto nella casella del cliente (#186):** dal novembre 2026 l'email « richiesta inviata » (`BookingReceivedNotification`) manda il link privato all'indirizzo scritto nel modulo, con l'avviso di non inoltrarla. **Accettato per iscritto dal gestore:** il codice finisce anche nella casella del cliente, e in quella di chiunque abbia accesso a quella casella. Non finisce nella coda: il job porta solo l'id della prenotazione e il codice si rilegge dal database (un test lo controlla). La #186 resta aperta per i log, `failed_jobs` e i log del proxy di Render.
+- **Email « richiesta inviata »:** contiene le note scritte dal cliente e il prezzo salvato, mai il telefono. Al massimo 3 all'ora verso lo stesso indirizzo; la chiave del limite è un HMAC dell'indirizzo, mai l'indirizzo in chiaro.
+- **Campo note libero:** ora ha un avviso, ma resta un testo libero di 1000 caratteri che arriva per email al professionista e, se ha lasciato un'email, al cliente stesso.
 - **Età:** nessun controllo, né per chi prenota né per le persone nelle foto.
 - **Copie fuori dal database:** l'anonimizzazione non tocca le email già inviate, i messaggi WhatsApp, i log e le eventuali copie di sicurezza (#63).
 - **Fornitori di produzione:** hosting (previsto Render), database gestito (da scegliere), archivio delle foto (previsto Scaleway, Parigi), invio email (da scegliere, #62). Le regioni e gli accordi con i fornitori sono da verificare.
@@ -40,7 +42,7 @@ Chi è Griot, cioè la persona o l'ente titolare e la sua forma giuridica, non �
 ## Domande per un esperto
 
 1. Ruoli: Griot e i professionisti rispetto ai dati delle prenotazioni. Titolari autonomi, titolare e responsabile, o altro?
-2. Base giuridica per ogni trattamento: richiesta di prenotazione, email di esito al cliente, promemoria al professionista, dati tecnici e limiti di richieste, foto con persone riconoscibili.
+2. Base giuridica per ogni trattamento: richiesta di prenotazione, email « richiesta inviata » al cliente, email di esito al cliente, promemoria al professionista, dati tecnici e limiti di richieste, foto con persone riconoscibili. Ipotesi da verificare per l'email « richiesta inviata »: esecuzione di misure precontrattuali richieste dall'interessato (art. 6, par. 1, lett. b GDPR), perché è la ricevuta della richiesta che il cliente ha appena inviato e parte solo se ha scritto un'email; il limite per indirizzo, nell'interesse legittimo a evitare abusi (lett. f).
 3. Durata: 6 mesi dopo la fine dell'appuntamento è adeguata? Come trattare le copie fuori dal database (email inviate, WhatsApp, log, copie di sicurezza)?
 4. Cookie: `appearance` (scritto alla prima visita), `locale`, `sidebar_state` e il cookie « Ricordami » del login richiedono un banner o un consenso, o basta l'informativa?
 5. Campo note: l'avviso contro i dati sensibili è sufficiente? Come trattare dati di questo tipo già arrivati?

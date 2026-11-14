@@ -1,6 +1,6 @@
 # Griot: prenotazioni
 
-Come una prenotazione tiene il suo prezzo (issue #97) e la pagina di una prenotazione nell'area del professionista, con il link dell'email « nuova prenotazione ». Griot non gestisce pagamenti: il prezzo è un'informazione per il cliente e per il professionista, in euro.
+Come una prenotazione tiene il suo prezzo (issue #97), la pagina di una prenotazione nell'area del professionista, con il link dell'email « nuova prenotazione », e l'email « richiesta inviata » al cliente. Griot non gestisce pagamenti: il prezzo è un'informazione per il cliente e per il professionista, in euro.
 
 ## Che cosa si salva
 
@@ -47,16 +47,19 @@ Il prezzo più alto possibile, un servizio da 9999,99 € con opzioni da 999,99 
 | Pagina privata del cliente (`BookingConfirmationResource`)                        | `service.price_cents`, `options[].extra_price_cents`, `total_cents`; l'etichetta è « Prezzo al momento della prenotazione » |
 | Lista e pagina di una prenotazione del professionista (`ProviderBookingResource`) | `price_cents` (il totale) e `options[].extra_price_cents`; « + X € » solo per un'opzione che costa qualcosa                 |
 | Modulo di prenotazione, pubblico e del professionista                             | il catalogo di oggi, « Prezzo indicativo »: la prenotazione non esiste ancora                                               |
+| Email « richiesta inviata » al cliente (`BookingReceivedNotification`)            | il totale salvato (`Booking::totalCents()`), scritto da `Money::format()`; « Prezzo al momento della prenotazione »         |
 
 Il frontend non somma più niente: formatta i centesimi con `formatCents(locale, cents)` (`resources/js/lib/format.ts`).
 
-**Le email, i promemoria e il messaggio WhatsApp restano senza prezzo**, come prima:
+**Le altre email, i promemoria e il messaggio WhatsApp restano senza prezzo**, come prima:
 
 - danno al professionista e al cliente il servizio, le opzioni e l'orario; il prezzo si legge sulla pagina;
 - non c'è un pagamento da confermare;
 - un importo in un'email non si può più correggere, la pagina sì.
 
-`BookingSavedPriceTest` controlla che le email non contengano un prezzo.
+L'eccezione è l'email « richiesta inviata » al cliente: è la sua ricevuta, e il prezzo salvato non cambia più. `Money::format()` scrive i centesimi come `formatCents()` del frontend, a mano, perché l'immagine di produzione non ha l'estensione `intl`.
+
+`BookingSavedPriceTest` controlla che le altre email non contengano un prezzo e che la lista delle notifiche in `app/Notifications` sia quella attesa: una notifica nuova deve dichiarare se può mostrare un prezzo.
 
 ## Le prenotazioni fatte prima del #97
 
@@ -87,14 +90,38 @@ Nessun SQL grezzo: gira uguale su SQLite, MySQL e PostgreSQL. Il `down()` toglie
 
 **L'email « nuova prenotazione »** (`NewBookingNotification`) ha un solo link: « Apri la richiesta per confermarla o rifiutarla », in HTML e nella versione testo, all'indirizzo assoluto della pagina (`APP_URL` nel worker della coda). Contiene solo l'id: mai il `public_token` né la pagina privata del cliente. Il link mostra la richiesta e non risponde mai da solo: conferma e rifiuto restano pulsanti `POST` sulla pagina, perché i filtri della posta aprono i link. Chi non è loggato passa dal login e poi torna alla pagina (`redirect()->intended()` di Fortify).
 
+## Email « richiesta inviata » al cliente
+
+`BookingReceivedNotification`, in coda come le altre email (tre tentativi, dopo 1 e 5 minuti; il job sparisce se la prenotazione non esiste più). La chiama `ProviderBookingController` subito dopo l'email al professionista.
+
+- **Quando parte:** solo per il modulo pubblico e solo se il cliente ha lasciato un'email. Non parte con l'honeypot né per le prenotazioni che il professionista scrive nella propria agenda (`ProviderBookingStoreController`).
+- **Lingua:** quella della prenotazione (`booking.locale`, con `Locales::forDelivery()`), italiano se quella lingua non ha testi.
+- **Contenuto:** saluto con il nome, « Richiesta inviata a {professionista}: ti scriveremo quando risponde », servizio e opzioni, data e ora di Roma, il prezzo salvato, le note del cliente e il link privato (`bookings.show` con il `public_token`), con sotto l'avviso « Chiunque abbia questo link può vedere e annullare la prenotazione. Non inoltrare questa email. ». **Mai il telefono.**
+- **Oggetto:** « Richiesta inviata: {servizio} ». Mai il link né il nome del cliente.
+- **Testo libero:** viste Blade proprie (`mail.booking-received`, `mail.booking-received-text`), mai `MailMessage::line()`: nome e note sono sempre testo, anche con `<script>` o Markdown.
+- **Il codice nella coda:** il job porta la prenotazione come id (`SerializesModels`); il `public_token` si rilegge dal database quando l'email viene scritta, quindi non finisce né in `jobs` né in `failed_jobs`. L'indirizzo email del cliente invece è nel job, come per le email di esito.
+- **Se l'invio fallisce:** l'errore è segnalato con `report()` e la prenotazione resta valida, con il redirect alla pagina privata.
+
+### Limite per indirizzo
+
+Al massimo `config('booking.received_email_per_hour')` email di questo tipo (oggi 3) verso lo stesso indirizzo in un'ora, da qualunque IP. Il limite del modulo (`booking-store`) è per IP: senza questo, chi cambia IP potrebbe usare Griot per riempire la casella di un'altra persona.
+
+- La chiave del `RateLimiter` è un HMAC SHA-256, con `APP_KEY`, dell'indirizzo in minuscolo e senza spazi ai lati (`BookingReceivedNotification::limiterKey()`): l'indirizzo non è mai in chiaro nella cache, e un semplice hash non si può risalire provando una lista di indirizzi noti. `Awa@Example.test` e `awa@example.test` contano insieme.
+- Oltre il limite l'email non parte, la prenotazione resta valida e il log riceve solo « Booking received email skipped: hourly limit for one address reached. », senza l'indirizzo né altri dati.
+- Il conteggio parte prima della coda: anche un invio poi fallito conta.
+
+Ogni prenotazione dal modulo con un'email ora manda **due email** (al professionista e al cliente), più l'esito. Con Gmail nella fase privata il tetto è di 500 email al giorno ([deploy.md](deploy.md), sezione 4).
+
 ## Test
 
 - `tests/Feature/BookingSavedPriceTest.php`:
     - `Money`;
     - il salvataggio in `CreateBooking`, anche con un prezzo cambiato tra modulo e salvataggio e per le prenotazioni del professionista;
     - la factory e il seeder;
-    - le email senza prezzo.
+    - le email senza prezzo, tranne « richiesta inviata », che mostra il totale salvato;
+    - `Money::format()` nelle tre lingue.
 - `tests/Feature/Booking/SavedPriceMigrationTest.php`: la migrazione, `down()` compreso.
 - `ProviderBookingsListTest` e `BookingConfirmationTest`: i prezzi mostrati sono quelli salvati, anche dopo un cambio del catalogo o un'opzione nascosta.
 - Nei test, una prenotazione fatta con la factory riceve le opzioni con `attachBookingOptions()` (`tests/Pest.php`), che salva il loro prezzo attuale come `CreateBooking`.
+- `tests/Feature/BookingReceivedNotificationTest.php`: l'email « richiesta inviata », cioè quando parte e quando no (senza email, honeypot, prenotazione del professionista), la lingua, il link privato con l'avviso, niente telefono, prezzo e note, l'oggetto, l'escaping, la coda, il payload del job senza il `public_token`, l'errore in coda, il limite per indirizzo (la quarta nell'ora, indirizzi diversi, maiuscole), i testi nelle tre lingue.
 - `tests/Feature/ProviderBookingDetailTest.php`: la pagina di una prenotazione (404 per le altre, login e ritorno, campi), il link dell'email « nuova prenotazione » in HTML e in testo, dove si torna dopo ogni risposta (successo, rifiuto dello stato, messaggio troppo lungo, limite di richieste, valori di `return` diversi da `detail`), i testi nelle tre lingue.

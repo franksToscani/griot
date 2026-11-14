@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Log;
  * are new since the last check, written once in the log with Log::error, so that a failed email is
  * seen in the logs of the hosting.
  *
- * Never a personal datum: the payload holds the customer's email for the answers to the bookings
- * (issue #186), so the log gets only the number, the class of each job (the "displayName" of the
+ * Never a personal datum: the payload holds the customer's email for the emails to the customer,
+ * the "request sent" one and the answers (issue #186), so the log gets only the number, the class of each job (the "displayName" of the
  * payload, read and dropped) and the first and last time of failure. Never the payload, the
  * exception or the uuid.
  *
