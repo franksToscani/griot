@@ -154,7 +154,7 @@ test('the listener reloads on Back and Forward and on a page restored from the b
         ->toContain("if (event.detail.type === 'history') {")
         ->toContain("window.addEventListener('pageshow', (event) => {")
         ->toContain('if (event.persisted) {')
-        ->toContain('router.reload({ only });')
+        ->toMatch('/router\.reload\(\{\s*only,\s*onHttpException: \(\) => false,\s*onNetworkError: \(\) => false,\s*\}\);/')
         // Only a reload of some props: never a whole page, never a polling.
         ->not->toContain('router.reload()')
         ->not->toContain('usePoll')

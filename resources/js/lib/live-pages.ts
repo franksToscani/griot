@@ -18,8 +18,15 @@ function reloadIfLive(): void {
             ? undefined
             : LIVE_PAGES[currentComponent];
 
+    // A reload the user did not ask for: an error (a page that no longer exists, for example a
+    // booking made anonymous, or no network) leaves the page as it was, without the toast of
+    // lib/http-errors.ts. Returning false stops Inertia's global events for this request only.
     if (only !== undefined) {
-        router.reload({ only });
+        router.reload({
+            only,
+            onHttpException: () => false,
+            onNetworkError: () => false,
+        });
     }
 }
 

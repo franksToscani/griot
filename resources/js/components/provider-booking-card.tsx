@@ -24,6 +24,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import { PauseLiveProps } from '@/hooks/use-live-props';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatCents, formatLongDate } from '@/lib/format';
 import { touchTarget } from '@/lib/touch-target';
@@ -309,6 +310,7 @@ function ConfirmBookingButton({
         >
             {({ processing }) => (
                 <>
+                    <PauseLiveProps when={processing} />
                     <ReturnField onDetailPage={onDetailPage} />
                     <Button
                         type="submit"
@@ -356,6 +358,8 @@ function ReasonDialog({
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
+            {/* No new state while the window is open: it could remove the window and the text. */}
+            <PauseLiveProps when={open} />
             <DialogTrigger asChild>
                 <Button
                     variant="destructive"
@@ -394,6 +398,7 @@ function ReasonDialog({
                 >
                     {({ processing, errors }) => (
                         <>
+                            <PauseLiveProps when={processing} />
                             <ReturnField onDetailPage={onDetailPage} />
                             <div className="grid gap-2">
                                 <Label htmlFor={`${idPrefix}-reason`}>
