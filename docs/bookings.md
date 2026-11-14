@@ -130,6 +130,33 @@ Con Indietro e Avanti Inertia mostra di nuovo una pagina con le props salvate ne
 - **I filtri della lista** restano: il ricarico usa l'indirizzo della pagina, query compresa.
 - **La pagina pubblica del professionista** non è nella lista: gli orari liberi si chiedono solo dopo aver scelto un giorno, e con Indietro la scheda di prenotazione riparte chiusa.
 
+## Aggiornamento automatico dello stato
+
+Le tre pagine del ricarico dopo Indietro chiedono di nuovo al server, da sole, le stesse props: una prenotazione confermata in un'altra scheda, o annullata dal cliente dal telefono, cambia senza F5. Lo fa `useLiveProps()` (`resources/js/hooks/use-live-props.ts`), con il polling di Inertia (`usePoll`): un ricarico parziale che conserva lo scroll e lo stato dei componenti.
+
+| Pagina                                        | Props                   | Ogni | Si ferma quando                                                                 |
+| --------------------------------------------- | ----------------------- | ---- | ------------------------------------------------------------------------------- |
+| Lista del professionista                      | `bookings`              | 20 s | mai per lo stato: può arrivare una richiesta nuova                              |
+| Pagina di una prenotazione del professionista | `booking`               | 20 s | `can_confirm`, `can_reject` e `can_cancel` sono tutti falsi                     |
+| Pagina privata del cliente                    | `booking`, `can_cancel` | 30 s | la prenotazione è annullata o è già iniziata (ora di Roma, `lib/local-time.ts`) |
+
+Il polling si ferma o si sospende anche:
+
+- **in una scheda nascosta** (`background: 'pause'`). Quando la scheda torna visibile, se l'intervallo è passato, Inertia ricarica subito;
+- **al primo errore** (una pagina che non esiste più, un errore del server, la rete): si ferma per sempre, senza il toast di `lib/http-errors.ts`. Per queste richieste `onHttpException` e `onNetworkError` restituiscono `false`, e così fermano solo per loro gli eventi globali di Inertia;
+- **con una finestra di rifiuto o di annullamento aperta, o durante l'invio di un modulo** (`PauseLiveProps`): un nuovo stato potrebbe togliere la finestra e il testo scritto. Per il cliente, `can_cancel` dipende anche dall'ora e non cambia mentre la finestra è aperta;
+- **dopo 30 minuti senza interazione** (clic, tasto, puntatore, tocco), così una scheda dimenticata non tiene viva la sessione. Alla prima interazione riparte con un ricarico immediato.
+
+**La sessione scaduta.** Una richiesta senza login riceve il redirect al login, che è una pagina Inertia valida. Inertia la mostra e il polling finisce, perché la pagina non c'è più. Dopo il login si torna alla pagina (`intended`). Il client non può fermare una risposta già arrivata senza agganciarsi a parti interne di Inertia. Con il polling attivo, d'altra parte, la sessione non scade: succede solo dopo i 30 minuti di pausa, al ritorno dell'utente, oppure dopo un logout in un'altra scheda, e in quel caso nascondere i dati dei clienti è giusto.
+
+**Nella lista filtrata** una prenotazione che non appartiene più al filtro sparisce. Se il focus era nella sua scheda, va al titolo della pagina (`tabIndex={-1}`), come dopo una risposta che toglie la scheda.
+
+**Lo stato cambiato** si annuncia in una regione `role="status"` (`components/live-status.tsx`): sempre nella pagina, vuota all'inizio, scritta solo quando il polling porta un cambiamento. Nella lista c'è un solo annuncio riassuntivo.
+
+**Perché il polling e non il broadcasting:** niente server WebSocket (Reverb o Pusher) da far girare e pagare sul piano di Render, niente canali privati da autorizzare per un cliente senza account, niente observer sul modello. Le prenotazioni cambiano poche volte al giorno, e un ritardo di 20-30 secondi va bene. Le quattro GET (`dashboard`, la lista, la pagina di una prenotazione e `bookings.show`) non hanno limiti di richieste, e un test lo controlla.
+
+**Niente cache:** la lista e la pagina di una prenotazione del professionista rispondono con `Cache-Control: no-store` (middleware `PrivateProviderPage`, lo stesso dell'anteprima), perché contengono nome, telefono e note dei clienti. La dashboard non mostra dati dei clienti e resta com'era.
+
 ## Cambio lingua dopo la pagina privata
 
 La pagina privata del cliente aggiunge `<meta name="referrer" content="no-referrer">`, per non mandare il codice segreto ad altri siti. Il browser tiene quella politica per tutta la scheda, anche dopo Indietro, quindi le richieste successive partono senza `Referer`. Il cambio lingua rispondeva con `back()`, che senza `Referer` usa l'ultimo URL salvato in sessione. Quell'URL poteva essere la richiesta degli orari liberi: Inertia riceveva un JSON e mostrava un errore.
@@ -157,5 +184,6 @@ La pagina privata del cliente aggiunge `<meta name="referrer" content="no-referr
 - Nei test, una prenotazione fatta con la factory riceve le opzioni con `attachBookingOptions()` (`tests/Pest.php`), che salva il loro prezzo attuale come `CreateBooking`.
 - `tests/Feature/BookingReceivedNotificationTest.php`: l'email « richiesta inviata », cioè quando parte e quando no (senza email, honeypot, prenotazione del professionista), la lingua, il link privato con l'avviso, niente telefono, prezzo e note, l'oggetto, l'escaping, la coda, il payload del job senza il `public_token`, l'errore in coda, il limite per indirizzo (la quarta nell'ora, indirizzi diversi, maiuscole), i testi nelle tre lingue.
 - `tests/Feature/LocaleReturnTest.php`: il cambio lingua torna alla pagina mandata, anche senza `Referer` e con gli orari letti prima; gli indirizzi rifiutati (un altro host, `\`, uno schema, a capo, un array, troppo lungo) lasciano `back()` e cambiano comunque la lingua; la pagina privata; gli orari con `X-Requested-With` non diventano l'« URL precedente »; i sorgenti del selettore e di `use-free-slots.ts`.
+- `tests/Feature/LiveBookingStatusTest.php`: `no-store` sulla lista e sulla pagina di una prenotazione e non sulle altre pagine; nessun limite sulle quattro GET; dai sorgenti, `usePoll` con `pause` e gli intervalli, le props uguali a `live-pages.ts`, quando si ferma (stato, errore, finestra, inattività), la regione `role="status"` e il focus; i testi nelle tre lingue.
 - `tests/Feature/LivePagesTest.php`: il ricarico dopo Indietro. Per le tre pagine, lo stato cambiato con i servizi veri (`ManageBooking`, `CancelBooking`) dopo l'apertura arriva con `reloadOnly()`, senza le altre props; la mappa di `live-pages.ts` corrisponde ai componenti e alle props dei controller; il listener controlla `history` e `persisted` ed è registrato prima di `createInertiaApp`.
 - `tests/Feature/ProviderBookingDetailTest.php`: la pagina di una prenotazione (404 per le altre, login e ritorno, campi), il link dell'email « nuova prenotazione » in HTML e in testo, dove si torna dopo ogni risposta (successo, rifiuto dello stato, messaggio troppo lungo, limite di richieste, valori di `return` diversi da `detail`), i testi nelle tre lingue.

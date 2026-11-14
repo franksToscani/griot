@@ -1,6 +1,8 @@
 import { Form, Head, Link } from '@inertiajs/react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import InputError from '@/components/input-error';
+import { LiveStatus } from '@/components/live-status';
 import { NewTabHint } from '@/components/new-tab-hint';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,11 +18,17 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
+import {
+    CUSTOMER_INTERVAL,
+    PauseLiveProps,
+    useLiveProps,
+} from '@/hooks/use-live-props';
 import { useTranslation } from '@/hooks/use-translation';
 import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
 import { whatsappLink } from '@/lib/whatsapp';
 import { formatCents, formatLongDate } from '@/lib/format';
+import { hasStarted } from '@/lib/local-time';
 import { show as providerShow } from '@/routes/providers';
 import type { BookingConfirmation } from '@/types';
 
@@ -43,6 +51,25 @@ export default function BookingsShow({
     // The date is already the provider's local day (see formatLongDate).
     const date = formatLongDate(locale, booking.local_date);
 
+    // The booking and can_cancel are asked again every 30 s (hooks/use-live-props.ts), while the
+    // provider can still answer: pending or confirmed, and not started yet. can_cancel also depends
+    // on the time; the polling holds while the cancel window is open (PauseLiveProps below).
+    const liveMessage = useLiveProps(['booking', 'can_cancel'], {
+        interval: CUSTOMER_INTERVAL,
+        enabled:
+            booking.status !== 'cancelled' &&
+            !hasStarted(booking.local_date, booking.local_start),
+        describe: (next) => {
+            const status = (next.booking as BookingConfirmation).status;
+
+            return status === booking.status
+                ? null
+                : t('booking.live.status_changed', {
+                      status: t(`booking.confirmation.status_${status}`),
+                  });
+        },
+    });
+
     const copyLink = async () => {
         try {
             await navigator.clipboard.writeText(private_url);
@@ -63,6 +90,8 @@ export default function BookingsShow({
                 <h1 className="text-2xl font-semibold">
                     {t('booking.confirmation.title')}
                 </h1>
+
+                <LiveStatus message={liveMessage} />
 
                 <Card>
                     <CardContent>
@@ -233,10 +262,13 @@ export default function BookingsShow({
 // this page: cancelled (the button disappears) or too late (can_cancel becomes false).
 function CancelBooking({ privateUrl }: { privateUrl: string }) {
     const { t } = useTranslation();
+    const [open, setOpen] = useState(false);
 
     return (
         <div>
-            <Dialog>
+            {/* No new state while the window is open: can_cancel could remove it. */}
+            <PauseLiveProps when={open} />
+            <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
                     <Button variant="destructive">
                         {t('booking.cancel.button')}
@@ -259,6 +291,7 @@ function CancelBooking({ privateUrl }: { privateUrl: string }) {
                     >
                         {({ processing, errors }) => (
                             <div className="flex flex-col gap-4">
+                                <PauseLiveProps when={processing} />
                                 <InputError message={errors.cancel} />
                                 <DialogFooter className="gap-2">
                                     <DialogClose asChild>

@@ -5,8 +5,10 @@ import { Pagination } from '@/components/pagination';
 import { BookingCard, PAGE_TITLE_ID } from '@/components/provider-booking-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { LiveStatus } from '@/components/live-status';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PROVIDER_INTERVAL, useLiveProps } from '@/hooks/use-live-props';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
 import {
@@ -37,12 +39,54 @@ const selectClass =
 const hasActiveFilters = (filters: ProviderBookingFilters): boolean =>
     filters.status !== null || filters.from !== null || filters.to !== null;
 
+// What a polling can change in a card: its presence in the page, its status and its answers.
+const bookingsKey = (bookings: ProviderBooking[]): string =>
+    bookings
+        .map(
+            (booking) =>
+                `${booking.id}:${booking.status}:${booking.can_confirm}:${booking.can_reject}:${booking.can_cancel}`,
+        )
+        .join(',');
+
 // The provider's bookings, read only, in the order the server sends: the pending ones first.
 export default function ProviderBookingsIndex({ bookings, filters }: Props) {
     const { t } = useTranslation();
     const filtered = hasActiveFilters(filters);
     const { errors } = usePage().props;
     const actionErrors = useRef<HTMLDivElement>(null);
+
+    // The list asks the server again every 20 s (hooks/use-live-props.ts): a booking answered in
+    // another tab, or cancelled by the customer, changes here. With a filter on the status it can
+    // leave the list. One summary for the whole list in the status region, never one per card.
+    const liveMessage = useLiveProps(['bookings'], {
+        interval: PROVIDER_INTERVAL,
+        enabled: true,
+        describe: (next) => {
+            const nextBookings = (next.bookings as Paginated<ProviderBooking>)
+                .data;
+
+            if (bookingsKey(nextBookings) === bookingsKey(bookings.data)) {
+                return null;
+            }
+
+            // A card that leaves the list takes the focus with it: if the focus was in one, it goes
+            // to the title of the page (tabIndex={-1}), as after an answer that removes the card.
+            const focused =
+                document.activeElement?.closest('[data-booking-id]');
+            const kept = new Set(nextBookings.map((booking) => booking.id));
+
+            if (
+                focused instanceof HTMLElement &&
+                !kept.has(Number(focused.dataset.bookingId))
+            ) {
+                requestAnimationFrame(() =>
+                    document.getElementById(PAGE_TITLE_ID)?.focus(),
+                );
+            }
+
+            return t('provider.bookings.live.updated');
+        },
+    });
 
     // A refused action comes back to the same scroll position: the message is brought into view.
     // It is read by role="alert"; the focus stays where it was (back on the action's button).
@@ -85,6 +129,8 @@ export default function ProviderBookingsIndex({ bookings, filters }: Props) {
                     <InputError message={errors.services} announce />
                 </div>
 
+                <LiveStatus message={liveMessage} />
+
                 <BookingFilters filters={filters} filtered={filtered} />
 
                 {bookings.data.length === 0 ? (
@@ -96,7 +142,7 @@ export default function ProviderBookingsIndex({ bookings, filters }: Props) {
                 ) : (
                     <ul className="flex max-w-2xl flex-col gap-4">
                         {bookings.data.map((booking) => (
-                            <li key={booking.id}>
+                            <li key={booking.id} data-booking-id={booking.id}>
                                 <BookingCard booking={booking} />
                             </li>
                         ))}

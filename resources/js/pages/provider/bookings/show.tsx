@@ -1,7 +1,9 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useEffect, useRef } from 'react';
 import InputError from '@/components/input-error';
+import { LiveStatus } from '@/components/live-status';
 import { BookingCard, PAGE_TITLE_ID } from '@/components/provider-booking-card';
+import { PROVIDER_INTERVAL, useLiveProps } from '@/hooks/use-live-props';
 import { useTranslation } from '@/hooks/use-translation';
 import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
@@ -20,6 +22,23 @@ export default function ProviderBookingShow({ booking }: Props) {
     const { t } = useTranslation();
     const { errors } = usePage().props;
     const actionErrors = useRef<HTMLDivElement>(null);
+
+    // The booking is asked again every 20 s (hooks/use-live-props.ts), until no answer is possible
+    // any more: then its state cannot change.
+    const liveMessage = useLiveProps(['booking'], {
+        interval: PROVIDER_INTERVAL,
+        enabled:
+            booking.can_confirm || booking.can_reject || booking.can_cancel,
+        describe: (next) => {
+            const status = (next.booking as ProviderBooking).status;
+
+            return status === booking.status
+                ? null
+                : t('booking.live.status_changed', {
+                      status: t(`provider.bookings.status.${status}`),
+                  });
+        },
+    });
 
     // A refused action comes back to the same scroll position: the message is brought into view.
     // It is read by role="alert"; the focus stays where it was (back on the action's button).
@@ -57,6 +76,8 @@ export default function ProviderBookingShow({ booking }: Props) {
                     <InputError message={errors.booking} announce />
                     <InputError message={errors.services} announce />
                 </div>
+
+                <LiveStatus message={liveMessage} />
 
                 <div className="max-w-2xl">
                     <BookingCard booking={booking} onDetailPage />

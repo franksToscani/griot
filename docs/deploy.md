@@ -21,6 +21,8 @@ Costi, dalla pagina dei prezzi (https://render.com/pricing):
 
 **Stima: 13 $ al mese**, più il dominio (quando servirà) e l'IVA. Il piano di PostgreSQL superiore, `0.5c-1g`, costa 19 $ al mese. La regione non si cambia dopo la creazione: scegliere Francoforte (`frankfurt`) fin dall'inizio, come in `render.yaml`.
 
+Traffico delle pagine che si aggiornano da sole ([bookings.md](bookings.md)): ogni scheda visibile della lista o di una prenotazione fa circa 3 richieste al minuto (una ogni 20 s), la pagina privata del cliente 2 (una ogni 30 s), cioè 2-4 richieste al minuto per scheda. Le schede nascoste e quelle ferme da 30 minuti non fanno richieste.
+
 ## 2. Prima di cominciare
 
 1. Il repository su GitHub, già collegato a Render dall'account GitHub.

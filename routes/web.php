@@ -115,7 +115,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('provider.photos.destroy');
     // No fields: whatever is sent in the body is ignored. One limiter for both, see AppServiceProvider.
     // The provider's own bookings, read only: no identifier in the address, always the user's provider.
-    Route::get('provider/bookings', ProviderBookingIndexController::class)->name('provider.bookings.index');
+    Route::get('provider/bookings', ProviderBookingIndexController::class)
+        ->middleware(PrivateProviderPage::class)
+        ->name('provider.bookings.index');
     // A booking the provider writes in the own agenda: its page, the free slots to choose its time
     // and the form. Not to be confused with providers.bookings.store and providers.slots, the public
     // ones. The page has no limiter, like the other pages; slots and form share one, with its own
@@ -128,6 +130,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // "nuova prenotazione". Digits only, so "create" and "slots" above never reach it.
     Route::get('provider/bookings/{booking}', ProviderBookingShowController::class)
         ->whereNumber('booking')
+        ->middleware(PrivateProviderPage::class)
         ->name('provider.bookings.show');
     Route::post('provider/bookings', ProviderBookingStoreController::class)
         ->middleware('throttle:provider-bookings')
