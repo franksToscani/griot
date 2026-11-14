@@ -11,12 +11,14 @@ use App\Models\Booking;
 use App\Models\Provider;
 use App\Models\Service;
 use App\Models\ServiceOption;
+use App\Notifications\BookingReceivedNotification;
 use App\Notifications\BookingStatusNotification;
 use App\Notifications\CustomerCancelledNotification;
 use App\Notifications\NewBookingNotification;
 use App\Notifications\PendingReminderNotification;
 use App\Support\Money;
 use Carbon\CarbonImmutable;
+use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\DB;
 
@@ -214,7 +216,7 @@ test('the seeder saves the prices of the catalog on its bookings and their optio
 });
 
 // ---------------------------------------------------------------------------------------------
-// The emails stay without a price
+// The emails stay without a price, except the customer's "request sent"
 // ---------------------------------------------------------------------------------------------
 
 test('the emails of a booking stay without a price', function (Closure $notification, bool $listsOptions) {
@@ -244,4 +246,58 @@ test('the emails of a booking stay without a price', function (Closure $notifica
     // The answer to the customer names the service only.
     'confirmed' => [fn (Booking $booking) => new BookingStatusNotification($booking, BookingOutcome::Confirmed), false],
     'rejected' => [fn (Booking $booking) => new BookingStatusNotification($booking, BookingOutcome::Rejected), false],
+]);
+
+// The list above, by class: a new notification must be added there, or here if it may show a price.
+test('only the customer\'s "request sent" email may show a price', function () {
+    $withoutPrice = [
+        BookingStatusNotification::class,
+        CustomerCancelledNotification::class,
+        NewBookingNotification::class,
+        PendingReminderNotification::class,
+    ];
+    $withPrice = [BookingReceivedNotification::class];
+
+    $classes = collect(glob(app_path('Notifications/*.php')) ?: [])
+        ->map(fn (string $file) => 'App\\Notifications\\'.basename($file, '.php'))
+        ->sort()
+        ->values()
+        ->all();
+
+    expect($classes)->toBe(collect([...$withoutPrice, ...$withPrice])->sort()->values()->all());
+});
+
+test('the "request sent" email shows the saved total, even after a change of the catalog', function () {
+    $service = Service::factory()->create(['price' => '87.65']);
+    $option = ServiceOption::factory()->for($service)->create(['name' => 'Perline', 'extra_price' => '4.35']);
+    $booking = Booking::factory()->for($service->provider)->for($service)->create(['customer_email' => 'cliente@example.test']);
+    attachBookingOptions($booking, $option);
+    $service->update(['price' => '120.00']);
+
+    $mail = (new BookingReceivedNotification($booking))->toMail(new AnonymousNotifiable);
+    $html = (string) $mail->render();
+    $text = view($mail->view['text'], $mail->viewData)->render();
+
+    // The total only, as on the private page: 87,65 + 4,35.
+    expect($html)->toContain("92,00\u{00A0}€")
+        ->and($text)->toContain("Prezzo al momento della prenotazione: 92,00\u{00A0}€")
+        ->and($html.$text)->not->toContain('120,00')
+        ->not->toContain('87,65')
+        ->not->toContain('4,35');
+});
+
+test('Money::format() writes cents as Intl.NumberFormat does on the frontend', function (int $cents, string $locale, string $expected) {
+    expect(Money::format($cents, $locale))->toBe($expected);
+})->with([
+    [9200, 'it', "92,00\u{00A0}€"],
+    [123450, 'it', "1234,50\u{00A0}€"],
+    [1234567, 'it', "12.345,67\u{00A0}€"],
+    [5, 'it', "0,05\u{00A0}€"],
+    [9200, 'fr', "92,00\u{00A0}€"],
+    [123450, 'fr', "1\u{202F}234,50\u{00A0}€"],
+    [1234567, 'fr', "12\u{202F}345,67\u{00A0}€"],
+    [9200, 'en', '€92.00'],
+    [123450, 'en', '€1,234.50'],
+    [1234567, 'en', '€12,345.67'],
+    'another language is written as Italian' => [123450, 'de', "1234,50\u{00A0}€"],
 ]);

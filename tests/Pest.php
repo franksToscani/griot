@@ -5,6 +5,7 @@ use App\Models\ServiceOption;
 use App\Support\Money;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Testing\PendingCommand;
 use PHPUnit\Framework\Assert;
 use Tests\TestCase;
 
@@ -254,4 +255,21 @@ function attachBookingOptions(Booking $booking, ServiceOption|int|iterable $opti
         fn (int $id) => ['extra_price_cents' => $prices[$id]],
         array_combine($ids, $ids),
     ));
+}
+
+/**
+ * Run queue:work inside the test, until the queue is empty. Every queue:work of the tests goes
+ * through here, with a memory limit of its own: the worker runs in the test process, which holds
+ * the whole suite by now and can be past queue:work's default of 128 MB. Over it the worker stops
+ * with exit code 12 (Worker::EXIT_MEMORY_LIMIT) before the queue is empty. The check counts
+ * memory_get_usage() of the process and runs only in the loop of the daemon, not with --once.
+ *
+ * @param  array<string, mixed>  $options  for example ['--once' => true]
+ */
+function runQueueWorker(array $options = []): PendingCommand
+{
+    $command = test()->artisan('queue:work', ['--stop-when-empty' => true, '--memory' => 1024, ...$options]);
+    assert($command instanceof PendingCommand);
+
+    return $command;
 }

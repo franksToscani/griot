@@ -137,7 +137,7 @@ Solo per la fase privata, con poche email di prova. Al lancio pubblico serve un 
 
     Ogni ora `jobs:report-failed` scrive nel log quanti job sono falliti dall'ultimo controllo (sezione 7).
 
-7. **Limiti di Gmail** (https://support.google.com/mail/answer/22839): oltre 500 destinatari in un messaggio o oltre 500 email in un giorno, Gmail blocca l'invio (« You have reached a limit for sending mail ») e si riprende dopo 1-24 ore. **Al lancio pubblico Gmail non va usato**: il mittente sarebbe un indirizzo Gmail e non il dominio di Griot, con un limite giornaliero e senza le firme del dominio.
+7. **Limiti di Gmail** (https://support.google.com/mail/answer/22839): oltre 500 destinatari in un messaggio o oltre 500 email in un giorno, Gmail blocca l'invio (« You have reached a limit for sending mail ») e si riprende dopo 1-24 ore. **Al lancio pubblico Gmail non va usato**: il mittente sarebbe un indirizzo Gmail e non il dominio di Griot, con un limite giornaliero e senza le firme del dominio. Ogni prenotazione dal modulo con un'email del cliente manda due email (al professionista e « richiesta inviata » al cliente), più una per l'esito: circa 160 prenotazioni con email in un giorno bastano a toccare il tetto ([bookings.md](bookings.md)).
 
 8. **Fornitore con dominio proprio** (#62): serve un dominio di Griot con i record DNS che il fornitore indica, SPF, DKIM e DMARC, per non finire nello spam. Proposta: Brevo o Resend. Le fasce gratuite sono **da verificare** su https://www.brevo.com/pricing/ e https://resend.com/pricing. Poi si cambiano `MAIL_HOST`, `MAIL_USERNAME`, `MAIL_PASSWORD` e `MAIL_FROM_ADDRESS`.
 

@@ -39,4 +39,25 @@ final class Money
     {
         return self::cents(is_string($price) ? $price : sprintf('%.2f', $price));
     }
+
+    /**
+     * Cents written as a price in euros for an email: the same text as formatCents() of the
+     * frontend (Intl.NumberFormat), written by hand because the production image has no intl
+     * extension (Dockerfile). 9200 becomes "92,00 €" in Italian and French, "€92.00" in English.
+     * - Italian groups the thousands only from five digits: "1234,50 €", "12.345,67 €".
+     * - French groups them with a narrow no-break space (U+202F): "1 234,50 €".
+     * - Before "€" Italian and French have a no-break space (U+00A0).
+     * Any other language is written as Italian, the language of the site by default.
+     */
+    public static function format(int $cents, string $locale): string
+    {
+        $euros = intdiv($cents, 100);
+        $decimals = str_pad((string) ($cents % 100), 2, '0', STR_PAD_LEFT);
+
+        return match ($locale) {
+            'en' => '€'.number_format($euros, 0, '', ',').'.'.$decimals,
+            'fr' => number_format($euros, 0, '', "\u{202F}").','.$decimals."\u{00A0}€",
+            default => ($euros >= 10000 ? number_format($euros, 0, '', '.') : (string) $euros).','.$decimals."\u{00A0}€",
+        };
+    }
 }

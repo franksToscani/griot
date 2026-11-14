@@ -7,6 +7,7 @@ use App\Booking\InvalidBookingOptions;
 use App\Booking\SlotNotAvailable;
 use App\Http\Requests\StoreBookingRequest;
 use App\Models\Provider;
+use App\Notifications\BookingReceivedNotification;
 use App\Notifications\NewBookingNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
@@ -26,7 +27,8 @@ class ProviderBookingController extends Controller
      */
     public function __invoke(StoreBookingRequest $request, Provider $publishedProvider, CreateBooking $createBooking): RedirectResponse
     {
-        // Honeypot, checked right after the validation: no booking, no notification, and a fake
+        // Honeypot, checked right after the validation: no booking, no notification (neither the
+        // provider's nor the customer's), and a fake
         // success. A bot with valid data sees a success, one with wrong data gets the normal
         // validation errors, so neither finds out about the trap. The log line has a fixed message
         // and the provider id only, nothing the customer wrote. Risk of false positives: a browser
@@ -68,6 +70,11 @@ class ProviderBookingController extends Controller
         } catch (Throwable $exception) {
             report($exception);
         }
+
+        // Then the customer's "request sent" email, with the private address: only when the form
+        // has an email, at most a few per hour towards one address. It catches and reports its own
+        // failures, so the booking stays and the redirect below always happens.
+        BookingReceivedNotification::sendFor($booking);
 
         // On to the booking's private page. The public_token goes in a redirect address in two
         // places, both towards the customer's private page: here and after a cancellation

@@ -133,6 +133,11 @@ return [
     // slots are read again at every change of day or options, so the number is generous.
     'rate_limit_provider_bookings_per_minute' => 60,
 
+    // "Request sent" emails to the customer (BookingReceivedNotification), per email address and
+    // per hour, whatever the IP: the form can be sent from many addresses towards one mailbox. Over
+    // the limit the booking is saved and only the email is skipped.
+    'received_email_per_hour' => 3,
+
     /*
     |--------------------------------------------------------------------------
     | Gallery of the provider's work (issue #143, docs/gallery.md)
