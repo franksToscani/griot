@@ -38,8 +38,13 @@ export function useFreeSlots(url: string | null): UseFreeSlotsReturn {
 
         setLoading(true);
 
+        // X-Requested-With marks the request as ajax, as Inertia's: Laravel then does not keep its
+        // address as the session's "previous URL", where back() would send the language selector.
         fetch(url, {
-            headers: { Accept: 'application/json' },
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
             signal: controller.signal,
         })
             .then(async (response) => {

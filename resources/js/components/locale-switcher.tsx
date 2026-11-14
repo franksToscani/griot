@@ -21,7 +21,8 @@ import { update as updateLocale } from '@/routes/locale';
 // its value with the arrows while closed, and every change was a new page.
 export function LocaleSwitcher({ className }: { className?: string }) {
     const { t, locale } = useTranslation();
-    const { locales } = usePage().props;
+    const { props, url } = usePage();
+    const { locales } = props;
     // One per layout, but unique anyway: the label points to its own trigger.
     const id = useId();
 
@@ -37,10 +38,11 @@ export function LocaleSwitcher({ className }: { className?: string }) {
             <Select
                 value={locale}
                 onValueChange={(value) =>
-                    // The answer goes back to the same page, now in the new language.
+                    // The answer goes back to the same page, now in the new language: its address
+                    // is sent along, since the Referer can be missing (LocaleController).
                     router.post(
                         updateLocale.url(),
-                        { locale: value },
+                        { locale: value, return_to: url },
                         { preserveScroll: true },
                     )
                 }

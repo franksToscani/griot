@@ -8,11 +8,15 @@ import PublicLayout, { PublicBookingLayout } from '@/layouts/public-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { syncDocumentLanguage } from '@/lib/document-language';
 import { handleHttpErrors } from '@/lib/http-errors';
+import { refreshLivePagesOnHistory } from '@/lib/live-pages';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Griot';
 
 // Before the app starts: <html lang> and the toasts' label follow every page, the first included.
 syncDocumentLanguage();
+
+// Back and Forward ask the server again for the state of a booking (lib/live-pages.ts).
+refreshLivePagesOnHistory();
 
 // An error during a visit becomes a toast instead of Inertia's window, whose buttons do nothing
 // (lib/http-errors.ts). In development the window stays: it shows Laravel's error.
