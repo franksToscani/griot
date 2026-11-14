@@ -573,7 +573,7 @@
     "privacy.recipients.provider": "To the professional you choose, to manage the booking.",
     "privacy.recipients.whatsapp": "To WhatsApp, if the professional chooses to write to you there: the message contains your name, the booking details and the link to its page.",
     "privacy.recipients.hosting": "To the service that hosts the site (planned: Render) and to the managed database that keeps the data (to be chosen).",
-    "privacy.recipients.photos": "To the image storage, which keeps the public photos of the professionals (planned: Scaleway, in Paris).",
+    "privacy.recipients.photos": "To the image storage, which keeps the public photos of the professionals (planned: Scaleway, in Milan).",
     "privacy.recipients.email": "To the email sending service, for the emails about the booking and the account (provider to be chosen).",
     "privacy.recipients.no_one_else": "The data are not passed on to anyone else for advertising.",
     "privacy.rights.heading": "Your rights",

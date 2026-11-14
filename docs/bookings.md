@@ -79,7 +79,7 @@ Nessun SQL grezzo: gira uguale su SQLite, MySQL e PostgreSQL. Il `down()` toglie
 
 - **Solo le proprie prenotazioni**: la prenotazione si cerca tra quelle del professionista loggato. Un id di un altro professionista o inesistente dà **404**, mai 403, così la pagina non dice se quella prenotazione esiste. Solo cifre nell'indirizzo (`whereNumber`). Un utente senza professionista va alla configurazione.
 - **Stessa scheda della lista**: `resources/js/components/provider-booking-card.tsx` (cliente, contatti, note, servizio e opzioni, data e ora di Roma, stato, prezzo salvato, « Avvisa su WhatsApp », pulsanti Conferma, Rifiuta e Annulla secondo `can_confirm`, `can_reject` e `can_cancel` del server). Nella lista la data di ogni scheda è un link alla sua pagina; sulla pagina è testo.
-- In alto « Torna alle prenotazioni », il titolo (h1, dove va il focus se serve) e gli errori delle risposte rifiutate, annunciati come nella lista. Pagina privata: `X-Robots-Tag: noindex, nofollow` (`NoIndexPrivatePages`, come ogni pagina non pubblica).
+- In alto « Torna alle prenotazioni », il titolo (h1, dove va il focus se serve) e gli errori delle risposte rifiutate, annunciati come nella lista. Pagina privata: `X-Robots-Tag: noindex, nofollow` (`NoIndexPrivatePages`, come ogni pagina non pubblica) e, dal polling, `Cache-Control: no-store` (`PrivateProviderPage`, vedi « Aggiornamento automatico dello stato »).
 
 **Dove si torna dopo una risposta.** I moduli della pagina (conferma, e la finestra di rifiuto o annullamento) mandano il campo nascosto `return=detail`. `App\Http\ProviderBookingReturn::url()` sceglie l'indirizzo: la pagina della prenotazione solo con esattamente quel valore, la lista in ogni altro caso (nessun valore, un'altra parola, un indirizzo). Mai il Referer, che non è affidabile. Lo usano allo stesso modo:
 
@@ -126,7 +126,8 @@ Con Indietro e Avanti Inertia mostra di nuovo una pagina con le props salvate ne
 
 - **Quando:** all'evento `navigate` di Inertia con `type === 'history'`, e all'evento `pageshow` con `persisted`, cioè una pagina intera ripristinata dalla cache avanti/indietro del browser, che non lancia `navigate`.
 - **Perché globale:** è registrato una volta in `app.tsx`, prima di `createInertiaApp`, come `syncDocumentLanguage()`. Con Indietro la pagina viene montata di nuovo, e un listener dentro la pagina potrebbe non esserci ancora quando arriva l'evento.
-- **Che cosa non fa:** non ricarica la pagina intera, non cambia lo scroll né lo stato dei componenti (il ricarico di Inertia li conserva) e non interroga il server a intervalli. Per un attimo si vede il dato della cronologia, poi quello nuovo.
+- **Che cosa non fa:** non ricarica la pagina intera, non cambia lo scroll né lo stato dei componenti (il ricarico di Inertia li conserva) e non interroga il server a intervalli (lo fa il polling, sezione seguente). Per un attimo si vede il dato della cronologia, poi quello nuovo.
+- **Errori:** un 404 (la prenotazione non c'è più) o un errore di rete non mostrano il toast di `lib/http-errors.ts`: `onHttpException` e `onNetworkError` restituiscono `false`, e la pagina resta com'era.
 - **I filtri della lista** restano: il ricarico usa l'indirizzo della pagina, query compresa.
 - **La pagina pubblica del professionista** non è nella lista: gli orari liberi si chiedono solo dopo aver scelto un giorno, e con Indietro la scheda di prenotazione riparte chiusa.
 

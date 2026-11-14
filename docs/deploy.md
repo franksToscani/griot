@@ -9,7 +9,7 @@ Regola di questo documento: quello che riguarda Render, Google o altri fornitori
 - **Un servizio web Docker** (`render.yaml`, piano `0.5c-512mb`, Francoforte): un solo container con il server web (FrankenPHP), la coda (`queue:work`) e lo scheduler (`schedule:work`).
 - **PostgreSQL 18** (`0.1c-256mb`, Francoforte), collegato al servizio con `DB_URL`.
 - **La posta**: Gmail nella fase privata (sezione 4), poi un fornitore con dominio proprio.
-- **Il bucket delle foto**: Scaleway Object Storage a Parigi, quando servono le foto (sezione 5).
+- **Il bucket delle foto**: Scaleway Object Storage a Milano (sezione 5).
 
 Costi, dalla pagina dei prezzi (https://render.com/pricing):
 
@@ -51,27 +51,27 @@ Traffico delle pagine che si aggiornano da sole ([bookings.md](bookings.md)): og
 
 3. **Le variabili da scrivere a mano** (quelle con `sync: false` in `render.yaml`). Render chiede i valori per i servizi nuovi creati dal Blueprint; quando esattamente li chiede nella procedura è **da verificare** su https://render.com/docs/blueprint-spec. Gli esempi sono finti.
 
-    | Variabile                    | Che cosa è                                                 | Dove si trova il valore                               | Esempio finto                                    |
-    | ---------------------------- | ---------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------ |
-    | `APP_KEY`                    | chiave di cifratura di sessioni e cookie                   | passo 1                                               | `base64:…` (non scriverla mai altrove)           |
-    | `APP_URL`                    | l'indirizzo pubblico in https                              | l'indirizzo `onrender.com` del servizio, o il dominio | `https://griot.example.test`                     |
-    | `MAIL_HOST`                  | il server SMTP                                             | sezione 4                                             | `smtp.gmail.com`                                 |
-    | `MAIL_USERNAME`              | l'utente SMTP                                              | l'indirizzo Gmail dedicato                            | `<indirizzo-gmail>`                              |
-    | `MAIL_PASSWORD`              | la password SMTP                                           | la password per le app di Google (sezione 4)          | 16 caratteri                                     |
-    | `MAIL_FROM_ADDRESS`          | il mittente delle email                                    | lo stesso indirizzo Gmail                             | `<indirizzo-gmail>`                              |
-    | `AWS_ACCESS_KEY_ID`          | la chiave d'accesso del bucket                             | console di Scaleway (sezione 5)                       | `<chiave d'accesso>`                             |
-    | `AWS_SECRET_ACCESS_KEY`      | la chiave segreta del bucket                               | console di Scaleway                                   | (segreto)                                        |
-    | `AWS_DEFAULT_REGION`         | la regione del bucket                                      | console di Scaleway                                   | `fr-par`                                         |
-    | `AWS_BUCKET`                 | il nome del bucket                                         | console di Scaleway                                   | `griot-foto-esempio`                             |
-    | `AWS_ENDPOINT`               | l'indirizzo del servizio S3                                | documentazione di Scaleway                            | `https://s3.fr-par.scw.cloud`                    |
-    | `AWS_URL`                    | l'indirizzo pubblico delle foto                            | documentazione di Scaleway                            | `https://griot-foto-esempio.s3.fr-par.scw.cloud` |
-    | `CONTACT_EMAIL`              | contatto del sito nel footer (vuoto: nessun contatto)      | una casella di Griot                                  | `info@example.test`                              |
-    | `CONTACT_WHATSAPP`           | WhatsApp del sito, formato internazionale (vuoto: nessuno) | il numero di Griot                                    | `<+39 e il numero>`                              |
-    | `PRIVACY_CONTROLLER_NAME`    | il titolare del trattamento in `/privacy`                  | decisione di Franks ([legal.md](legal.md))            | `Nome Esempio`                                   |
-    | `PRIVACY_CONTACT_EMAIL`      | l'email per la privacy in `/privacy`                       | una casella di Griot                                  | `privacy@example.test`                           |
-    | `TERMS_PUBLISHER_NAME`       | l'editore in `/terms`                                      | decisione di Franks                                   | `Nome Esempio`                                   |
-    | `TERMS_PUBLISHER_ADDRESS`    | l'indirizzo dell'editore                                   | decisione di Franks                                   | `Via Esempio 1, 00000 Città`                     |
-    | `TERMS_PUBLISHER_VAT_NUMBER` | la partita IVA dell'editore                                | decisione di Franks                                   | `IT-ESEMPIO`                                     |
+    | Variabile                    | Che cosa è                                                 | Dove si trova il valore                               | Esempio finto                                 |
+    | ---------------------------- | ---------------------------------------------------------- | ----------------------------------------------------- | --------------------------------------------- |
+    | `APP_KEY`                    | chiave di cifratura di sessioni e cookie                   | passo 1                                               | `base64:…` (non scriverla mai altrove)        |
+    | `APP_URL`                    | l'indirizzo pubblico in https                              | l'indirizzo `onrender.com` del servizio, o il dominio | `https://griot.example.test`                  |
+    | `MAIL_HOST`                  | il server SMTP                                             | sezione 4                                             | `smtp.gmail.com`                              |
+    | `MAIL_USERNAME`              | l'utente SMTP                                              | l'indirizzo Gmail dedicato                            | `<indirizzo-gmail>`                           |
+    | `MAIL_PASSWORD`              | la password SMTP                                           | la password per le app di Google (sezione 4)          | 16 caratteri                                  |
+    | `MAIL_FROM_ADDRESS`          | il mittente delle email                                    | lo stesso indirizzo Gmail                             | `<indirizzo-gmail>`                           |
+    | `AWS_ACCESS_KEY_ID`          | la chiave d'accesso del bucket                             | console di Scaleway (sezione 5)                       | `<chiave d'accesso>`                          |
+    | `AWS_SECRET_ACCESS_KEY`      | la chiave segreta del bucket                               | console di Scaleway                                   | (segreto)                                     |
+    | `AWS_DEFAULT_REGION`         | la regione del bucket                                      | console di Scaleway                                   | `it-mil`                                      |
+    | `AWS_BUCKET`                 | il nome del bucket                                         | console di Scaleway                                   | `nome-del-bucket`                             |
+    | `AWS_ENDPOINT`               | l'indirizzo del servizio S3                                | documentazione di Scaleway                            | `https://s3.it-mil.scw.cloud`                 |
+    | `AWS_URL`                    | l'indirizzo pubblico delle foto                            | documentazione di Scaleway                            | `https://nome-del-bucket.s3.it-mil.scw.cloud` |
+    | `CONTACT_EMAIL`              | contatto del sito nel footer (vuoto: nessun contatto)      | una casella di Griot                                  | `info@example.test`                           |
+    | `CONTACT_WHATSAPP`           | WhatsApp del sito, formato internazionale (vuoto: nessuno) | il numero di Griot                                    | `<+39 e il numero>`                           |
+    | `PRIVACY_CONTROLLER_NAME`    | il titolare del trattamento in `/privacy`                  | decisione di Franks ([legal.md](legal.md))            | `Nome Esempio`                                |
+    | `PRIVACY_CONTACT_EMAIL`      | l'email per la privacy in `/privacy`                       | una casella di Griot                                  | `privacy@example.test`                        |
+    | `TERMS_PUBLISHER_NAME`       | l'editore in `/terms`                                      | decisione di Franks                                   | `Nome Esempio`                                |
+    | `TERMS_PUBLISHER_ADDRESS`    | l'indirizzo dell'editore                                   | decisione di Franks                                   | `Via Esempio 1, 00000 Città`                  |
+    | `TERMS_PUBLISHER_VAT_NUMBER` | la partita IVA dell'editore                                | decisione di Franks                                   | `IT-ESEMPIO`                                  |
 
     Le variabili `AWS_*` servono solo con le foto (sezione 5). Se Render accetta valori vuoti per le variabili `sync: false` è **da verificare**. I contatti e i dati dell'editore vuoti mostrano un segnaposto o nessun contatto. `CONTACT_WHATSAPP` serve anche al link « Chiama » (`tel:`) del pannello di aiuto della home: lo stesso numero, solo le cifre con il `+` davanti.
 
@@ -154,10 +154,10 @@ Solo per la fase privata, con poche email di prova. Al lancio pubblico serve un 
 
 **Il primo deploy, quindi, si fa senza foto**: i professionisti di prova non caricano foto finché il bucket non c'è.
 
-**Configurare Scaleway Object Storage a Parigi** (la scelta di [media-storage.md](media-storage.md)); i passi della console sono **da verificare** su https://www.scaleway.com/en/docs/object-storage/:
+**Configurare Scaleway Object Storage a Milano** (la scelta di [media-storage.md](media-storage.md)); i passi della console sono **da verificare** su https://www.scaleway.com/en/docs/object-storage/:
 
-1. creare un bucket nella regione `fr-par`, con lettura pubblica degli oggetti;
-2. creare una chiave d'accesso con lettura, scrittura e cancellazione su quel bucket;
+1. creare un bucket nella regione `it-mil`, con lettura pubblica degli oggetti (Laravel scrive i file con visibilità pubblica);
+2. creare un'**applicazione IAM dedicata** (mai l'utente personale), con una policy che dà solo lettura, scrittura e cancellazione degli oggetti, limitata al progetto del sito, e una chiave API per quell'applicazione. La chiave scade dopo 1 anno: rinnovarla prima (promemoria: ottobre 2027) e aggiornare le variabili (sezione 10);
 3. scrivere `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION`, `AWS_BUCKET`, `AWS_ENDPOINT` e `AWS_URL` nel servizio (sezione 10);
 4. caricare una foto di prova e controllare i punti « Non verificato » di [media-storage.md](media-storage.md):
     - la foto si vede (lettura pubblica);
@@ -169,6 +169,10 @@ Solo per la fase privata, con poche email di prova. Al lancio pubblico serve un 
     ```
 
 5. rifare un deploy e controllare che la foto ci sia ancora (#61).
+
+Un 403 Forbidden sulla scrittura viene spesso da una chiave incollata due volte (access key e secret key scambiate o uguali): controllare `AWS_ACCESS_KEY_ID` e `AWS_SECRET_ACCESS_KEY`.
+
+La prova gratuita di Object Storage termina il **12 febbraio 2027**, poi il costo è a consumo: verificare i prezzi nella pagina ufficiale di Scaleway.
 
 ## 6. Il primo professionista
 

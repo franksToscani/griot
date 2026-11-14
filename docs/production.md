@@ -87,7 +87,7 @@ Finché i testi legali non sono rivisti ([legal.md](legal.md)) il sito è online
 - **Proxy fidati**: `TRUSTED_PROXIES` (`config/app.php`, `trusted_proxies`): `*` dietro il bilanciatore dell'hosting, oppure gli indirizzi separati da virgole; vuota (sviluppo): nessuno. Si credono `X-Forwarded-For`, `-Proto`, `-Host` e `-Port`. Senza, dietro un proxy tutti i clienti avrebbero l'indirizzo del proxy (un solo contatore per i limiti di richieste) e i link sarebbero in http. `*` va bene solo se l'app è raggiungibile unicamente attraverso il proxy.
 - **Intestazioni di sicurezza** (`App\Http\Middleware\SecurityHeaders`, su ogni risposta, pagine d'errore e `/up` comprese):
     - `X-Content-Type-Options: nosniff`;
-    - `Referrer-Policy: strict-origin-when-cross-origin` (la pagina privata di una prenotazione tiene il suo `no-referrer`, più severo, e il suo `Cache-Control: no-store`);
+    - `Referrer-Policy: strict-origin-when-cross-origin` (la pagina privata di una prenotazione tiene il suo `no-referrer`, più severo, e il suo `Cache-Control: no-store`; `Cache-Control: no-store` anche sulla lista e sulla pagina di una prenotazione del professionista, con il middleware `PrivateProviderPage`, [bookings.md](bookings.md));
     - `X-Frame-Options: SAMEORIGIN`;
     - `Strict-Transport-Security: max-age=31536000` solo in produzione e solo su una richiesta https; senza sottodomini e senza preload finché il dominio non è scelto.
 - **Nessuna Content-Security-Policy** per ora: lo script in linea del tema in `app.blade.php` richiede prima un nonce. È un lavoro a parte.

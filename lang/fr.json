@@ -573,7 +573,7 @@
     "privacy.recipients.provider": "Au professionnel que vous choisissez, pour gérer la réservation.",
     "privacy.recipients.whatsapp": "À WhatsApp, si le professionnel choisit de vous écrire par ce moyen : le message contient votre nom, les détails de la réservation et le lien vers sa page.",
     "privacy.recipients.hosting": "Au service qui héberge le site (prévu : Render) et à la base de données gérée qui conserve les données (à choisir).",
-    "privacy.recipients.photos": "Au stockage des images, qui conserve les photos publiques des professionnels (prévu : Scaleway, à Paris).",
+    "privacy.recipients.photos": "Au stockage des images, qui conserve les photos publiques des professionnels (prévu : Scaleway, à Milan).",
     "privacy.recipients.email": "Au service d'envoi d'emails, pour les emails sur la réservation et sur le compte (prestataire à choisir).",
     "privacy.recipients.no_one_else": "Les données ne sont pas transmises à d'autres à des fins publicitaires.",
     "privacy.rights.heading": "Vos droits",
