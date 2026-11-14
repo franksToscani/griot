@@ -304,7 +304,7 @@ test('the outcome is the one of the answer, even if the booking changes before t
     // The customer cancels before the worker runs.
     $this->post(route('bookings.cancel', ['booking' => $booking->public_token]))->assertSessionHasNoErrors();
     // Every job, in any order: the customer's cancellation also queues an email to the provider.
-    $this->artisan('queue:work', ['--stop-when-empty' => true])->assertSuccessful();
+    runQueueWorker()->assertSuccessful();
 
     $toCustomer = array_values(array_filter(
         bsnSent(),
@@ -331,7 +331,7 @@ test('a job for a booking deleted in the meantime is discarded without failing',
     expect(DB::table('jobs')->count())->toBe(1);
 
     $booking->delete();
-    $this->artisan('queue:work', ['--once' => true, '--stop-when-empty' => true])->assertSuccessful();
+    runQueueWorker(['--once' => true])->assertSuccessful();
 
     expect(DB::table('jobs')->count())->toBe(0);
     expect(DB::table('failed_jobs')->count())->toBe(0);

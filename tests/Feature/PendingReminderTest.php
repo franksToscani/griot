@@ -297,7 +297,7 @@ test('with a real queue the job is stored with the mark, and nothing more until 
         ->and($booking->fresh()->reminder_sent_at)->not->toBeNull()
         ->and(prmTransport()->messages())->toBeEmpty();
 
-    $this->artisan('queue:work', ['--once' => true, '--stop-when-empty' => true])->assertSuccessful();
+    runQueueWorker(['--once' => true])->assertSuccessful();
 
     expect(DB::table('jobs')->count())->toBe(0)
         ->and(DB::table('failed_jobs')->count())->toBe(0)
@@ -338,7 +338,7 @@ test('a request confirmed while the job waits in the queue gets no email', funct
     prmRun(1, 0);
 
     DB::table('bookings')->where('id', $booking->id)->update(['status' => BookingStatus::Confirmed->value]);
-    $this->artisan('queue:work', ['--once' => true, '--stop-when-empty' => true])->assertSuccessful();
+    runQueueWorker(['--once' => true])->assertSuccessful();
 
     expect(DB::table('jobs')->count())->toBe(0)
         ->and(DB::table('failed_jobs')->count())->toBe(0)
@@ -351,7 +351,7 @@ test('a job for a booking deleted in the meantime is discarded without failing',
     prmRun(1, 0);
 
     $booking->delete();
-    $this->artisan('queue:work', ['--once' => true, '--stop-when-empty' => true])->assertSuccessful();
+    runQueueWorker(['--once' => true])->assertSuccessful();
 
     expect(DB::table('jobs')->count())->toBe(0)
         ->and(DB::table('failed_jobs')->count())->toBe(0)

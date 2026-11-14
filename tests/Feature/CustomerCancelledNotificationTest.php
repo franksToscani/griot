@@ -271,7 +271,7 @@ test('a job for a booking deleted in the meantime is discarded without failing',
     expect(DB::table('jobs')->count())->toBe(1);
 
     $booking->delete();
-    $this->artisan('queue:work', ['--once' => true, '--stop-when-empty' => true])->assertSuccessful();
+    runQueueWorker(['--once' => true])->assertSuccessful();
 
     expect(DB::table('jobs')->count())->toBe(0);
     expect(DB::table('failed_jobs')->count())->toBe(0);
