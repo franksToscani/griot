@@ -380,3 +380,15 @@ test('the Italian texts of the forms are exactly the expected ones', function ()
     expect(__('booking.form.privacy_note'))->toBe('I dati che lasci servono a gestire la prenotazione e li riceve il professionista che hai scelto.')
         ->and(__('privacy.link'))->toBe('Informativa sulla privacy');
 });
+
+test('the privacy page names the region of the photo storage: Milan, never Paris', function (string $locale, string $city) {
+    $text = __('privacy.recipients.photos', [], $locale);
+
+    expect($text)->toContain($city)
+        ->not->toContain('Parigi')
+        ->not->toContain('Paris');
+})->with([
+    'italiano' => ['it', 'Milano'],
+    'français' => ['fr', 'Milan'],
+    'english' => ['en', 'Milan'],
+]);

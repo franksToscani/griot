@@ -37,7 +37,7 @@ Chi è Griot, cioè la persona o l'ente titolare e la sua forma giuridica, non �
 - **Campo note libero:** ora ha un avviso, ma resta un testo libero di 1000 caratteri che arriva per email al professionista e, se ha lasciato un'email, al cliente stesso.
 - **Età:** nessun controllo, né per chi prenota né per le persone nelle foto.
 - **Copie fuori dal database:** l'anonimizzazione non tocca le email già inviate, i messaggi WhatsApp, i log e le eventuali copie di sicurezza (#63).
-- **Fornitori di produzione:** hosting (previsto Render), database gestito (da scegliere), archivio delle foto (previsto Scaleway, Parigi), invio email (da scegliere, #62). Le regioni e gli accordi con i fornitori sono da verificare.
+- **Fornitori di produzione:** hosting e database PostgreSQL gestito su Render (regione Francoforte), archivio delle foto (Scaleway Object Storage, Milano), invio email (da scegliere, #62). Le regioni e gli accordi con i fornitori sono da verificare.
 
 ## Domande per un esperto
 

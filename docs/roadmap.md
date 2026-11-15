@@ -476,10 +476,31 @@ Chi arriva su Griot capisce subito cosa offre e trova un professionista in pochi
 
 Gli issue di questo sprint sono #57, #58, #59, #60 (deploy su Render), #62, #63, #64, #86 (campi di `auth.user` condivisi con le pagine), #97 (prezzo salvato sulla prenotazione), #131 (revisione del testo di `/privacy`) e #175 (audit con axe); #61 (archiviazione delle immagini) è già chiuso. Griot va online in modo sicuro, prima per i provider pilota e poi per un pubblico più ampio; a fine sprint il sito è su un indirizzo vero, la registrazione è chiusa, i controlli girano da soli su GitHub e sai cosa fare se qualcosa si rompe. Stima: 2 settimane, con possibili imprevisti di configurazione.
 
-**Stato (13 novembre 2026)**
+**Stato (15 novembre 2026)**
 
-- Fatti: #57 (CI), #58 (registrazione chiusa), #59 (configurazione di produzione), #86 (`auth.user`), #97 (prezzo salvato), la parte tecnica di #131 (bozze di informativa e termini d'uso, [legal.md](legal.md)) e la parte tecnica di #60 (immagine Docker, `render.yaml`, job `docker-build`), con il runbook di #63 e #64 ([deploy.md](deploy.md)) e l'avviso orario sui job falliti. Fuori dagli issue: la home e la lista sono utili anche senza professionisti (tutte le categorie con « In arrivo », link alla lista, stato vuoto con invito, « Come funziona » lungo una linea, pulsanti « ? » e « torna in cima » nella home, [home.md](home.md)). Poi gli errori del disco delle foto come messaggio nel modulo, mai una pagina d'errore, e un toast al posto della finestra d'errore di Inertia ([media-storage.md](media-storage.md)).
-- Aperti: il deploy vero su Render (#60), la posta con un fornitore e un dominio (#62), la prova di ripristino del database e un avviso fuori dai log (#63), la revisione dei testi legali (#131), l'audit con axe (#175), i dati dei clienti nei log e nell'URL (#186).
+- Fatti: #57 (CI), #58 (registrazione chiusa), #59 (configurazione di produzione), #86 (`auth.user`), #97 (prezzo salvato), la parte tecnica di #131 (bozze di informativa e termini d'uso, [legal.md](legal.md)) e #60, il deploy su Render: il sito è in produzione in un container Docker con FrankenPHP (web, coda e scheduler nello stesso container) e un database PostgreSQL, con il runbook di #63 e #64 ([deploy.md](deploy.md)) e l'avviso orario sui job falliti. Fuori dagli issue: la home e la lista sono utili anche senza professionisti (tutte le categorie con « In arrivo », link alla lista, stato vuoto con invito, « Come funziona » lungo una linea, pulsanti « ? » e « torna in cima » nella home, [home.md](home.md)). Poi gli errori del disco delle foto come messaggio nel modulo, mai una pagina d'errore, e un toast al posto della finestra d'errore di Inertia ([media-storage.md](media-storage.md)).
+- Foto: su Scaleway Object Storage a Milano, funzionanti in produzione (caricamento della foto del profilo e della galleria verificato; [media-storage.md](media-storage.md)).
+- Fatti dopo il 13 novembre:
+    - la pagina di una prenotazione per il professionista, con il link dalla sua email « nuova prenotazione » (#194, [bookings.md](bookings.md));
+    - `laravel/framework` aggiornato per un avviso di sicurezza (#195);
+    - l'email « richiesta inviata » al cliente con il link privato, al massimo 3 all'ora per indirizzo (#196);
+    - lo stato delle prenotazioni ricaricato con Indietro e Avanti, e il cambio lingua che torna alla pagina giusta (#197);
+    - lo stato delle prenotazioni aggiornato da solo con il polling, e `Cache-Control: no-store` sulle pagine del professionista con i dati dei clienti (#198).
+- Aperti: la posta con un dominio e un fornitore (#62; oggi una casella Gmail dedicata per la fase privata, con un tetto giornaliero), la prova di ripristino del database e un avviso fuori dai log (#63), la revisione dei testi legali (#131), l'audit con axe (#175), i dati dei clienti nei log e nell'URL (#186), gli interruttori di lancio (`SITE_NOINDEX`, `PRIVACY_REVIEWED`, `TERMS_REVIEWED`, i dati reali del gestore; [deploy.md](deploy.md), sezione 13).
+
+**Promemoria con scadenza**
+
+- Prova gratuita di Scaleway Object Storage: fino al 12 febbraio 2027, poi costo a consumo.
+- Chiave API di Scaleway: da rinnovare entro ottobre 2027 (scade dopo 1 anno).
+
+**Backlog senza milestone**
+
+- Nelle versioni testo delle email, i due punti dopo le etichette in francese senza U+00A0.
+- `return_to` da escludere dai campi rimessi in sessione (`dontFlash`), se il cambio lingua dovesse mai accettare una lingua non valida.
+- Valutare un 401 al posto del redirect al login per i ricarichi parziali senza login (polling e Indietro).
+- Lo script di Laravel Boost in `composer.json` che dà errore in locale.
+- Aggiornamenti minori delle dipendenze.
+- Descrizione e testi liberi dei professionisti non tradotti (legato a #132 e #178).
 
 **Decisioni da fissare all'inizio**
 
@@ -487,7 +508,7 @@ Gli issue di questo sprint sono #57, #58, #59, #60 (deploy su Render), #62, #63,
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Database di produzione | Da decidere qui. Render offre Postgres gestito; MySQL gestito, per quanto verificato, no; SQLite richiede un servizio a pagamento con disco persistente. Prima di scegliere, guarda i prezzi aggiornati nella pagina ufficiale di Render. |
 | Se cambiare database   | Con Postgres, test e sviluppo locale vanno allineati (almeno la CI). Conviene deciderlo prima di scrivere il resto, non il giorno del deploy.                                                                                             |
-| Immagini dei profili   | Il disco di un servizio Render è effimero: le immagini vanno sul disco `media`, un bucket compatibile S3 (Scaleway Object Storage, Parigi) con `MEDIA_DISK_DRIVER=s3`. Vedi [docs/media-storage.md](media-storage.md).                    |
+| Immagini dei profili   | Il disco di un servizio Render è effimero: le immagini vanno sul disco `media`, un bucket compatibile S3 (Scaleway Object Storage, Milano) con `MEDIA_DISK_DRIVER=s3`. Vedi [docs/media-storage.md](media-storage.md).                    |
 | Email in produzione    | Un servizio di invio vero, con dominio verificato per non finire nello spam.                                                                                                                                                              |
 | Registrazione          | Chiusa; i provider si creano a mano o con un comando riservato.                                                                                                                                                                           |
 | Dominio                | Un nome tuo con HTTPS; per i pilota può bastare l'indirizzo assegnato da Render.                                                                                                                                                          |

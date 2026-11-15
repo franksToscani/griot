@@ -151,8 +151,8 @@ test('.env.example has the variables of the media disk and no key', function () 
         ->toContain("AWS_URL=\n")
         ->toContain("AWS_ACCESS_KEY_ID=\n")
         ->toContain("AWS_SECRET_ACCESS_KEY=\n")
-        ->toContain('# AWS_ENDPOINT=https://s3.fr-par.scw.cloud')
-        ->toContain('# AWS_DEFAULT_REGION=fr-par');
+        ->toContain('# AWS_ENDPOINT=https://s3.it-mil.scw.cloud')
+        ->toContain('# AWS_DEFAULT_REGION=it-mil');
 });
 
 // ---------------------------------------------------------------------------------------------
