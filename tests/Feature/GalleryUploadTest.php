@@ -288,15 +288,16 @@ test('deleting the account removes the files of every photo, after the account i
     expect($photos)->toHaveCount(2);
 });
 
-test('a deletion refused by the database (a provider with bookings) leaves every photo', function () {
+test('a deletion refused for the bookings (issue #133) leaves every photo', function () {
     $provider = Provider::factory()->create();
     $photo = guPhoto($provider, 1);
     Booking::factory()->for($provider)->create();
 
-    // In a savepoint: on PostgreSQL the refused delete spoils the transaction of the test.
-    failingRequestInSavepoint(fn () => $this->actingAs($provider->user)
+    // The error "account" on the settings page, never an error page (AccountDeletionTest).
+    $this->actingAs($provider->user)
         ->delete(route('profile.destroy'), ['password' => 'password'])
-        ->assertServerError());
+        ->assertRedirect(route('profile.edit'))
+        ->assertSessionHasErrors('account');
 
     expect($photo->fresh())->not->toBeNull();
     foreach ($photo->paths() as $path) {

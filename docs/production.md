@@ -92,17 +92,25 @@ Finché i testi legali non sono rivisti ([legal.md](legal.md)) il sito è online
     - `Strict-Transport-Security: max-age=31536000` solo in produzione e solo su una richiesta https; senza sottodomini e senza preload finché il dominio non è scelto.
 - **Nessuna Content-Security-Policy** per ora: lo script in linea del tema in `app.blade.php` richiede prima un nonce. È un lavoro a parte.
 
+## Sessione scaduta e CSRF (#130)
+
+- `SESSION_LIFETIME` resta **120 minuti**.
+- Laravel 13 controlla i moduli con `PreventRequestForgery` (gruppo `web`): una richiesta che il browser segna `Sec-Fetch-Site: same-origin` passa **prima** del confronto dei token. Con i browser recenti, quindi, un modulo inviato dopo la scadenza della sessione non dà 419: arriva al controller con una sessione nuova. Il modulo pubblico e la pagina privata del cliente funzionano; nell'area del professionista la richiesta senza login va al login, e dopo il login si torna alla pagina.
+- `bootstrap/app.php` lascia i valori predefiniti: niente `same-site` accettato, niente « solo origine ». `SessionExpiryTest` lo controlla con il controllo acceso, perché nei test Laravel lo salta.
+- **Rete di sicurezza** per un browser senza `Sec-Fetch-Site`: dopo un 419, `lib/http-errors.ts` chiede `GET /session/refresh` (`session.refresh`, `SessionRefreshController`: risposta vuota 204, `Cache-Control: no-store`, nessun login, limite `session-refresh`), che porta un cookie `XSRF-TOKEN` nuovo; poi il toast dice di premere di nuovo Invia. Niente ricarico, niente nuovo invio automatico, niente dati salvati nel browser.
+
 ## Limiti di richieste
 
 Per IP (con i proxy fidati, l'IP vero del cliente), in `AppServiceProvider`, valori in `config/booking.php`:
 
-| Limite           | Dove                                   | Valore                     |
-| ---------------- | -------------------------------------- | -------------------------- |
-| `providers-list` | la lista `/providers` e la sua ricerca | 60 al minuto               |
-| `booking-slots`  | gli orari liberi                       | 60 al minuto               |
-| `booking-store`  | la prenotazione pubblica               | 5 al minuto, 20 all'ora    |
-| `booking-cancel` | l'annullamento dalla pagina privata    | 10 al minuto               |
-| `login`          | l'accesso (Fortify)                    | 5 al minuto per email e IP |
+| Limite            | Dove                                   | Valore                     |
+| ----------------- | -------------------------------------- | -------------------------- |
+| `providers-list`  | la lista `/providers` e la sua ricerca | 60 al minuto               |
+| `booking-slots`   | gli orari liberi                       | 60 al minuto               |
+| `booking-store`   | la prenotazione pubblica               | 5 al minuto, 20 all'ora    |
+| `booking-cancel`  | l'annullamento dalla pagina privata    | 10 al minuto               |
+| `session-refresh` | il token nuovo dopo un 419 (#130)      | 10 al minuto               |
+| `login`           | l'accesso (Fortify)                    | 5 al minuto per email e IP |
 
 L'area del provider ha i suoi limiti per utente (foto, servizi, prenotazioni). Oltre il limite: la pagina 429 del sito, o un errore nel modulo dove c'è un modulo.
 

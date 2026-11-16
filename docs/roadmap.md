@@ -372,6 +372,10 @@ Il provider vede le prenotazioni in arrivo, le conferma o le rifiuta e avvisa il
 
 I provider già intervistati usano Griot, tu osservi dove si bloccano e correggi; a fine sprint hai feedback scritto, i problemi di usabilità più gravi risolti e l'interfaccia in italiano, francese e inglese. Stima: 2 settimane, con una parte lunga di attesa e coordinamento.
 
+Gli issue di questo sprint sono 8: #51 (preparazione della prova), #52 (sessioni con i provider) e #53 (correzioni di usabilità); poi, **da decidere dopo i feedback**, #110 (anticipo minimo di prenotazione e messaggio « contatta il professionista »), #132 (contenuti dei provider in più lingue: nomi, descrizioni, opzioni), #156 (ordinamento delle foto del lavoro, accessibile da tastiera e con lettore di schermo), #191 (video incorporato nella vetrina, caricato solo al click) e #192 (mosaico delle foto: stile e UX).
+
+**Sessioni di prova:** un copione uguale per ogni sessione e una scheda per le note, **senza dati personali** (né nomi, né telefoni, né foto delle persone: un codice al posto del nome).
+
 **Come far provare il sito, finché è solo in locale**
 
 | Opzione                                                                                                        | Pro                                              | Contro                                                                                                 |
@@ -474,11 +478,11 @@ Chi arriva su Griot capisce subito cosa offre e trova un professionista in pochi
 
 ## Sprint 9: pre-lancio
 
-Gli issue di questo sprint sono #57, #58, #59, #60 (deploy su Render), #62, #63, #64, #86 (campi di `auth.user` condivisi con le pagine), #97 (prezzo salvato sulla prenotazione), #131 (revisione del testo di `/privacy`) e #175 (audit con axe); #61 (archiviazione delle immagini) è già chiuso. Griot va online in modo sicuro, prima per i provider pilota e poi per un pubblico più ampio; a fine sprint il sito è su un indirizzo vero, la registrazione è chiusa, i controlli girano da soli su GitHub e sai cosa fare se qualcosa si rompe. Stima: 2 settimane, con possibili imprevisti di configurazione.
+Gli issue ancora aperti di questo sprint sono 6: #62 (riaperta per il dominio e il servizio di invio delle email), #63, #131 (revisione del testo di `/privacy`), #175 (audit con axe), #186 e #200 (interruttori di lancio). Già chiusi: #57, #58, #59, #60 (deploy su Render), #61 (archiviazione delle immagini), #64 (passaggio di consegne: runbook in [deploy.md](deploy.md)), #86 (campi di `auth.user` condivisi con le pagine) e #97 (prezzo salvato sulla prenotazione). Griot va online in modo sicuro, prima per i provider pilota e poi per un pubblico più ampio; a fine sprint il sito è su un indirizzo vero, la registrazione è chiusa, i controlli girano da soli su GitHub e sai cosa fare se qualcosa si rompe. Stima: 2 settimane, con possibili imprevisti di configurazione.
 
-**Stato (15 novembre 2026)**
+**Stato (16 novembre 2026)**
 
-- Fatti: #57 (CI), #58 (registrazione chiusa), #59 (configurazione di produzione), #86 (`auth.user`), #97 (prezzo salvato), la parte tecnica di #131 (bozze di informativa e termini d'uso, [legal.md](legal.md)) e #60, il deploy su Render: il sito è in produzione in un container Docker con FrankenPHP (web, coda e scheduler nello stesso container) e un database PostgreSQL, con il runbook di #63 e #64 ([deploy.md](deploy.md)) e l'avviso orario sui job falliti. Fuori dagli issue: la home e la lista sono utili anche senza professionisti (tutte le categorie con « In arrivo », link alla lista, stato vuoto con invito, « Come funziona » lungo una linea, pulsanti « ? » e « torna in cima » nella home, [home.md](home.md)). Poi gli errori del disco delle foto come messaggio nel modulo, mai una pagina d'errore, e un toast al posto della finestra d'errore di Inertia ([media-storage.md](media-storage.md)).
+- Fatti: #57 (CI), #58 (registrazione chiusa), #59 (configurazione di produzione), #64 (passaggio di consegne), #86 (`auth.user`), #97 (prezzo salvato), la parte tecnica di #131 (bozze di informativa e termini d'uso, [legal.md](legal.md)) e #60, il deploy su Render: il sito è in produzione in un container Docker con FrankenPHP (web, coda e scheduler nello stesso container) e un database PostgreSQL, con il runbook di #63 e #64 ([deploy.md](deploy.md)) e l'avviso orario sui job falliti. Fuori dagli issue: la home e la lista sono utili anche senza professionisti (tutte le categorie con « In arrivo », link alla lista, stato vuoto con invito, « Come funziona » lungo una linea, pulsanti « ? » e « torna in cima » nella home, [home.md](home.md)). Poi gli errori del disco delle foto come messaggio nel modulo, mai una pagina d'errore, e un toast al posto della finestra d'errore di Inertia ([media-storage.md](media-storage.md)).
 - Foto: su Scaleway Object Storage a Milano, funzionanti in produzione (caricamento della foto del profilo e della galleria verificato; [media-storage.md](media-storage.md)).
 - Fatti dopo il 13 novembre:
     - la pagina di una prenotazione per il professionista, con il link dalla sua email « nuova prenotazione » (#194, [bookings.md](bookings.md));
@@ -486,7 +490,7 @@ Gli issue di questo sprint sono #57, #58, #59, #60 (deploy su Render), #62, #63,
     - l'email « richiesta inviata » al cliente con il link privato, al massimo 3 all'ora per indirizzo (#196);
     - lo stato delle prenotazioni ricaricato con Indietro e Avanti, e il cambio lingua che torna alla pagina giusta (#197);
     - lo stato delle prenotazioni aggiornato da solo con il polling, e `Cache-Control: no-store` sulle pagine del professionista con i dati dei clienti (#198).
-- Aperti: la posta con un dominio e un fornitore (#62; oggi una casella Gmail dedicata per la fase privata, con un tetto giornaliero), la prova di ripristino del database e un avviso fuori dai log (#63), la revisione dei testi legali (#131), l'audit con axe (#175), i dati dei clienti nei log e nell'URL (#186), gli interruttori di lancio (`SITE_NOINDEX`, `PRIVACY_REVIEWED`, `TERMS_REVIEWED`, i dati reali del gestore; [deploy.md](deploy.md), sezione 13).
+- Aperti: la posta con un dominio e un fornitore (#62, riaperta; oggi una casella Gmail dedicata per la fase privata, con un tetto giornaliero), la prova di ripristino del database e un avviso fuori dai log (#63), la revisione dei testi legali (#131), l'audit con axe (#175), i dati dei clienti nei log e nell'URL (#186), gli interruttori di lancio (#200: `SITE_NOINDEX`, `PRIVACY_REVIEWED`, `TERMS_REVIEWED`, i dati reali del gestore; [deploy.md](deploy.md), sezione 13).
 
 **Promemoria con scadenza**
 
@@ -501,6 +505,7 @@ Gli issue di questo sprint sono #57, #58, #59, #60 (deploy su Render), #62, #63,
 - Lo script di Laravel Boost in `composer.json` che dà errore in locale.
 - Aggiornamenti minori delle dipendenze.
 - Descrizione e testi liberi dei professionisti non tradotti (legato a #132 e #178).
+- Una copia JPEG dell'immagine di anteprima dei link, se il WebP non viene mostrato da WhatsApp, Instagram o Facebook ([docs/link-previews.md](link-previews.md)).
 
 **Decisioni da fissare all'inizio**
 
@@ -591,32 +596,25 @@ Gli issue di questo sprint sono #57, #58, #59, #60 (deploy su Render), #62, #63,
 
 Dopo il primo deploy si chiudono i promemoria e i debiti tecnici raccolti negli sprint precedenti, senza funzioni nuove; a fine sprint il codice è più semplice da cambiare e i piccoli difetti noti sono corretti. Al massimo 10 issue: il resto resta nel backlog senza milestone.
 
+Gli issue di questo sprint sono 8: #74, #112, #115, #130, #133, #177, #178 e #179. Fatti: #130 e #133.
+
 **Rifiniture e debiti tecnici**
 
 - Rifiniture dopo lo Sprint 2 (#74): durata del seeder con `BookingDuration`, annotazioni per PHPStan, protezione di `FreeSlots` da passi o durate a 0, caratteri ammessi nel numero WhatsApp, fasce a cavallo di mezzanotte.
 - Debiti tecnici dopo lo Sprint 6 (#112): test sui sorgenti fragili, classi copiate in più pagine, regola dell'ora locale ripetuta, testi da sistemare, regole del telefono, promemoria e limitatori.
 - Pulizia dei residui dello starter kit (#115).
-- Sessione che scade dopo 120 minuti senza avviso, con la perdita di quello che il cliente ha scritto (#130).
-- Cancellare un account provider con prenotazioni: probabile errore 500 (#133).
-
-**Prenotazioni e contenuti**
-
-- Anticipo minimo di prenotazione e messaggio « contatta il professionista » (#110), da decidere con i provider.
-- Contenuti dei provider in più lingue: nomi, descrizioni, opzioni (#132), da decidere dopo i feedback.
-- Ordinamento delle foto del lavoro: « Sposta prima » e « Sposta dopo » accessibili da tastiera e con lettore di schermo (#156).
-- Video incorporato nella vetrina del professionista, caricato solo al click (click-to-load), senza contenuti di terzi prima del consenso.
-- Mosaico delle foto: stile e UX da decidere.
+- **Fatto:** sessione che scade dopo 120 minuti (#130). Con i browser recenti un modulo inviato dopo la scadenza non dà più 419 (Laravel 13 accetta l'invio dallo stesso sito); per gli altri, dopo un 419 un token nuovo e un toast che dice di premere di nuovo Invia, con i campi ancora pieni ([production.md](production.md)).
+- **Fatto:** cancellare un account provider con prenotazioni (#133): rifiutata con un messaggio chiaro e il contatto del sito, mai una pagina 500; la pagina spiega il motivo al posto del pulsante ([media-storage.md](media-storage.md)).
 
 **Piccoli difetti noti**
 
 - Numeri di telefono mostrati formattati (#177).
 - Traduzioni caricate per pagina (#178).
 - Badge di categoria duplicato (#179).
-- Una copia JPEG dell'immagine di anteprima dei link, se il WebP non viene mostrato da WhatsApp, Instagram o Facebook ([docs/link-previews.md](link-previews.md)).
 
 ## Sprint 11: mappa e posizione
 
-Chi cerca vede sulla mappa, accanto alla lista, in quale zona lavorano i professionisti, senza che nessun indirizzo preciso diventi pubblico. Issue #170-#174. Stima: da fare dopo il lancio.
+Chi cerca vede sulla mappa, accanto alla lista, in quale zona lavorano i professionisti, senza che nessun indirizzo preciso diventi pubblico. Issue #170-#174 (5). Da fare **prima del lancio**: dopo le prime sessioni con i professionisti (Sprint 7) e dopo le decisioni della #170.
 
 **Decisioni da fissare all'inizio**
 
@@ -652,19 +650,21 @@ Chi cerca vede sulla mappa, accanto alla lista, in quale zona lavorano i profess
 
 Il piano conta 11 sprint, a circa 10 ore a settimana, con studi e lavoro.
 
-| Sprint | Tema                                           | Durata stimata |
-| ------ | ---------------------------------------------- | -------------- |
-| 1      | Scoperta pubblica                              | 1 settimana    |
-| 2      | Calcolo degli slot liberi                      | 2 settimane    |
-| 3      | Prenotazione pubblica                          | 2 settimane    |
-| 4      | Area provider: login e profilo                 | 1 settimana    |
-| 5      | Area provider: servizi, opzioni, disponibilità | 1-2 settimane  |
-| 6      | Area provider: calendario e gestione           | 2 settimane    |
-| 7      | Prova con utenti reali                         | 2 settimane    |
-| 8      | Aspetto e primo impatto                        | completato     |
-| 9      | Pre-lancio                                     | 2 settimane    |
-| 10     | Rifinitura e debiti                            | da stimare     |
-| 11     | Mappa e posizione                              | da stimare     |
+In ordine di lavoro, non di numero: lo Sprint 11 viene prima del lancio, e il lancio pubblico chiude con gli interruttori della #200 (Sprint 9).
+
+| Sprint | Tema                                           | Durata stimata | Quando                                                       |
+| ------ | ---------------------------------------------- | -------------- | ------------------------------------------------------------ |
+| 1      | Scoperta pubblica                              | 1 settimana    | fatto                                                        |
+| 2      | Calcolo degli slot liberi                      | 2 settimane    | fatto                                                        |
+| 3      | Prenotazione pubblica                          | 2 settimane    | fatto                                                        |
+| 4      | Area provider: login e profilo                 | 1 settimana    | fatto                                                        |
+| 5      | Area provider: servizi, opzioni, disponibilità | 1-2 settimane  | fatto                                                        |
+| 6      | Area provider: calendario e gestione           | 2 settimane    | fatto                                                        |
+| 8      | Aspetto e primo impatto                        | completato     | fatto                                                        |
+| 10     | Rifinitura e debiti                            | da stimare     | in corso                                                     |
+| 7      | Prova con utenti reali                         | 2 settimane    | sessioni con i professionisti, poi le 5 issue da decidere    |
+| 11     | Mappa e posizione                              | da stimare     | dopo le prime sessioni e le decisioni della #170             |
+| 9      | Pre-lancio                                     | 2 settimane    | sito già in produzione (privato); lancio con la #200, ultimo |
 
 **Da fare prima di andare online**
 

@@ -19,9 +19,12 @@ type PageProps = {
 export default function Profile({
     mustVerifyEmail,
     status,
+    has_bookings,
 }: {
     mustVerifyEmail: boolean;
     status?: string;
+    // A provider with bookings cannot delete the account (issue #133).
+    has_bookings: boolean;
 }) {
     const { t } = useTranslation();
 
@@ -137,7 +140,7 @@ export default function Profile({
                 </Form>
             </div>
 
-            <DeleteUser />
+            <DeleteUser hasBookings={has_bookings} />
         </>
     );
 }

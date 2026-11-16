@@ -44,6 +44,7 @@ use App\Http\Controllers\ProviderSlotsController;
 use App\Http\Controllers\ProviderStoreController;
 use App\Http\Controllers\ProviderUnpublishController;
 use App\Http\Controllers\ProviderUpdateController;
+use App\Http\Controllers\SessionRefreshController;
 use App\Http\Controllers\TermsController;
 use App\Http\Middleware\PrivateBookingPage;
 use App\Http\Middleware\PrivateProviderPage;
@@ -91,6 +92,12 @@ Route::post('bookings/{booking:public_token}/cancel', BookingCancellationControl
     ->where('booking', '[A-Za-z0-9]{48}')
     ->middleware([PrivateBookingPage::class, UseBookingLocale::class, 'throttle:booking-cancel'])
     ->name('bookings.cancel');
+
+// A new CSRF token after a 419, for every page (issue #130, lib/http-errors.ts): an empty answer
+// with the XSRF-TOKEN cookie. Its "throttle:" limit is in AppServiceProvider.
+Route::get('session/refresh', SessionRefreshController::class)
+    ->middleware('throttle:session-refresh')
+    ->name('session.refresh');
 
 // The provider's private area. No route has an id or a slug: the provider is always the
 // logged-in user's own ($request->user()->provider).

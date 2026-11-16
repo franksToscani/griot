@@ -49,8 +49,8 @@ Dove stanno le immagini del sito (oggi la foto del provider, domani la galleria 
 ## Cancellazione
 
 - Una foto nuova sostituisce la vecchia, che viene tolta dal disco dopo il salvataggio (`App\Profile\StoreProviderAvatar`). Se toglierla fallisce, la foto nuova resta salvata, il professionista vede « Foto aggiornata. » e il log ha un avviso; il file vecchio va tolto a mano.
-- Cancellando un account provider (`Settings\ProfileController::destroy`), la sua foto viene tolta dal disco **dopo** che l'account è stato cancellato. Se toglierla fallisce, l'account resta cancellato e il log ha un avviso senza dati personali; il file va tolto a mano.
-- Se la cancellazione dell'account è rifiutata (un provider con prenotazioni, #133), la foto resta.
+- Cancellando un account provider (`App\Profile\DeleteProviderAccount`, chiamata da `Settings\ProfileController::destroy`), la sua foto e quelle della galleria vengono tolte dal disco **dopo** che l'account è stato cancellato. Se toglierla fallisce, l'account resta cancellato e il log ha un avviso senza dati personali; il file va tolto a mano.
+- Un account il cui provider ha prenotazioni, in qualunque stato e anche rese anonime, **non si cancella** (#133): `bookings.provider_id` e `service_id` sono `restrictOnDelete`. Il rifiuto arriva prima di tutto da `ProfileDeleteRequest` (errore `account`, con il contatto del sito); se una prenotazione arriva tra la validazione e la cancellazione, `DeleteProviderAccount` legge l'errore della chiave esterna (`ForeignKeyViolation`) e dà lo stesso errore, mai una pagina 500. Il professionista resta collegato, le foto restano. La pagina delle impostazioni lo sa già (`has_bookings`) e mostra una spiegazione al posto del pulsante.
 - Togliere la sola foto, senza sostituirla, non è ancora possibile (#143).
 
 ## Non verificato
