@@ -32,6 +32,7 @@ La pagina `/providers` (« Trova un professionista »): chi c'è, cosa mostra la
 - Un valore che non è nella lista (o un array) si ignora come gli altri filtri: ordine per nome e `filters.sort` a `null`. Il valore valido va in `filters` e nei link della paginazione.
 - Nessuna funzione di un solo database: `orderBy` sulla colonna calcolata da `withMin`. Nessun professionista è senza prezzo, grazie alla regola dei servizi attivi.
 - « Ordina per » (`resources/js/components/provider-sort.tsx`): un `<select>` nativo con etichetta visibile, nella riga dei risultati, 44 px sotto 768 px. Al cambio una visita di Inertia con gli stessi filtri, dalla pagina 1, con `preserveScroll` e `preserveState`: la pagina resta montata e il nuovo numero viene annunciato. L'ordine predefinito non compare nell'indirizzo.
+- **Le categorie di una scheda** (lista e home) e i gruppi della pagina del professionista sono in ordine alfabetico del **nome mostrato** nella lingua della pagina (`Category::sortName()`: minuscole e senza accenti), non del nome italiano salvato: in inglese « Braids » prima di « Lashes », in italiano « Ciglia » prima di « Treccine » (#112).
 - « Azzera filtri » toglie tutti i filtri (categoria, città, ricerca, prezzo massimo, « solo con foto ») ma **mantiene** l'ordinamento (`resetFilters()`); anche la ricerca e il pannello inviati dal browser lo portano con sé, in un campo nascosto.
 
 ## Filtri

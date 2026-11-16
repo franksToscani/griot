@@ -37,15 +37,12 @@ import {
     update as updateOption,
 } from '@/routes/provider/services/options';
 import type { ProviderOption, ProviderService } from '@/types';
+import { wrappingLabel } from '@/lib/form-classes';
 
 type Props = {
     service: ProviderService;
     options: ProviderOption[];
 };
-
-// Copied from dashboard.tsx, like edit.tsx: the kit's Button keeps its label on one line at a fixed
-// height, and long Italian labels would widen the page at 375 px. cn() uses tailwind-merge.
-const wrappingLabel = 'h-auto max-w-full whitespace-normal py-2 text-center';
 
 // The options of one of the provider's services: the list, each with edit and delete, and the
 // form to add one.

@@ -106,9 +106,14 @@ Route::get('session/refresh', SessionRefreshController::class)
 Route::middleware(['auth', 'verified', ShareProviderNavigation::class])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('provider/setup', ProviderSetupController::class)->name('provider.setup');
-    Route::post('provider/setup', ProviderStoreController::class)->name('provider.store');
+    // The profile shares the counter of the new services, per user (provider-services, #74).
+    Route::post('provider/setup', ProviderStoreController::class)
+        ->middleware('throttle:provider-services')
+        ->name('provider.store');
     Route::get('provider/profile', ProviderEditController::class)->name('provider.edit');
-    Route::put('provider/profile', ProviderUpdateController::class)->name('provider.update');
+    Route::put('provider/profile', ProviderUpdateController::class)
+        ->middleware('throttle:provider-services')
+        ->name('provider.update');
     // A separate POST from the profile form. Its "throttle:" limit is in AppServiceProvider.
     Route::post('provider/avatar', ProviderAvatarController::class)
         ->middleware('throttle:provider-avatar')

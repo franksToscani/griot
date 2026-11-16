@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Category;
 use App\Models\Provider;
 use App\Models\ProviderPhoto;
 use Illuminate\Http\Request;
@@ -39,7 +40,8 @@ class ProviderResource extends JsonResource
                     ->where('is_active', true)
                     ->pluck('category')
                     ->unique('id')
-                    ->sortBy('name')
+                    // By the name shown in the page's language (#112), not the saved Italian one.
+                    ->sortBy(fn (Category $category) => $category->sortName())
                     ->values(),
             )),
             // The first photo of the work, decorative on the card; null without photos.

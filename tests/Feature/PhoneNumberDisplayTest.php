@@ -131,7 +131,9 @@ test('an anonymous booking has no phone to show', function () {
 test('the card shows customer_phone_display', function () {
     $card = (string) file_get_contents(resource_path('js/components/provider-booking-card.tsx'));
 
-    expect($card)->toMatch("/\\{booking\\.customer_phone_display !== null && \\([\\s\\S]*?\\{t\\('provider\\.bookings\\.phone'\\)\\}:\\{' '\\}\\s*\\{booking\\.customer_phone_display\\}/")
+    // As a link when the server sends its address (#207), as text otherwise: the number is always
+    // customer_phone_display.
+    expect($card)->toMatch("/\\{booking\\.customer_phone_display !== null && \\([\\s\\S]*?\\{t\\('provider\\.bookings\\.phone'\\)\\}:\\{' '\\}[\\s\\S]*?\\{booking\\.customer_phone_display\\}[\\s\\S]*?booking\\.customer_phone_display\\s*\\)\\}/")
         ->not->toMatch('/\{booking\.customer_phone\}/');
 });
 

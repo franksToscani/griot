@@ -506,6 +506,7 @@ Gli issue ancora aperti di questo sprint sono 6: #62 (riaperta per il dominio e 
 - Aggiornamenti minori delle dipendenze.
 - Nella scheda di una prenotazione, « Telefono: » ed « Email: » hanno i due punti scritti nel componente, senza U+00A0 in francese (come nelle versioni testo delle email).
 - Descrizione e testi liberi dei professionisti non tradotti (legato a #132 e #178).
+- Da #74 e #112 (Sprint 10), rimandate: un test runner JavaScript per i componenti; « Togli la foto », le proporzioni estreme, le JPEG tagliate e le orientazioni EXIF specchiate; il redirect dal vecchio slug; `preventSilentlyDiscardingAttributes` nei test; una regola unica per il WhatsApp del professionista e `PhoneNumber`; il promemoria di notte; la lingua del cliente nella lista; i plurali con il numero; i limitatori condivisi; le emoji in `maxLength`; il valore di un filtro non valido; la richiesta senza provider al modulo del profilo; il controllo dei colori forzati di select e menu (con #175).
 - Una copia JPEG dell'immagine di anteprima dei link, se il WebP non viene mostrato da WhatsApp, Instagram o Facebook ([docs/link-previews.md](link-previews.md)).
 
 **Decisioni da fissare all'inizio**
@@ -597,12 +598,13 @@ Gli issue ancora aperti di questo sprint sono 6: #62 (riaperta per il dominio e 
 
 Dopo il primo deploy si chiudono i promemoria e i debiti tecnici raccolti negli sprint precedenti, senza funzioni nuove; a fine sprint il codice è più semplice da cambiare e i piccoli difetti noti sono corretti. Al massimo 10 issue: il resto resta nel backlog senza milestone.
 
-Gli issue di questo sprint sono 8: #74, #112, #115, #130, #133, #177, #178 e #179. Fatti: #130, #133, #177, #178 e #179.
+Gli issue di questo sprint sono 11: #74, #112, #115, #130, #133, #177, #178, #179, #202, #204 e #207. Fatti: #130, #133, #177, #178, #179, #202, #204 e #207; di #74 e #112 le voci piccole (le altre nel backlog sotto).
 
 **Rifiniture e debiti tecnici**
 
-- Rifiniture dopo lo Sprint 2 (#74): durata del seeder con `BookingDuration`, annotazioni per PHPStan, protezione di `FreeSlots` da passi o durate a 0, caratteri ammessi nel numero WhatsApp, fasce a cavallo di mezzanotte.
-- Debiti tecnici dopo lo Sprint 6 (#112): test sui sorgenti fragili, classi copiate in più pagine, regola dell'ora locale ripetuta, testi da sistemare, regole del telefono, promemoria e limitatori.
+- **Fatto, voci piccole** di #74: il seeder con `BookingDuration`, la guardia di `FreeSlots` con passo o durata a 0, le date del modello in `busyTimes`, `LocalTime` nella pagina privata, il nome del cliente su una riga, il limite di richieste del profilo. Già risolte prima: le `@property`, i caratteri del WhatsApp, le fasce a cavallo di mezzanotte (rifiutate con un messaggio), la barra dell'area (#204).
+- **Fatto, voci piccole** di #112: le classi dei moduli in un solo file con i select a 44 px, il testo WhatsApp delle prenotazioni scritte dal professionista, il limite di « Aggiungi prenotazione » che torna al modulo, il messaggio del profilo ritirato, il servizio non valido in seconda persona, le categorie nell'ordine della lingua, il titolo delle impostazioni ([bookings.md](bookings.md)).
+- **Fatto:** telefono del cliente cliccabile (#207), menu laterale dell'area (#204), selettore di lingua che si apre verso l'alto (#202).
 - Pulizia dei residui dello starter kit (#115).
 - **Fatto:** sessione che scade dopo 120 minuti (#130). Con i browser recenti un modulo inviato dopo la scadenza non dà più 419 (Laravel 13 accetta l'invio dallo stesso sito); per gli altri, dopo un 419 un token nuovo e un toast che dice di premere di nuovo Invia, con i campi ancora pieni ([production.md](production.md)).
 - **Fatto:** cancellare un account provider con prenotazioni (#133): rifiutata con un messaggio chiaro e il contatto del sito, mai una pagina 500; la pagina spiega il motivo al posto del pulsante ([media-storage.md](media-storage.md)).

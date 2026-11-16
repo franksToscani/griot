@@ -23,20 +23,13 @@ import {
 } from '@/routes/provider/bookings';
 import { index as servicesIndex } from '@/routes/provider/services';
 import type { BookingWindow, Service } from '@/types';
+import { selectClass, wrappingLabel } from '@/lib/form-classes';
 
 type Props = {
     services: Service[];
     bookingWindow: BookingWindow;
     published: boolean;
 };
-
-// Copied from dashboard.tsx, like the other pages: the kit's Button keeps its label on one line at
-// a fixed height, and long Italian labels would widen the page at 375 px. cn() uses tailwind-merge.
-const wrappingLabel = 'h-auto max-w-full whitespace-normal py-2 text-center';
-
-// Copied from services/index.tsx: a native select with the same look as the kit's Input.
-const selectClass =
-    'border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:outline-hidden focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm';
 
 // The provider writes a booking for a customer who asked by phone or in person: born confirmed,
 // with no email to anyone.
@@ -253,6 +246,10 @@ function BookingForm({
                         />
                         <CustomerLocaleField error={errors.customer_locale} />
                     </fieldset>
+
+                    {/* The request limit (#112): an error of no field, announced. The form
+                        stays filled: the answer comes back to this page. */}
+                    <InputError announce message={errors.booking} />
 
                     {/* Never disabled for a missing time: the day field stops the submit with
                         its message (booking-fields.tsx). */}

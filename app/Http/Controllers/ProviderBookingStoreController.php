@@ -40,12 +40,19 @@ class ProviderBookingStoreController extends Controller
         // bookings page.
         Gate::authorize('update', $provider);
 
+        // The page was opened while the profile was published, and it was taken off in another tab:
+        // the reason, not "time not available" (#112). Back on the page, it explains it instead of
+        // the form.
+        if (! $provider->is_published) {
+            throw ValidationException::withMessages(['starts_at' => __('provider.bookings.create.unpublished')]);
+        }
+
         // Only among the provider's own services: a missing id and an id of another provider get
-        // the same message, as on the public route.
+        // the same message, written to the provider (#112).
         $service = $provider->services()->find($request->serviceId());
 
         if ($service === null) {
-            throw ValidationException::withMessages(['service' => __('booking.slots.service_invalid')]);
+            throw ValidationException::withMessages(['service' => __('provider.bookings.validation.service_invalid')]);
         }
 
         // ServiceNotOfProvider is not caught: the service comes from this provider, so it would be a bug.
