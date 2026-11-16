@@ -10,14 +10,13 @@ export default function AppSidebarLayout({
     breadcrumbs = [],
 }: AppLayoutProps) {
     return (
-        <AppShell variant="sidebar">
+        <AppShell>
             {/* Before the sidebar: the first Tab of the page jumps over the menus. */}
             <SkipLink />
             <AppSidebar />
             <AppContent
                 id={MAIN_CONTENT_ID}
                 tabIndex={-1}
-                variant="sidebar"
                 className="min-w-0 overflow-x-clip outline-none"
             >
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />

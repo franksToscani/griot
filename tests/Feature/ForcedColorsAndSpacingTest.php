@@ -73,8 +73,8 @@ test('the controls with a box-shadow ring have an outline on focus in forced col
 
 test('every outline-none of the application keeps an outline on focus, but the programmatic targets', function () {
     // The main elements are reached with the skip link (tabIndex -1), never with Tab: no ring at
-    // all. toggle and navigation-menu are kit components the application does not use.
-    $left = ['layouts/public-layout.tsx', 'layouts/app/app-sidebar-layout.tsx', 'components/ui/toggle.tsx', 'components/ui/navigation-menu.tsx'];
+    // all.
+    $left = ['layouts/public-layout.tsx', 'layouts/app/app-sidebar-layout.tsx'];
 
     foreach (fcsSources() as $path) {
         $relative = str_replace(resource_path('js').'/', '', $path);

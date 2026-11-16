@@ -598,14 +598,14 @@ Gli issue ancora aperti di questo sprint sono 6: #62 (riaperta per il dominio e 
 
 Dopo il primo deploy si chiudono i promemoria e i debiti tecnici raccolti negli sprint precedenti, senza funzioni nuove; a fine sprint il codice è più semplice da cambiare e i piccoli difetti noti sono corretti. Al massimo 10 issue: il resto resta nel backlog senza milestone.
 
-Gli issue di questo sprint sono 11: #74, #112, #115, #130, #133, #177, #178, #179, #202, #204 e #207. Fatti: #130, #133, #177, #178, #179, #202, #204 e #207; di #74 e #112 le voci piccole (le altre nel backlog sotto).
+Gli issue di questo sprint sono 11: #74, #112, #115, #130, #133, #177, #178, #179, #202, #204 e #207. **Sprint completo:** tutte fatte; di #74 e #112 le voci piccole, le altre nel backlog senza milestone.
 
 **Rifiniture e debiti tecnici**
 
 - **Fatto, voci piccole** di #74: il seeder con `BookingDuration`, la guardia di `FreeSlots` con passo o durata a 0, le date del modello in `busyTimes`, `LocalTime` nella pagina privata, il nome del cliente su una riga, il limite di richieste del profilo. Già risolte prima: le `@property`, i caratteri del WhatsApp, le fasce a cavallo di mezzanotte (rifiutate con un messaggio), la barra dell'area (#204).
 - **Fatto, voci piccole** di #112: le classi dei moduli in un solo file con i select a 44 px, il testo WhatsApp delle prenotazioni scritte dal professionista, il limite di « Aggiungi prenotazione » che torna al modulo, il messaggio del profilo ritirato, il servizio non valido in seconda persona, le categorie nell'ordine della lingua, il titolo delle impostazioni ([bookings.md](bookings.md)).
 - **Fatto:** telefono del cliente cliccabile (#207), menu laterale dell'area (#204), selettore di lingua che si apre verso l'alto (#202).
-- Pulizia dei residui dello starter kit (#115).
+- **Fatto:** pulizia dei residui dello starter kit (#115): tolti i componenti `collapsible`, `navigation-menu`, `toggle` e `toggle-group` con i loro pacchetti, l'SSR mai usato (spento nella config, via lo script `build:ssr`), la variante `header` del layout; un test unitario vero al posto dell'esempio; il pacchetto si chiama `griot/griot`; README aggiornato. Logo e favicon del kit erano già sostituiti.
 - **Fatto:** sessione che scade dopo 120 minuti (#130). Con i browser recenti un modulo inviato dopo la scadenza non dà più 419 (Laravel 13 accetta l'invio dallo stesso sito); per gli altri, dopo un 419 un token nuovo e un toast che dice di premere di nuovo Invia, con i campi ancora pieni ([production.md](production.md)).
 - **Fatto:** cancellare un account provider con prenotazioni (#133): rifiutata con un messaggio chiaro e il contatto del sito, mai una pagina 500; la pagina spiega il motivo al posto del pulsante ([media-storage.md](media-storage.md)).
 

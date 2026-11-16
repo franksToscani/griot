@@ -84,7 +84,7 @@ test('the public layout starts with the skip link, and its main is the target', 
 
 test('the provider\'s area starts with the skip link, before the sidebar, and its main is the target', function () {
     expect(kbnSource('js/layouts/app/app-sidebar-layout.tsx'))
-        ->toMatch('/<AppShell variant="sidebar">\s*(\{\/\*[\s\S]*?\*\/\}\s*)?<SkipLink \/>\s*<AppSidebar \/>/')
+        ->toMatch('/<AppShell>\s*(\{\/\*[\s\S]*?\*\/\}\s*)?<SkipLink \/>\s*<AppSidebar \/>/')
         ->toMatch('/<AppContent\s+id=\{MAIN_CONTENT_ID\}\s+tabIndex=\{-1\}/');
     // AppContent gives its props to the <main> (SidebarInset is a <main> too).
     expect(kbnSource('js/components/app-content.tsx'))
