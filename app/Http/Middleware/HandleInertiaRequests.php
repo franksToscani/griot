@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Http\Resources\AuthUserResource;
+use App\Http\TranslationsProp;
 use App\Support\SiteContact;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -53,29 +54,12 @@ class HandleInertiaRequests extends Middleware
                 ->map(fn (string $name, string $code) => ['code' => $code, 'name' => $name])
                 ->values()
                 ->all(),
-            'translations' => fn () => $this->translations(),
+            // Once (#178): sent on the first visit and again only for another language or other
+            // texts (App\Http\TranslationsProp), never at every navigation.
+            'translations' => new TranslationsProp,
             // The site's contacts for the footer of the public pages: email and WhatsApp, each
             // null when it is not configured or not valid (config/contact.php).
             'contact' => fn () => SiteContact::shared(),
         ];
-    }
-
-    /**
-     * Translations for the current locale, read from lang/{locale}.json.
-     *
-     * @return array<string, string>
-     */
-    private function translations(): array
-    {
-        $path = lang_path(app()->getLocale().'.json');
-
-        if (! is_file($path)) {
-            return [];
-        }
-
-        /** @var array<string, string>|null $translations */
-        $translations = json_decode((string) file_get_contents($path), true);
-
-        return $translations ?? [];
     }
 }

@@ -181,7 +181,7 @@ test('subject, greeting and the local time, in winter and in summer', function (
             ->toContain($date)
             ->toContain('09:00–11:45')
             ->toContain('Awa Diop')
-            ->toContain('+393331234567')
+            ->toContain("+39\u{00A0}333\u{00A0}123\u{00A0}4567")
             ->not->toContain('Opzioni');
     }
     // {{ }} escapes the apostrophe in the HTML version.
@@ -221,7 +221,7 @@ test('no notes, no token and no private address, in subject, HTML, text and sent
 });
 
 test('the phone is plain text, not a link', function () {
-    expect(ccnHtml(ccnMail(ccnBooking())))->toContain('+393331234567')->not->toContain('tel:')->not->toContain('<a');
+    expect(ccnHtml(ccnMail(ccnBooking())))->toContain("+39\u{00A0}333\u{00A0}123\u{00A0}4567")->not->toContain('tel:')->not->toContain('<a');
 });
 
 test('what the customer wrote is shown as text, never as Markdown or HTML', function () {

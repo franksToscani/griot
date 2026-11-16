@@ -138,10 +138,10 @@ export function BookingCard({
                             {booking.customer_name}
                         </p>
                     )}
-                    {booking.customer_phone !== null && (
+                    {booking.customer_phone_display !== null && (
                         <p className="break-words">
                             {t('provider.bookings.phone')}:{' '}
-                            {booking.customer_phone}
+                            {booking.customer_phone_display}
                         </p>
                     )}
                     {booking.customer_email !== null && (

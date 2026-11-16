@@ -214,7 +214,7 @@ test('subject, greeting and the local time, in winter and in summer', function (
             ->toContain($date)
             ->toContain('09:00–11:45')
             ->toContain('Awa Diop')
-            ->toContain('+39 333 123 4567')
+            ->toContain("+39\u{00A0}333\u{00A0}123\u{00A0}4567")
             ->not->toContain('€');
     }
 })->with([
@@ -253,7 +253,7 @@ test('the phone is plain text, not a link', function () {
     $html = nbHtml(nbMail($booking));
 
     // The only link is the booking's page in the provider's area.
-    expect($html)->toContain('+39 333 123 4567')->not->toContain('tel:')
+    expect($html)->toContain("+39\u{00A0}333\u{00A0}123\u{00A0}4567")->not->toContain('tel:')
         ->and(substr_count($html, '<a '))->toBe(1)
         ->and($html)->toContain('<a href="'.route('provider.bookings.show', ['booking' => $booking->id]).'"');
 });

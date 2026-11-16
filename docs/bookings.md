@@ -112,6 +112,21 @@ Al massimo `config('booking.received_email_per_hour')` email di questo tipo (ogg
 
 Ogni prenotazione dal modulo con un'email ora manda **due email** (al professionista e al cliente), più l'esito. Con Gmail nella fase privata il tetto è di 500 email al giorno ([deploy.md](deploy.md), sezione 4).
 
+## Numeri di telefono leggibili (#177)
+
+Il telefono del cliente si salva compatto (`PhoneNumber::normalize()`, per esempio `+393331234567`) e così resta: serve ai link `tel:` e `wa.me`. Per gli occhi c'è `PhoneNumber::display()`, nello stesso file:
+
+| Paese         | Regola                                          | Esempio (numeri finti) |
+| ------------- | ----------------------------------------------- | ---------------------- |
+| Italia mobile | 10 cifre che iniziano con 3                     | +39 333 123 4567       |
+| Camerun       | 9 cifre che iniziano con 6 (mobile) o 2 (fisso) | +237 6 71 23 45 67     |
+| Francia       | 9 cifre, a coppie dopo la prima                 | +33 6 12 34 56 78      |
+
+- I gruppi sono separati da U+00A0: il numero non va mai a capo a metà.
+- **Tutto il resto torna com'era**: i fissi italiani (prefissi di lunghezza diversa), gli altri paesi (dove finisce il prefisso del paese non si sa senza una tabella), i numeri non internazionali. Il formato segue il paese del numero, mai la lingua della pagina. Nessuna libreria.
+- **Camerun:** il piano nazionale a 9 cifre dal 21 novembre 2014, con « S » = 6 per i mobili e 2 per i fissi e la forma `+237 6 7X XX XX XX`, dalla comunicazione dell'ART pubblicata dall'ITU (« Cameroon (country code +237) Communication of 6.X.2014 », https://www.itu.int/dms_pub/itu-t/oth/02/02/T02020000240001PDFE.pdf, letta il 16 novembre 2026).
+- **Dove:** la scheda di una prenotazione nell'area del professionista (elenco e dettaglio: la prop `customer_phone_display`, mentre `customer_phone` resta compatto), le tre email al professionista (nuova richiesta, promemoria, annullata dal cliente; HTML e testo), il WhatsApp della pagina pubblica. Nessuna migrazione: i numeri già salvati si scrivono al momento di mostrarli.
+
 ## Indietro e Avanti: lo stato di nuovo dal server
 
 Con Indietro e Avanti Inertia mostra di nuovo una pagina con le props salvate nella cronologia del browser quando la pagina è stata lasciata, senza chiedere niente al server. Lo stesso succede quando si esce verso un altro sito e si torna con Indietro: il browser scarica la pagina, ma Inertia usa comunque la cronologia. Una prenotazione confermata o annullata nel frattempo sembrerebbe ancora com'era, fino a un F5.
@@ -204,6 +219,7 @@ La pagina privata del cliente aggiunge `<meta name="referrer" content="no-referr
 - `tests/Feature/BookingReceivedNotificationTest.php`: l'email « richiesta inviata », cioè quando parte e quando no (senza email, honeypot, prenotazione del professionista), la lingua, il link privato con l'avviso, niente telefono, prezzo e note, l'oggetto, l'escaping, la coda, il payload del job senza il `public_token`, l'errore in coda, il limite per indirizzo (la quarta nell'ora, indirizzi diversi, maiuscole), i testi nelle tre lingue.
 - `tests/Feature/LocaleReturnTest.php`: il cambio lingua torna alla pagina mandata, anche senza `Referer` e con gli orari letti prima; gli indirizzi rifiutati (un altro host, `\`, uno schema, a capo, un array, troppo lungo) lasciano `back()` e cambiano comunque la lingua; la pagina privata; gli orari con `X-Requested-With` non diventano l'« URL precedente »; i sorgenti del selettore e di `use-free-slots.ts`.
 - `tests/Feature/LiveBookingStatusTest.php`: `no-store` sulla lista e sulla pagina di una prenotazione e non sulle altre pagine; nessun limite sulle quattro GET; dai sorgenti, `usePoll` con `pause` e gli intervalli, le props uguali a `live-pages.ts`, quando si ferma (stato, errore, finestra, inattività), la regione `role="status"` e il focus; i testi nelle tre lingue.
+- `tests/Feature/PhoneNumberDisplayTest.php`: `PhoneNumber::display()` (i tre paesi, U+00A0, tutto il resto com'era, la lingua della pagina che non conta), la scheda, la pagina pubblica, le tre email in HTML e in testo.
 - `tests/Feature/ProviderNavigationTest.php`: `awaitingAnswer()` uguale a `canConfirm()` su un dataset (futura, all'inizio esatto, iniziata, passata, confermata, annullata, anonima); `provider_nav` con il numero giusto, solo del professionista, `null` senza provider, assente nelle pagine pubbliche anche dopo una pagina dell'area; il ricarico parziale; un solo COUNT e le query delle pagine; dai sorgenti, i gruppi e le voci della barra, le rotte, la condizione di « Pagina pubblica », `aria-current`, il testo nascosto con il plurale, la dashboard senza pulsanti, gli elenchi `only`, il selettore di lingua (#202); i testi nelle tre lingue.
 - `tests/Feature/LivePagesTest.php`: il ricarico dopo Indietro. Per le tre pagine, lo stato cambiato con i servizi veri (`ManageBooking`, `CancelBooking`) dopo l'apertura arriva con `reloadOnly()`, senza le altre props; la mappa di `live-pages.ts` corrisponde ai componenti e alle props dei controller; il listener controlla `history` e `persisted` ed è registrato prima di `createInertiaApp`.
 - `tests/Feature/ProviderBookingDetailTest.php`: la pagina di una prenotazione (404 per le altre, login e ritorno, campi), il link dell'email « nuova prenotazione » in HTML e in testo, dove si torna dopo ogni risposta (successo, rifiuto dello stato, messaggio troppo lungo, limite di richieste, valori di `return` diversi da `detail`), i testi nelle tre lingue.

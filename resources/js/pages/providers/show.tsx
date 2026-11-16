@@ -191,16 +191,19 @@ export default function ProvidersShow({
                         ) : (
                             provider.service_groups.map((group) => (
                                 // On phones each service is a card of its own: the card of the
-                                // category keeps only its badge there. Unchanged from md up.
+                                // category keeps only its title there. Unchanged from md up.
+                                // The title is a heading (h3, the services under it h4), not a
+                                // badge: the badges of the categories are at the top of the page
+                                // already, and the same badge twice looked duplicated (#179).
                                 <Card
                                     key={group.category.id}
                                     className="max-md:gap-3 max-md:border-0 max-md:bg-transparent max-md:py-0 max-md:shadow-none"
                                 >
                                     <CardHeader className="max-md:px-0">
                                         <CardTitle>
-                                            <Badge variant="secondary">
+                                            <h3 className="text-lg">
                                                 {group.category.name}
-                                            </Badge>
+                                            </h3>
                                         </CardTitle>
                                     </CardHeader>
                                     <CardContent className="max-md:px-0">
@@ -373,7 +376,7 @@ function ServiceItem({
     return (
         <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h3 className="font-medium">{service.name}</h3>
+                <h4 className="font-medium">{service.name}</h4>
                 <p className="text-sm">
                     {formatPrice(locale, service.price)}
                     {' · '}

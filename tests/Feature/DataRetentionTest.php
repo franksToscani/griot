@@ -434,7 +434,7 @@ test('the page shows the translated label, and no phone or contact line for an a
 
     expect($source)
         ->toMatch("/\{booking\.anonymized \? \(\s*<p[^>]*>\s*\{t\('provider\.bookings\.anonymous_customer'\)\}/")
-        ->toMatch('/\{booking\.customer_phone !== null && \(/')
+        ->toMatch('/\{booking\.customer_phone_display !== null && \(/')
         ->toMatch("/\{!booking\.anonymized &&\s*booking\.outcome !== null &&\s*booking\.whatsapp_url === null &&\s*booking\.customer_email === null && \(/");
     expect(__('provider.bookings.anonymous_customer', [], 'it'))->toBe('Cliente anonimo')
         ->and(__('provider.bookings.anonymous_customer', [], 'fr'))->toBe('Client anonyme')

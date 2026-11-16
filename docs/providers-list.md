@@ -84,6 +84,11 @@ Misurate in `ProviderListCardsTest`, sempre le stesse qualunque sia il numero de
 
 Prima della scheda ricca erano 6 e 7: la sola query in più è quella delle copertine. La home resta a 4, o 6 con professionisti in evidenza.
 
+## La pagina del professionista
+
+- **Categorie** (#179): i badge stanno solo in testa, sotto nome e città, ricavati dai gruppi di servizi. Ogni gruppo ha la sua categoria come titolo `h3` di testo, e i servizi sotto hanno il nome in `h4`: lo stesso badge due volte, uno sotto l'altro, sembrava un errore. Ordine dei titoli: h1 il nome, h2 « Servizi », h3 la categoria, h4 il servizio, poi gli h2 della colonna (orari, contatti).
+- **WhatsApp** (#177): il numero si mostra scritto da `PhoneNumber::display()` quando è riconosciuto (Italia mobile, Camerun, Francia), altrimenti come l'ha scritto il professionista. Il link `wa.me` ha sempre le sole cifre.
+
 ## Test
 
-`tests/Feature/ProviderListCardsTest.php` (regola dei servizi attivi, dati della scheda, i quattro ordinamenti con la parità, query, sorgenti di scheda e « Ordina per », testi) e `tests/Feature/ProviderListFiltersTest.php` (prezzo massimo, « solo con foto », lista unica dei filtri, barra condivisa, pannello, riga dei risultati, `ResultsLayout`, testi), più `ProviderListTest`, `ProviderFiltersTest` e `ProviderSearchTest`.
+`tests/Feature/ProviderListCardsTest.php` (regola dei servizi attivi, dati della scheda, i quattro ordinamenti con la parità, query, sorgenti di scheda e « Ordina per », testi) e `tests/Feature/ProviderListFiltersTest.php` (prezzo massimo, « solo con foto », lista unica dei filtri, barra condivisa, pannello, riga dei risultati, `ResultsLayout`, testi), più `ProviderListTest`, `ProviderFiltersTest` e `ProviderSearchTest`. La pagina del professionista: `ProviderPageCategoriesTest` (#179) e `PhoneNumberDisplayTest` (#177).

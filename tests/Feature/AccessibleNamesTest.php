@@ -122,7 +122,17 @@ test('the user\'s avatar in the menu is decorative too: the name is written next
 // ---------------------------------------------------------------------------------------------
 
 test('the headings of the provider\'s area go h1 first, one h1, and never skip a level', function (string $page) {
-    preg_match_all('/<h([1-6])\b/', acnSource("js/pages/{$page}.tsx"), $matches);
+    $source = acnSource("js/pages/{$page}.tsx");
+
+    // The provider's page draws ServiceItem (its h4) inside the card of each category (h3), but
+    // defines it at the end of the file: its headings are counted where it is drawn.
+    if (preg_match('/\nfunction ServiceItem\([\s\S]*$/', $source, $item) === 1) {
+        preg_match_all('/<h[1-6]\b/', $item[0], $itemHeadings);
+        $source = str_replace($item[0], '', $source);
+        $source = str_replace('<ServiceItem', implode(' ', $itemHeadings[0]), $source);
+    }
+
+    preg_match_all('/<h([1-6])\b/', $source, $matches);
     $levels = array_map('intval', $matches[1]);
 
     expect($levels)->not->toBeEmpty()
@@ -239,8 +249,8 @@ test('on the provider\'s page "Orari" and "Contatti" are h2, after the services:
         expect($source)->toMatch("/<CardTitle>\\s*<h2>\\{t\\('providers\\.show\\.{$key}'\\)\\}<\\/h2>\\s*<\\/CardTitle>/");
     }
 
-    // The order on the page: the h3 of the services come from ServiceItem, inside the section of
-    // the services, before the aside.
+    // The order on the page: under the h2 of the services an h3 for each category (#179), and the
+    // h4 of the services from ServiceItem, before the aside.
     $section = strpos($source, "{t('providers.show.services')}");
     $items = strpos($source, '<ServiceItem');
     $aside = strpos($source, '<aside');
@@ -251,7 +261,7 @@ test('on the provider\'s page "Orari" and "Contatti" are h2, after the services:
         ->and($items)->toBeLessThan($aside)
         ->and($aside)->toBeLessThan($hours)
         ->and($hours)->toBeLessThan($contacts);
-    expect($source)->toMatch('/function ServiceItem\([\s\S]*<h3 className="font-medium">\{service\.name\}<\/h3>/');
+    expect($source)->toMatch('/function ServiceItem\([\s\S]*<h4 className="font-medium">\{service\.name\}<\/h4>/');
     expect(substr_count($source, '<h1'))->toBe(1)
         ->and(substr_count($source, '<h2'))->toBe(3);
 });

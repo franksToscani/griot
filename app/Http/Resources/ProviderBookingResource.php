@@ -50,6 +50,9 @@ class ProviderBookingResource extends JsonResource
             'local_end' => $end->format('H:i'),
             'customer_name' => $this->customer_name,
             'customer_phone' => $this->customer_phone,
+            // The same number written to be read (PhoneNumber::display(), #177); customer_phone
+            // stays compact, for the links.
+            'customer_phone_display' => $this->customer_phone === null ? null : PhoneNumber::display($this->customer_phone),
             'customer_email' => $this->customer_email,
             'notes' => $this->notes,
             'service' => [
