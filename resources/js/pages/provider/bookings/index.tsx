@@ -58,7 +58,7 @@ export default function ProviderBookingsIndex({ bookings, filters }: Props) {
     // The list asks the server again every 20 s (hooks/use-live-props.ts): a booking answered in
     // another tab, or cancelled by the customer, changes here. With a filter on the status it can
     // leave the list. One summary for the whole list in the status region, never one per card.
-    const liveMessage = useLiveProps(['bookings'], {
+    const liveMessage = useLiveProps(['bookings', 'provider_nav'], {
         interval: PROVIDER_INTERVAL,
         enabled: true,
         describe: (next) => {

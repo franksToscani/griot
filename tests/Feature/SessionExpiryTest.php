@@ -126,8 +126,10 @@ test('the new text in the three languages, and the old one is gone', function ()
 });
 
 test('SESSION_LIFETIME stays 120 minutes', function () {
-    expect(config('session.lifetime'))->toBe(120);
-    // The default, used when the variable is not set (as on Render), and the example.
+    // What the repository says, never the local .env (each developer may change it): the default,
+    // used when the variable is not set (as on Render), and the two examples.
     expect((string) file_get_contents(config_path('session.php')))->toContain("'lifetime' => (int) env('SESSION_LIFETIME', 120),");
     expect((string) file_get_contents(base_path('.env.example')))->toContain("SESSION_LIFETIME=120\n");
+    expect((string) file_get_contents(base_path('.env.production.example')))->toContain("SESSION_LIFETIME=120\n");
+    expect((string) file_get_contents(base_path('render.yaml')))->not->toContain('SESSION_LIFETIME');
 });

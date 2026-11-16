@@ -391,14 +391,14 @@ test('the Italian texts are exactly the expected ones', function () {
     expect(__('provider.area.edit_profile'))->toBe('Modifica il tuo profilo');
 });
 
-test('the dashboard links to the edit page and still gets five provider fields', function () {
-    // The link is checked in the page source: there is no JavaScript test runner.
-    $source = file_get_contents(resource_path('js/pages/dashboard.tsx'));
+test('the sidebar links to the edit page and the dashboard still gets five provider fields', function () {
+    // The link is checked in the source of the sidebar (ProviderNavigationTest): there is no
+    // JavaScript test runner.
+    $source = file_get_contents(resource_path('js/components/app-sidebar.tsx'));
     expect($source)
         // "edit" as a whole word among the names imported from '@/routes/provider' (not "editor").
         ->toMatch("/import \{[^}]*\bedit\b[^}]*\} from '@\/routes\/provider';/")
-        ->toContain('<Link href={edit()}>')
-        ->toContain("t('provider.area.edit_profile')");
+        ->toMatch("/titleKey: 'provider\.area\.edit_profile',\s*href: edit\(\),/");
 
     $provider = ppeProvider();
     $this->actingAs($provider->user)

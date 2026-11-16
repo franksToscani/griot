@@ -13,4 +13,13 @@ export type NavItem = {
     href: NonNullable<InertiaLinkProps['href']>;
     icon?: LucideIcon | null;
     isActive?: boolean;
+    // A number next to the label (the requests waiting for an answer), with its text for screen
+    // readers, already translated. Hidden when the value is 0.
+    badge?: { value: number; text: string };
+};
+
+// A group of the sidebar: its label (a key; none for the first one) and its links.
+export type NavGroup = {
+    labelKey?: string;
+    items: NavItem[];
 };

@@ -50,7 +50,11 @@ export function LocaleSwitcher({ className }: { className?: string }) {
                 <SelectTrigger id={id} className="w-auto">
                     <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                {/* Only here (#202): the list opens upwards when there is no room below, as at the
+                    foot of the sidebar. The kit turns avoidCollisions off for every Select (the
+                    filters of the list need it off); on the public and login pages the selector is
+                    at the top, with room below, and the list still opens downwards. */}
+                <SelectContent avoidCollisions collisionPadding={8}>
                     {/* Each language in its own name: never translated. */}
                     {locales.map((option) => (
                         <SelectItem

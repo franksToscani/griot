@@ -48,6 +48,7 @@ use App\Http\Controllers\SessionRefreshController;
 use App\Http\Controllers\TermsController;
 use App\Http\Middleware\PrivateBookingPage;
 use App\Http\Middleware\PrivateProviderPage;
+use App\Http\Middleware\ShareProviderNavigation;
 use App\Http\Middleware\UseBookingLocale;
 use Illuminate\Support\Facades\Route;
 
@@ -101,7 +102,8 @@ Route::get('session/refresh', SessionRefreshController::class)
 
 // The provider's private area. No route has an id or a slug: the provider is always the
 // logged-in user's own ($request->user()->provider).
-Route::middleware(['auth', 'verified'])->group(function () {
+// ShareProviderNavigation: the sidebar's data (provider_nav), for these pages and the settings only.
+Route::middleware(['auth', 'verified', ShareProviderNavigation::class])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('provider/setup', ProviderSetupController::class)->name('provider.setup');
     Route::post('provider/setup', ProviderStoreController::class)->name('provider.store');

@@ -3,9 +3,11 @@ import { router } from '@inertiajs/react';
 // The pages that show the state of a booking, and the props that hold it (see the controllers:
 // ProviderBookingIndexController, ProviderBookingShowController, BookingConfirmationController).
 // Only these props are asked again: the translations and the other shared props stay as they are.
+// The provider's pages also ask "provider_nav", shared by ShareProviderNavigation: the number of the
+// requests waiting for an answer, next to "Prenotazioni" in the sidebar, changes with them.
 export const LIVE_PAGES: Record<string, string[]> = {
-    'provider/bookings/index': ['bookings'],
-    'provider/bookings/show': ['booking'],
+    'provider/bookings/index': ['bookings', 'provider_nav'],
+    'provider/bookings/show': ['booking', 'provider_nav'],
     'bookings/show': ['booking', 'can_cancel'],
 };
 

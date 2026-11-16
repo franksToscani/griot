@@ -158,6 +158,24 @@ Il polling si ferma o si sospende anche:
 
 **Niente cache:** la lista e la pagina di una prenotazione del professionista rispondono con `Cache-Control: no-store` (middleware `PrivateProviderPage`, lo stesso dell'anteprima), perché contengono nome, telefono e note dei clienti. La dashboard non mostra dati dei clienti e resta com'era.
 
+## Barra dell'area del professionista
+
+Le sezioni dell'area stanno nella barra a sinistra (`components/app-sidebar.tsx`, `components/nav-main.tsx`); ognuna resta una pagina con il suo indirizzo, quindi Indietro e l'aggiornamento automatico funzionano come prima. La dashboard tiene solo il saluto, la riga delle richieste in attesa e la pubblicazione.
+
+| Gruppo         | Voci                                                                          |
+| -------------- | ----------------------------------------------------------------------------- |
+| (senza nome)   | Panoramica (`dashboard`)                                                      |
+| Agenda         | Prenotazioni, con il numero delle richieste in attesa                         |
+| La mia offerta | Servizi, Disponibilità                                                        |
+| Vetrina        | Profilo, Anteprima (sempre), Pagina pubblica (solo con il profilo pubblicato) |
+
+- **Voce attiva** per segmenti interi dell'indirizzo: « Prenotazioni » resta attiva sulla pagina di una prenotazione e su quella nuova, « Servizi » sulla modifica di un servizio e sulle sue opzioni.
+- **Il numero** conta le richieste che aspettano una risposta e si possono ancora confermare: `Booking::awaitingAnswer()`, cioè in attesa, non anonime e con l'inizio nel futuro. È la condizione di `BookingTransitions::canConfirm()` scritta per il database (un test confronta le due), e `awaitingReminder()` dei promemoria parte dallo stesso scope.
+- **Può essere minore dell'elenco filtrato per « in attesa »**: il filtro mostra anche le richieste in attesa già iniziate o passate, che non si possono più confermare ma solo rifiutare. La riga della dashboard porta a quell'elenco (`?status=pending`).
+- **La prop condivisa** `provider_nav` (`pending_requests`, `public_slug`) nasce da `ShareProviderNavigation`, un middleware messo solo sul gruppo dell'area del professionista e sulle impostazioni: mai nelle pagine pubbliche, anche per un professionista collegato; `null` per chi non ha un provider. È una closure: un solo COUNT quando la pagina viene disegnata, e nei ricarichi parziali solo se è nell'elenco `only`. Inertia tiene le prop condivise per tutto il processo, quindi il middleware rimette dopo la risposta quelle che c'erano prima.
+- **Query:** dashboard da 3 a 4, elenco delle prenotazioni da 5 a 6, impostazioni del profilo 2 e 3 (il provider della relazione, letto una volta, serve anche a `has_bookings`).
+- **Aggiornamento:** l'elenco e la pagina di una prenotazione chiedono `provider_nav` insieme alle loro props, nel polling e dopo Indietro (`LIVE_PAGES` in `lib/live-pages.ts`). Sulle altre pagine il numero cambia alla navigazione: nessun polling nuovo.
+
 ## Cambio lingua dopo la pagina privata
 
 La pagina privata del cliente aggiunge `<meta name="referrer" content="no-referrer">`, per non mandare il codice segreto ad altri siti. Il browser tiene quella politica per tutta la scheda, anche dopo Indietro, quindi le richieste successive partono senza `Referer`. Il cambio lingua rispondeva con `back()`, che senza `Referer` usa l'ultimo URL salvato in sessione. Quell'URL poteva essere la richiesta degli orari liberi: Inertia riceveva un JSON e mostrava un errore.
@@ -186,5 +204,6 @@ La pagina privata del cliente aggiunge `<meta name="referrer" content="no-referr
 - `tests/Feature/BookingReceivedNotificationTest.php`: l'email « richiesta inviata », cioè quando parte e quando no (senza email, honeypot, prenotazione del professionista), la lingua, il link privato con l'avviso, niente telefono, prezzo e note, l'oggetto, l'escaping, la coda, il payload del job senza il `public_token`, l'errore in coda, il limite per indirizzo (la quarta nell'ora, indirizzi diversi, maiuscole), i testi nelle tre lingue.
 - `tests/Feature/LocaleReturnTest.php`: il cambio lingua torna alla pagina mandata, anche senza `Referer` e con gli orari letti prima; gli indirizzi rifiutati (un altro host, `\`, uno schema, a capo, un array, troppo lungo) lasciano `back()` e cambiano comunque la lingua; la pagina privata; gli orari con `X-Requested-With` non diventano l'« URL precedente »; i sorgenti del selettore e di `use-free-slots.ts`.
 - `tests/Feature/LiveBookingStatusTest.php`: `no-store` sulla lista e sulla pagina di una prenotazione e non sulle altre pagine; nessun limite sulle quattro GET; dai sorgenti, `usePoll` con `pause` e gli intervalli, le props uguali a `live-pages.ts`, quando si ferma (stato, errore, finestra, inattività), la regione `role="status"` e il focus; i testi nelle tre lingue.
+- `tests/Feature/ProviderNavigationTest.php`: `awaitingAnswer()` uguale a `canConfirm()` su un dataset (futura, all'inizio esatto, iniziata, passata, confermata, annullata, anonima); `provider_nav` con il numero giusto, solo del professionista, `null` senza provider, assente nelle pagine pubbliche anche dopo una pagina dell'area; il ricarico parziale; un solo COUNT e le query delle pagine; dai sorgenti, i gruppi e le voci della barra, le rotte, la condizione di « Pagina pubblica », `aria-current`, il testo nascosto con il plurale, la dashboard senza pulsanti, gli elenchi `only`, il selettore di lingua (#202); i testi nelle tre lingue.
 - `tests/Feature/LivePagesTest.php`: il ricarico dopo Indietro. Per le tre pagine, lo stato cambiato con i servizi veri (`ManageBooking`, `CancelBooking`) dopo l'apertura arriva con `reloadOnly()`, senza le altre props; la mappa di `live-pages.ts` corrisponde ai componenti e alle props dei controller; il listener controlla `history` e `persisted` ed è registrato prima di `createInertiaApp`.
 - `tests/Feature/ProviderBookingDetailTest.php`: la pagina di una prenotazione (404 per le altre, login e ritorno, campi), il link dell'email « nuova prenotazione » in HTML e in testo, dove si torna dopo ogni risposta (successo, rifiuto dello stato, messaggio troppo lungo, limite di richieste, valori di `return` diversi da `detail`), i testi nelle tre lingue.

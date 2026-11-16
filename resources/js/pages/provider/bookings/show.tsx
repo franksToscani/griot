@@ -25,7 +25,7 @@ export default function ProviderBookingShow({ booking }: Props) {
 
     // The booking is asked again every 20 s (hooks/use-live-props.ts), until no answer is possible
     // any more: then its state cannot change.
-    const liveMessage = useLiveProps(['booking'], {
+    const liveMessage = useLiveProps(['booking', 'provider_nav'], {
         interval: PROVIDER_INTERVAL,
         enabled:
             booking.can_confirm || booking.can_reject || booking.can_cancel,
