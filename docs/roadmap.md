@@ -504,6 +504,7 @@ Gli issue ancora aperti di questo sprint sono 6: #62 (riaperta per il dominio e 
 - Valutare un 401 al posto del redirect al login per i ricarichi parziali senza login (polling e Indietro).
 - Lo script di Laravel Boost in `composer.json` che dà errore in locale.
 - Aggiornamenti minori delle dipendenze.
+- Nella scheda di una prenotazione, « Telefono: » ed « Email: » hanno i due punti scritti nel componente, senza U+00A0 in francese (come nelle versioni testo delle email).
 - Descrizione e testi liberi dei professionisti non tradotti (legato a #132 e #178).
 - Una copia JPEG dell'immagine di anteprima dei link, se il WebP non viene mostrato da WhatsApp, Instagram o Facebook ([docs/link-previews.md](link-previews.md)).
 
@@ -596,7 +597,7 @@ Gli issue ancora aperti di questo sprint sono 6: #62 (riaperta per il dominio e 
 
 Dopo il primo deploy si chiudono i promemoria e i debiti tecnici raccolti negli sprint precedenti, senza funzioni nuove; a fine sprint il codice è più semplice da cambiare e i piccoli difetti noti sono corretti. Al massimo 10 issue: il resto resta nel backlog senza milestone.
 
-Gli issue di questo sprint sono 8: #74, #112, #115, #130, #133, #177, #178 e #179. Fatti: #130 e #133.
+Gli issue di questo sprint sono 8: #74, #112, #115, #130, #133, #177, #178 e #179. Fatti: #130, #133, #177, #178 e #179.
 
 **Rifiniture e debiti tecnici**
 
@@ -608,9 +609,9 @@ Gli issue di questo sprint sono 8: #74, #112, #115, #130, #133, #177, #178 e #17
 
 **Piccoli difetti noti**
 
-- Numeri di telefono mostrati formattati (#177).
-- Traduzioni caricate per pagina (#178).
-- Badge di categoria duplicato (#179).
+- **Fatto:** numeri di telefono leggibili (#177): `PhoneNumber::display()` per Italia mobile, Camerun e Francia, gruppi separati da U+00A0, tutto il resto com'era; nella scheda di una prenotazione, nelle tre email al professionista e nel WhatsApp della pagina pubblica ([bookings.md](bookings.md)).
+- **Fatto:** traduzioni mandate una volta sola (#178): una prop « once » di Inertia con la chiave della lingua e del contenuto, non più a ogni navigazione ([translations.md](translations.md)). I titoli delle pagine erano già tutti tradotti.
+- **Fatto:** badge di categoria duplicato (#179): sulla pagina del professionista i badge restano in testa, ogni gruppo di servizi ha la sua categoria come titolo h3 ([providers-list.md](providers-list.md)).
 
 ## Sprint 11: mappa e posizione
 

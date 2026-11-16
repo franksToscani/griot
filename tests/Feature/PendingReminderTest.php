@@ -376,7 +376,8 @@ test('subject, greeting, the hours of the threshold and the link to the pending 
         'Servizio: Treccine',
         'Quando: giovedì 29 ottobre 2026, 09:00–11:45',
         'Cliente: Awa Diop',
-        'Telefono: +393331234567',
+        // Written to be read (PhoneNumber::display(), #177).
+        "Telefono: +39\u{00A0}333\u{00A0}123\u{00A0}4567",
         '',
         'Vai alle richieste in attesa: '.$listUrl,
         '',

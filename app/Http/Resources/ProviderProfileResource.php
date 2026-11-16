@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Booking\PhoneNumber;
 use App\Enums\Weekday;
 use App\Models\Provider;
 use App\Models\Service;
@@ -31,7 +32,9 @@ class ProviderProfileResource extends JsonResource
             'avatar_url' => $this->avatarUrl(),
             'contacts' => [
                 'whatsapp' => $this->whatsapp !== null && trim($this->whatsapp) !== ''
-                    ? ['number' => trim($this->whatsapp), 'url' => $this->whatsappUrl()]
+                    // Written to be read when the number is recognised, as the provider wrote it
+                    // otherwise (PhoneNumber::display(), #177).
+                    ? ['number' => PhoneNumber::display($this->whatsapp), 'url' => $this->whatsappUrl()]
                     : null,
                 'instagram' => $this->instagramUsername() !== null
                     ? ['username' => $this->instagramUsername(), 'url' => $this->instagramUrl()]

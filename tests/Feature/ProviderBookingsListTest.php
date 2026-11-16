@@ -150,6 +150,8 @@ test('each booking has exactly the expected keys, and the private token is only 
         'local_end' => '10:15',
         'customer_name' => 'Awa Diop',
         'customer_phone' => '+39 333 123 4567',
+        // Written to be read (PhoneNumber::display(), #177): groups separated by U+00A0.
+        'customer_phone_display' => "+39\u{00A0}333\u{00A0}123\u{00A0}4567",
         'customer_email' => 'awa@example.com',
         'notes' => 'Capelli lunghi',
         'service' => ['name' => 'Box braids'],
@@ -500,6 +502,6 @@ test('the page shows the customer fields as plain text: no phone or mail links, 
         ->not->toContain('dangerouslySetInnerHTML')
         // The fields are printed as JSX expressions, which React escapes.
         ->toContain('{booking.customer_name}')
-        ->toContain('{booking.customer_phone}')
+        ->toContain('{booking.customer_phone_display}')
         ->toContain('{booking.notes}');
 });

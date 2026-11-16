@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Booking\LocalTime;
+use App\Booking\PhoneNumber;
 use App\Models\Booking;
 use App\Models\ServiceOption;
 use Illuminate\Bus\Queueable;
@@ -95,7 +96,8 @@ class CustomerCancelledNotification extends Notification implements ShouldQueue
                 'date' => LocalTime::longDate($booking->starts_at),
                 'time' => LocalTime::timeRange($booking->starts_at, $booking->ends_at),
                 'customerName' => $booking->customer_name,
-                'customerPhone' => $booking->customer_phone,
+                // Written to be read (PhoneNumber::display(), #177).
+                'customerPhone' => PhoneNumber::display((string) $booking->customer_phone),
             ]);
     }
 }

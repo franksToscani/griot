@@ -106,6 +106,8 @@ export type ProviderBooking = {
     // Written by the customer: shown as plain text only. Null once the booking is anonymous.
     customer_name: string | null;
     customer_phone: string | null;
+    // The same number written to be read, with U+00A0 between the groups (PhoneNumber::display()).
+    customer_phone_display: string | null;
     customer_email: string | null;
     notes: string | null;
     service: { name: string };

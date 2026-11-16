@@ -159,8 +159,9 @@ test('the WhatsApp link is built only for an international number', function (?s
 
     expect(providerPageProps($provider)['contacts']['whatsapp'])->toBe($expected);
 })->with([
-    'with +' => ['+39 333 000 0001', ['number' => '+39 333 000 0001', 'url' => 'https://wa.me/393330000001']],
-    'with 00' => ['0039 333-000-0001', ['number' => '0039 333-000-0001', 'url' => 'https://wa.me/393330000001']],
+    // An Italian mobile is written to be read, groups separated by U+00A0 (#177).
+    'with +' => ['+39 333 000 0001', ['number' => "+39\u{00A0}333\u{00A0}000\u{00A0}0001", 'url' => 'https://wa.me/393330000001']],
+    'with 00' => ['0039 333-000-0001', ['number' => "+39\u{00A0}333\u{00A0}000\u{00A0}0001", 'url' => 'https://wa.me/393330000001']],
     'national, no prefix guessed' => ['333 000 0001', ['number' => '333 000 0001', 'url' => null]],
     'only the prefix' => ['+', ['number' => '+', 'url' => null]],
     'empty' => ['', null],
