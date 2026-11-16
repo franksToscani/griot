@@ -176,6 +176,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('providers-list', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_providers_list_per_minute'))
             ->by($request->ip()));
 
+        RateLimiter::for('session-refresh', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_session_refresh_per_minute'))
+            ->by($request->ip()));
+
         RateLimiter::for('provider-bookings', fn (Request $request): Limit => Limit::perMinute(config()->integer('booking.rate_limit_provider_bookings_per_minute'))
             ->by('user:'.$request->user()?->id)
             ->response($tooMany('booking')));

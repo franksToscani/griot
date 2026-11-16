@@ -26,7 +26,7 @@ Chi è Griot, cioè la persona o l'ente titolare e la sua forma giuridica, non �
 
 ## Che cosa manca o va valutato
 
-- **Cancellazione di un account con prenotazioni (#133):** il database la rifiuta e il professionista vede una pagina d'errore. L'informativa dice che in quel caso deve scrivere al contatto.
+- **Cancellazione di un account con prenotazioni (#133):** è rifiutata con un messaggio chiaro e il contatto del sito, per qualunque prenotazione, anche passata o resa anonima (lo impone la chiave esterna); il professionista resta collegato e niente viene cancellato. È quello che dice l'informativa (`privacy.rights.providers`). Che cosa fare delle prenotazioni quando un professionista vuole andarsene (annullarle e avvisare i clienti, cancellarle, o conservarle anonime) resta una domanda per l'esperto (domande 1 e 9).
 - **Strumenti per le richieste dei clienti:** chi prenota non ha un account. Oggi non può vedere, correggere, esportare o cancellare da solo i propri dati, e il gestore non ha né un pannello né un comando per farlo. L'informativa dice che le richieste si gestiscono a mano, per email.
 - **Banner dei cookie:** da valutare con l'esperto. Il sito usa solo cookie tecnici e di preferenza, nessun cookie di analisi o di altri siti.
 - **Il cookie `appearance`** (tema) viene scritto alla prima visita, anche senza una scelta. L'informativa lo dice.

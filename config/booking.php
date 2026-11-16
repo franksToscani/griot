@@ -133,6 +133,10 @@ return [
     // slots are read again at every change of day or options, so the number is generous.
     'rate_limit_provider_bookings_per_minute' => 60,
 
+    // The new CSRF token after a 419 (session.refresh, issue #130), per IP. One per failed send is
+    // enough; the number only stops a script.
+    'rate_limit_session_refresh_per_minute' => 10,
+
     // "Request sent" emails to the customer (BookingReceivedNotification), per email address and
     // per hour, whatever the IP: the form can be sent from many addresses towards one mailbox. Over
     // the limit the booking is saved and only the email is skipped.

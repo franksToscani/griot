@@ -1,4 +1,4 @@
-import { Form } from '@inertiajs/react';
+import { Form, usePage } from '@inertiajs/react';
 import { useRef } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import Heading from '@/components/heading';
@@ -16,11 +16,62 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/hooks/use-translation';
+import { touchTarget } from '@/lib/touch-target';
+import { cn } from '@/lib/utils';
 
-export default function DeleteUser() {
+// The explanation that replaces the button for a provider with bookings (issue #133). The focus
+// goes there when the server refuses while the window is open: the window disappears with the
+// button, and the focus must not be lost.
+const BLOCKED_ID = 'delete-user-blocked';
+
+// A provider with bookings, in any status and anonymous ones too, cannot delete the account: the
+// bookings keep the customers' private links and the provider's history. Instead of asking the
+// password and then refusing, the page says why and gives the site's contact (config/contact.php).
+// The server refuses anyway (ProfileDeleteRequest, DeleteProviderAccount).
+export default function DeleteUser({ hasBookings }: { hasBookings: boolean }) {
     const { t } = useTranslation();
+    const { contact } = usePage().props;
 
     const passwordInput = useRef<HTMLInputElement>(null);
+
+    if (hasBookings) {
+        return (
+            <div className="space-y-6">
+                <Heading
+                    variant="small"
+                    title={t('settings.delete.title')}
+                    description={t('settings.delete.description')}
+                />
+                <div
+                    id={BLOCKED_ID}
+                    tabIndex={-1}
+                    className="space-y-2 rounded-lg border p-4 text-sm"
+                    data-test="delete-user-blocked"
+                >
+                    <p>{t('settings.delete.has_bookings')}</p>
+                    <p>
+                        {contact.email !== null ? (
+                            <>
+                                {t('settings.delete.has_bookings_write')}{' '}
+                                <a
+                                    href={`mailto:${contact.email}`}
+                                    className={cn(
+                                        'underline underline-offset-4',
+                                        touchTarget,
+                                    )}
+                                >
+                                    {contact.email}
+                                </a>
+                                .
+                            </>
+                        ) : (
+                            t('settings.delete.has_bookings_no_contact')
+                        )}
+                    </p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -61,7 +112,21 @@ export default function DeleteUser() {
                             options={{
                                 preserveScroll: true,
                             }}
-                            onError={() => passwordInput.current?.focus()}
+                            onError={(errors) => {
+                                // Refused for the bookings (one arrived meanwhile): the page now
+                                // shows the explanation in place of the window.
+                                if (errors.account) {
+                                    requestAnimationFrame(() =>
+                                        document
+                                            .getElementById(BLOCKED_ID)
+                                            ?.focus(),
+                                    );
+
+                                    return;
+                                }
+
+                                passwordInput.current?.focus();
+                            }}
                             resetOnSuccess
                             className="space-y-6"
                         >

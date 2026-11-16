@@ -320,16 +320,17 @@ test('an error during a visit is a toast, not Inertia\'s window: prevented, tran
 
     expect($source)
         ->toMatch("/router\\.on\\('httpException', \\(event\\) => \\{\\s*event\\.preventDefault\\(\\);/")
-        ->toMatch('/toast\.error\(pageText\(httpErrorKey\(event\.detail\.response\.status\)\), \{\s*duration: ERROR_TOAST_DURATION,\s*\}\)/')
+        ->toMatch('/toast\.error\(pageText\(httpErrorKey\(status\)\), \{\s*duration: ERROR_TOAST_DURATION,\s*\}\)/')
+        ->toContain('const { status } = event.detail.response;')
         ->toContain('export const ERROR_TOAST_DURATION = 10_000;')
         ->not->toMatch('/\.reload\(|location\./')
         ->not->toContain('aria-label');
 });
 
-test('each status has its text: 419 the session, 429 the wait, 503 later, every other one the generic', function () {
+test('each status has its text: 419 not sent, 429 the wait, 503 later, every other one the generic', function () {
     $source = (string) file_get_contents(resource_path('js/lib/http-errors.ts'));
 
-    expect($source)->toMatch("/case 419:\\s*return 'errors\\.request\\.session_expired';/")
+    expect($source)->toMatch("/case 419:\\s*return 'errors\\.request\\.not_sent';/")
         ->toMatch("/case 429:\\s*return 'errors\\.429\\.message';/")
         ->toMatch("/case 503:\\s*return 'errors\\.503\\.message';/")
         ->toMatch("/default:\\s*return 'errors\\.request\\.failed';/");
@@ -354,17 +355,17 @@ test('the texts in the three languages: the same message for the photo and the g
         'it' => [
             'provider.validation.avatar_not_saved' => MUE_NOT_SAVED,
             'errors.request.failed' => 'Qualcosa non ha funzionato. Riprova.',
-            'errors.request.session_expired' => 'La sessione è scaduta. Ricarica la pagina e riprova.',
+            'errors.request.not_sent' => 'Il modulo non è stato inviato perché la pagina era aperta da troppo tempo. Quello che hai scritto è ancora qui: premi di nuovo Invia.',
         ],
         'fr' => [
             'provider.validation.avatar_not_saved' => "La photo n'a pas pu être enregistrée. Réessayez plus tard.",
             'errors.request.failed' => "Quelque chose n'a pas fonctionné. Réessayez.",
-            'errors.request.session_expired' => 'La session a expiré. Rechargez la page et réessayez.',
+            'errors.request.not_sent' => "Le formulaire n'a pas été envoyé, car la page était ouverte depuis trop longtemps. Ce que vous avez écrit est toujours là\u{00A0}: appuyez de nouveau sur Envoyer.",
         ],
         'en' => [
             'provider.validation.avatar_not_saved' => 'The photo could not be saved. Please try again later.',
             'errors.request.failed' => 'Something went wrong. Please try again.',
-            'errors.request.session_expired' => 'Your session has expired. Reload the page and try again.',
+            'errors.request.not_sent' => 'The form was not sent because the page had been open for too long. What you wrote is still here: press Send again.',
         ],
     ];
 
@@ -377,9 +378,11 @@ test('the texts in the three languages: the same message for the photo and the g
 
         expect($translations['provider.validation.photo_not_saved'])->toBe($texts['provider.validation.avatar_not_saved']);
 
-        // No ":", "?", "!" or ";" that would need the French no-break space.
-        foreach ($texts as $text) {
-            expect($text)->not->toMatch('/[:?!;]/');
+        // In French a ":", "?", "!" or ";" has the no-break space before it (the 419 text has one).
+        if ($locale === 'fr') {
+            foreach ($texts as $text) {
+                expect($text)->not->toMatch('/(?<!\x{00A0})[:?!;]/u');
+            }
         }
     }
 });

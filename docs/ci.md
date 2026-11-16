@@ -122,8 +122,7 @@ PostgreSQL è più severo di SQLite (e di MySQL). Quello che è già sistemato, 
 
 - **Un errore SQL dentro una transazione la rovina tutta**: ogni query dopo fallisce (« current transaction is aborted ») finché non si torna indietro. I test girano dentro una transazione (`RefreshDatabase`). Quindi:
     - un test che aspetta un errore del database e poi fa altre query mette l'istruzione che fallisce in `DB::transaction(...)` (un savepoint, annullato da solo);
-    - il codice fa lo stesso: `ManageService` e `ManageOption` cancellano dentro `DB::transaction` e leggono l'errore fuori.
-    - se l'errore arriva da una richiesta HTTP (la risposta è la pagina 500, il test non riceve l'eccezione), la richiesta va in `failingRequestInSavepoint(fn () => ...)` (`tests/Pest.php`): su PostgreSQL torna al savepoint, su SQLite lo rilascia e lascia tutto come prima, così una scrittura fatta prima dell'errore resta visibile al test.
+    - il codice fa lo stesso: `ManageService`, `ManageOption` e `DeleteProviderAccount` cancellano dentro `DB::transaction` e leggono l'errore fuori. Così nessuna richiesta risponde con la pagina 500 per una chiave esterna, e i test non hanno più bisogno di un savepoint intorno alla richiesta (l'helper `failingRequestInSavepoint`, usato solo per la cancellazione dell'account della #133, non c'è più).
 - **Le quattro prove di gara sullo slug** (tre in `ProviderProfileCreateTest`, una in `ProviderProfileEditTest`) simulano l'altra richiesta con un insert nella stessa transazione del test. Su PostgreSQL non si può e sono saltate con il loro motivo (`skipOnPostgresSameTransactionRace()` in `tests/Pest.php`). In produzione la gara vera arriva da un'altra connessione, e il codice la gestisce.
     - Totale dei saltati: 3 su SQLite, 7 su PostgreSQL.
 - **Chiave esterna violata e unicità**: codici diversi per database, nella tabella sotto.
