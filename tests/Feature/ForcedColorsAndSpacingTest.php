@@ -67,11 +67,8 @@ test('the controls with a box-shadow ring have an outline on focus in forced col
     'booking notes' => ['components/booking-fields.tsx', 'const textareaClass =\s*'],
     'show password' => ['components/password-input.tsx', 'onClick=\{\(\) => setShowPassword\(\(prev\) => !prev\)\}\s*className='],
     'provider card' => ['components/provider-card.tsx', 'href=\{show\(provider\.slug\)\}\s*className=\{cn\(\s*'],
-    'services: select' => ['pages/provider/services/index.tsx', 'const selectClass =\s*'],
-    'service: select' => ['pages/provider/services/edit.tsx', 'const selectClass =\s*'],
-    'availability: select' => ['pages/provider/availability/index.tsx', 'const selectClass =\s*'],
-    'bookings: select' => ['pages/provider/bookings/index.tsx', 'const selectClass =\s*'],
-    'new booking: select' => ['pages/provider/bookings/create.tsx', 'const selectClass =\s*'],
+    // One class for every native select of the site (#112), in lib/form-classes.ts.
+    'native select' => ['lib/form-classes.ts', 'export const selectClass =\s*'],
 ]);
 
 test('every outline-none of the application keeps an outline on focus, but the programmatic targets', function () {
@@ -154,7 +151,7 @@ test('the fields of the providers\' list never force a width on a phone', functi
         ->not->toMatch('/(?<![\w:-])(min-w|w)-([1-9]\d*|\[[^\]]+\])(?![\w-])/')
         ->toContain('md:min-w-56')
         ->toContain('md:w-44');
-    expect(fcsClasses(fcsSource('js/components/provider-filters-panel.tsx'), 'const selectClass =\s*'))
+    expect(fcsClasses(fcsSource('js/lib/form-classes.ts'), 'export const selectClass =\s*'))
         ->toContain('w-full', 'min-w-0');
     expect(fcsClasses(fcsSource('js/components/search-fields.tsx'), '<select\s+id=[\s\S]*?className=\{cn\(\s*'))
         ->toContain('w-full', 'min-w-0');

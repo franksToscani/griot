@@ -301,7 +301,9 @@ test('"Applica" visits the list with the panel\'s fields and closes it; "Azzera"
 test('44px targets on phones in the panel and in the bar', function () {
     $panel = plfSource('components/provider-filters-panel.tsx');
 
-    expect($panel)->toMatch("/const selectClass =\\s*'[^']*\\bmax-md:min-h-11\\b[^']*';/");
+    // The class of every native select of the site (#112).
+    expect($panel)->toContain("import { selectClass } from '@/lib/form-classes';");
+    expect(plfSource('lib/form-classes.ts'))->toMatch("/export const selectClass =\\s*'[^']*\\bmax-md:min-h-11\\b[^']*';/");
     expect(plfSource('components/ui/input.tsx'))->toContain('max-md:min-h-11');
     expect(plfSource('components/ui/button.tsx'))->toContain('max-md:min-h-11 max-md:min-w-11');
     // The checkbox has its invisible 44px area (TouchAndMotionTest).

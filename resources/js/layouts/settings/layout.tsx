@@ -1,6 +1,5 @@
 import { Link } from '@inertiajs/react';
 import type { PropsWithChildren } from 'react';
-import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useCurrentUrl } from '@/hooks/use-current-url';
@@ -35,10 +34,16 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
 
     return (
         <div className="px-4 py-6">
-            <Heading
-                title={t('nav.settings')}
-                description={t('settings.description')}
-            />
+            {/* Text, not a heading (#112): each settings page has its own h1, and an h2 here came
+                before it. The same look as the kit's Heading. */}
+            <header className="mb-8 space-y-0.5">
+                <p className="text-xl font-semibold tracking-tight">
+                    {t('nav.settings')}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                    {t('settings.description')}
+                </p>
+            </header>
 
             <div className="flex flex-col lg:flex-row lg:space-x-12">
                 <aside className="w-full max-w-xl lg:w-48">

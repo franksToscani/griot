@@ -37,6 +37,7 @@ import {
     show as showBooking,
 } from '@/routes/provider/bookings';
 import type { ProviderBooking } from '@/types';
+import { wrappingLabel } from '@/lib/form-classes';
 
 // A booking of the provider, with its answers: the card of the bookings list and of the booking's
 // own page (pages/provider/bookings/index.tsx and show.tsx).
@@ -47,10 +48,6 @@ const statusBadge = {
     confirmed: 'secondary',
     cancelled: 'outline',
 } as const;
-
-// Copied from dashboard.tsx, like the other pages: the kit's Button keeps its label on one line at
-// a fixed height, and long Italian labels would widen the page at 375 px. cn() uses tailwind-merge.
-const wrappingLabel = 'h-auto max-w-full whitespace-normal py-2 text-center';
 
 // The stable places for the focus after an answer: the title of the booking's card, or the title of
 // the page when the card left the list (a filter on the status). Both have tabIndex={-1}. Both
@@ -141,7 +138,21 @@ export function BookingCard({
                     {booking.customer_phone_display !== null && (
                         <p className="break-words">
                             {t('provider.bookings.phone')}:{' '}
-                            {booking.customer_phone_display}
+                            {/* A link only from the call address the server writes (#207): the
+                                name of the link is the number, read in groups. */}
+                            {booking.customer_phone_url !== null ? (
+                                <a
+                                    href={booking.customer_phone_url}
+                                    className={cn(
+                                        'underline underline-offset-4',
+                                        touchTarget,
+                                    )}
+                                >
+                                    {booking.customer_phone_display}
+                                </a>
+                            ) : (
+                                booking.customer_phone_display
+                            )}
                         </p>
                     )}
                     {booking.customer_email !== null && (

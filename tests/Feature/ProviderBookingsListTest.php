@@ -152,6 +152,8 @@ test('each booking has exactly the expected keys, and the private token is only 
         'customer_phone' => '+39 333 123 4567',
         // Written to be read (PhoneNumber::display(), #177): groups separated by U+00A0.
         'customer_phone_display' => "+39\u{00A0}333\u{00A0}123\u{00A0}4567",
+        // A tel: link from the number in international format (#207).
+        'customer_phone_url' => 'tel:+393331234567',
         'customer_email' => 'awa@example.com',
         'notes' => 'Capelli lunghi',
         'service' => ['name' => 'Box braids'],
@@ -491,13 +493,15 @@ test('the texts of the bookings page are exactly the expected ones', function ()
     }
 });
 
-test('the page shows the customer fields as plain text: no phone or mail links, no raw HTML', function () {
+test('the page shows the customer fields as text: the phone link only from customer_phone_url, no mail link, no raw HTML', function () {
     // Read in the source of the card, shared by the list and the booking's page: there is no
     // JavaScript test runner.
     $source = file_get_contents(resource_path('js/components/provider-booking-card.tsx'));
 
     expect($source)
+        // The tel: address comes from the server (#207), never built in the page.
         ->not->toContain('tel:')
+        ->toMatch('/\{booking\.customer_phone_url !== null \? \(\s*<a\s+href=\{booking\.customer_phone_url\}/')
         ->not->toContain('mailto:')
         ->not->toContain('dangerouslySetInnerHTML')
         // The fields are printed as JSX expressions, which React escapes.

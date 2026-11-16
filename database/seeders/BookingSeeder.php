@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Booking\BookingDuration;
 use App\Enums\BookingStatus;
 use App\Enums\Weekday;
 use App\Models\Provider;
@@ -38,7 +39,8 @@ class BookingSeeder extends Seeder
                 ->addDays($data['weekday']->value - 1)
                 ->setTimeFromTimeString($data['time'])
                 ->utc();
-            $endsAt = $startsAt->addMinutes($service->duration_max + $options->sum('extra_duration'));
+            // The same rule as the bookings of the site (BookingDuration, the one place where it lives).
+            $endsAt = $startsAt->addMinutes(app(BookingDuration::class)->minutesFor($service, array_values($options->map(fn (ServiceOption $option): int => $option->id)->all())));
 
             // The customer phone identifies the example booking, so a new run moves it instead of duplicating it.
             $booking = $provider->bookings()->firstOrNew(['customer_phone' => $data['customer_phone']]);

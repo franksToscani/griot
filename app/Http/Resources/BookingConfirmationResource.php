@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Booking\LocalTime;
 use App\Enums\BookingStatus;
 use App\Models\Booking;
 use App\Models\ServiceOption;
@@ -24,10 +25,10 @@ class BookingConfirmationResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        // The provider's local time, the same rule as the slots: the browser's time zone does not matter.
-        $timezone = config()->string('booking.timezone');
-        $start = $this->starts_at->setTimezone($timezone);
-        $end = $this->ends_at->setTimezone($timezone);
+        // The provider's local time, the same rule as the slots (LocalTime): the browser's time zone
+        // does not matter.
+        $start = LocalTime::fromUtc($this->starts_at);
+        $end = LocalTime::fromUtc($this->ends_at);
 
         return [
             'status' => $this->status->value,

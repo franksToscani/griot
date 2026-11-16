@@ -51,7 +51,8 @@ class ProviderProfileResource extends JsonResource
     // provider to Inertia, which would otherwise wrap every nested resource in a "data" key.
 
     /**
-     * Active services grouped by category, categories in alphabetical order.
+     * Active services grouped by category, categories in alphabetical order of the name shown in
+     * the page's language (#112).
      *
      * @return list<array{category: array<string, mixed>, services: array<mixed>}>
      */
@@ -60,7 +61,7 @@ class ProviderProfileResource extends JsonResource
         return array_values($this->services
             ->filter(fn (Service $service) => $service->is_active)
             ->groupBy('category_id')
-            ->sortBy(fn ($services) => $services->first()->category->name)
+            ->sortBy(fn ($services) => $services->first()->category->sortName())
             ->map(fn ($services) => [
                 'category' => (new CategoryResource($services->first()->category))->resolve($request),
                 'services' => ServiceResource::collection($services->values())->resolve($request),

@@ -78,6 +78,12 @@ export default function ProviderEditPage({ provider }: Props) {
                                         <InputError message={errors.slug} />
                                     </div>
 
+                                    {/* The request limit (#74): an error of no field. */}
+                                    <InputError
+                                        announce
+                                        message={errors.profile}
+                                    />
+
                                     <Button
                                         type="submit"
                                         className="self-start"

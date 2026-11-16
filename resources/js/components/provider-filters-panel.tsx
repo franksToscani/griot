@@ -20,10 +20,7 @@ import type {
     ProviderFilterKeys,
     ProviderFilters as Filters,
 } from '@/types';
-
-// The same look as the other native selects of the site, 44px on phones.
-const selectClass =
-    'border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:outline-hidden focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 max-md:min-h-11 md:text-sm';
+import { selectClass } from '@/lib/form-classes';
 
 // The panel of the filters of the list (docs/providers-list.md), at every width: the kit's Sheet
 // (Radix Dialog), which keeps the focus inside while open, closes with Esc and gives the focus

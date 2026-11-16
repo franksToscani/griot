@@ -329,7 +329,9 @@ test('an unpublished provider cannot write bookings, as customers cannot book it
     $provider = pbsProvider(published: false);
     $service = pbsService($provider);
 
-    pbsPost($provider->user, pbsData($service))->assertSessionHasErrors('starts_at');
+    // The reason, not "time not available" (#112): the page then shows it instead of the form.
+    pbsPost($provider->user, pbsData($service))
+        ->assertSessionHasErrors(['starts_at' => __('provider.bookings.create.unpublished')]);
     expect(Booking::query()->count())->toBe(0);
     expect(pbsTimes($provider->user, $service))->toBe([]);
 });
@@ -347,13 +349,13 @@ test('a hidden option or an option of another service is refused', function () {
     expect(Booking::query()->count())->toBe(0);
 });
 
-test('a service of another provider and a missing one get the same message as the public route', function () {
+test('a service of another provider and a missing one get the same message, written to the provider', function () {
     $provider = pbsProvider();
     $theirs = pbsService(pbsProvider('Barberia Kofi'));
 
     foreach ([$theirs->id, 999999] as $serviceId) {
         pbsPost($provider->user, ['service' => $serviceId] + pbsData($theirs))
-            ->assertSessionHasErrors(['service' => 'Il servizio scelto non è disponibile per questo professionista.']);
+            ->assertSessionHasErrors(['service' => 'Il servizio scelto non è tra i tuoi servizi attivi.']);
     }
     expect(Booking::query()->count())->toBe(0);
 });
@@ -495,7 +497,7 @@ test('the provider slots refuse a hidden option and a wrong format like the publ
 // Rate limit
 // ---------------------------------------------------------------------------------------------
 
-test('over the limit, the booking goes back to the list with the error and the slots get a 429', function () {
+test('over the limit, the booking goes back to its form with the error and the slots get a 429', function () {
     config()->set('booking.rate_limit_provider_bookings_per_minute', 2);
     $provider = pbsProvider();
     $service = pbsService($provider);
@@ -506,7 +508,8 @@ test('over the limit, the booking goes back to the list with the error and the s
     pbsPost($provider->user, pbsData($service))->assertSessionHasNoErrors();
 
     pbsPost($provider->user, pbsData($service, ['starts_at' => PBS_TODAY.'T10:00:00Z']))
-        ->assertRedirect(route('provider.bookings.index'))
+        // The page of the form (#112): the fields stay filled, the error is announced there.
+        ->assertRedirect(route('provider.bookings.create'))
         ->assertSessionHasErrors(['booking' => PBS_THROTTLE]);
     pbsSlots($provider->user, $query)->assertTooManyRequests()->assertHeader('Retry-After');
     expect(Booking::query()->count())->toBe(1);

@@ -53,6 +53,10 @@ class ProviderBookingResource extends JsonResource
             // The same number written to be read (PhoneNumber::display(), #177); customer_phone
             // stays compact, for the links.
             'customer_phone_display' => $this->customer_phone === null ? null : PhoneNumber::display($this->customer_phone),
+            // A tel: link only from a number that can be put in international format (#207): the
+            // provider's own bookings may keep the number as it was written. Null for an anonymous
+            // booking, which has no number.
+            'customer_phone_url' => $this->customerPhoneUrl(),
             'customer_email' => $this->customer_email,
             'notes' => $this->notes,
             'service' => [
@@ -85,6 +89,17 @@ class ProviderBookingResource extends JsonResource
     }
 
     /**
+     * The tel: link of the customer's phone, or null when there is no number or it cannot be put
+     * in international format (PhoneNumber::normalize()).
+     */
+    private function customerPhoneUrl(): ?string
+    {
+        $phone = $this->customer_phone === null ? null : PhoneNumber::normalize($this->customer_phone);
+
+        return $phone === null ? null : 'tel:'.$phone;
+    }
+
+    /**
      * The WhatsApp chat with the customer, with the provider's answer already written: the
      * provider opens it and sends it by hand. Null for a booking without an answer (pending, or
      * cancelled by the customer or before cancelled_by existed) and for a number that cannot be
@@ -103,7 +118,13 @@ class ProviderBookingResource extends JsonResource
         // The customer's language, given to each text: the page stays in the provider's language.
         $locale = Locales::forDelivery($this->locale);
 
-        $lines = [__('provider.bookings.whatsapp_text_'.$outcome->value, [
+        // A booking the provider wrote is born confirmed, but nobody asked for it on the site: it was
+        // registered, not confirmed (#112).
+        $text = $outcome === BookingOutcome::Confirmed && $this->created_by_provider
+            ? 'provider.bookings.whatsapp_text_created'
+            : 'provider.bookings.whatsapp_text_'.$outcome->value;
+
+        $lines = [__($text, [
             'name' => $this->customer_name,
             'provider' => $this->provider->name,
             'service' => $this->service->name,

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Str;
 
 /**
  * @property bool|int|null $offered from withOffered() only: whether something can be booked in it
@@ -63,6 +64,16 @@ class Category extends Model
         $key = "categories.{$this->slug}";
 
         return Lang::has($key) ? __($key) : $this->name;
+    }
+
+    /**
+     * The key to put categories in alphabetical order by the name shown (#112): "Ongles" before
+     * "Tresses" in French, "Braids" before "Nails" in English. Lower case and without accents
+     * (Str::ascii, no intl extension in production), so "Énergie" sorts with the "e".
+     */
+    public function sortName(): string
+    {
+        return Str::lower(Str::ascii($this->displayName()));
     }
 
     /**

@@ -325,12 +325,15 @@ test('"Ordina per" is a native select with a visible label, 44px on phones, next
         ->toMatch("/<Label htmlFor=\"provider-sort\">\\{t\\('providers\\.sort\\.label'\\)\\}<\\/Label>\\s*<select\\s+id=\"provider-sort\"\\s+name=\"sort\"\\s+value=\\{filters\\.sort \\?\\? 'name'\\}/")
         ->toContain("const SORTS: Sort[] = ['name', 'recent', 'price_asc', 'price_desc'];")
         ->toContain('{t(`providers.sort.${sort}`)}')
-        ->toMatch('/outline-none[^\']*focus-visible:outline-hidden[^\']*max-md:min-h-11/')
+        // The class of every native select of the site (#112): outline on focus, 44 px on phones.
+        ->toContain("import { selectClass } from '@/lib/form-classes';")
         // The same filters, from page 1, the page kept mounted: the status is read again.
         ->toMatch("/index\\(\\{\\s*query: \\{ \\.\\.\\.filters, sort: value === 'name' \\? null : value \\},?\\s*\\}\\)/")
         ->toContain('{ preserveScroll: true, preserveState: true }')
         ->not->toMatch('/\bpage[:=]/')
         ->not->toMatch('/aria-label(?!ledby)/');
+
+    expect(plcSource('lib/form-classes.ts'))->toMatch('/outline-none[^\']*focus-visible:outline-hidden[^\']*max-md:min-h-11/');
 
     $page = plcSource('pages/providers/index.tsx');
     expect($page)

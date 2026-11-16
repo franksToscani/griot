@@ -2,6 +2,7 @@
 
 namespace App\Booking;
 
+use App\Models\Booking;
 use App\Models\Provider;
 use App\Models\Service;
 use Carbon\CarbonImmutable;
@@ -108,6 +109,13 @@ final class FreeSlots
     private function slotsInside(TimeWindow $window, int $minutes): array
     {
         $step = config()->integer('booking.slot_step_minutes');
+
+        // A step or a duration of 0 (or less) would never move the start: no slots, never a loop
+        // without end. The durations are validated; the step comes from the configuration.
+        if ($step < 1 || $minutes < 1) {
+            return [];
+        }
+
         $slots = [];
 
         for ($start = $window->start; $start->addMinutes($minutes)->lessThanOrEqualTo($window->end); $start = $start->addMinutes($step)) {
@@ -137,12 +145,9 @@ final class FreeSlots
             ->occupying()
             ->overlapping($from, $to)
             ->get(['starts_at', 'ends_at'])
-            ->toBase()
-            // parse() accepts the cast Carbon date and also the plain string PHPStan sees for these columns.
-            ->map(fn ($booking) => new TimeWindow(
-                CarbonImmutable::parse($booking->starts_at, 'UTC')->utc(),
-                CarbonImmutable::parse($booking->ends_at, 'UTC')->utc(),
-            ));
+            // The dates are cast to CarbonImmutable by the model (@property on Booking).
+            ->map(fn (Booking $booking) => new TimeWindow($booking->starts_at->utc(), $booking->ends_at->utc()))
+            ->toBase();
     }
 
     /**

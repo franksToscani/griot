@@ -108,6 +108,8 @@ export type ProviderBooking = {
     customer_phone: string | null;
     // The same number written to be read, with U+00A0 between the groups (PhoneNumber::display()).
     customer_phone_display: string | null;
+    // tel: and the number in international format, or null (not normalizable, anonymous).
+    customer_phone_url: string | null;
     customer_email: string | null;
     notes: string | null;
     service: { name: string };

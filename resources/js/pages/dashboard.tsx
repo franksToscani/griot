@@ -31,6 +31,7 @@ import { cn } from '@/lib/utils';
 import { publish, unpublish } from '@/routes/provider';
 import { index as bookingsIndex } from '@/routes/provider/bookings';
 import type { ProviderArea, PublishingStatus } from '@/types';
+import { wrappingLabel } from '@/lib/form-classes';
 
 type Props = {
     provider: ProviderArea;
@@ -44,10 +45,6 @@ type MissingCode = (typeof MISSING_CODES)[number];
 
 const isMissingCode = (code: string): code is MissingCode =>
     (MISSING_CODES as readonly string[]).includes(code);
-
-// The kit's Button keeps its label on one line at a fixed height: long Italian labels would widen
-// the Card at 375 px. cn() uses tailwind-merge, so these classes replace the kit's ones.
-const wrappingLabel = 'h-auto max-w-full whitespace-normal py-2 text-center';
 
 // The provider's private area: a greeting, the requests waiting for an answer and the status of the
 // public profile. The sections (profile, services, availability, bookings, preview, public page)

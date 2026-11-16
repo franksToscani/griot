@@ -1,3 +1,4 @@
+import InputError from '@/components/input-error';
 import { Form, Head } from '@inertiajs/react';
 import { ProviderProfileFields } from '@/components/provider-profile-fields';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,12 @@ export default function ProviderSetup() {
                             {({ processing, errors }) => (
                                 <>
                                     <ProviderProfileFields errors={errors} />
+
+                                    {/* The request limit (#74): an error of no field. */}
+                                    <InputError
+                                        announce
+                                        message={errors.profile}
+                                    />
 
                                     <Button
                                         type="submit"

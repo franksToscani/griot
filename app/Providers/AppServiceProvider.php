@@ -82,7 +82,16 @@ class AppServiceProvider extends ServiceProvider
                 throw new ThrottleRequestsException('Too Many Attempts.', null, $headers);
             }
 
-            $exception = ValidationException::withMessages([$field => __('booking.throttle.too_many')]);
+            // The profile shares the services' counter (provider-services) but has its own form:
+            // the message goes on "profile", shown by the setup and edit pages (#74).
+            $profile = $request->routeIs('provider.store', 'provider.update');
+            $exception = ValidationException::withMessages([($profile ? 'profile' : $field) => __('booking.throttle.too_many')]);
+
+            if ($profile) {
+                $exception->redirectTo(route($request->routeIs('provider.store') ? 'provider.setup' : 'provider.edit'));
+
+                throw $exception;
+            }
 
             if ($field === 'cancel') {
                 $exception->redirectTo(route('bookings.show', ['booking' => (string) $request->route('booking')]));
@@ -114,9 +123,10 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
 
-            // The provider's own bookings: the form will live on the bookings page.
+            // The provider's own bookings: back to the page "Aggiungi prenotazione", where the form is
+            // (#112).
             if ($field === 'booking') {
-                $exception->redirectTo(route('provider.bookings.index'));
+                $exception->redirectTo(route('provider.bookings.create'));
             }
 
             throw $exception;

@@ -26,6 +26,7 @@ import {
     update as updateAvailability,
 } from '@/routes/provider/availability';
 import type { AvailabilityWeekday, ProviderAvailability } from '@/types';
+import { selectClass, wrappingLabel } from '@/lib/form-classes';
 
 type Props = {
     availabilities: ProviderAvailability[];
@@ -35,14 +36,6 @@ type Props = {
 type FieldErrors = Partial<
     Record<'weekday' | 'start_time' | 'end_time' | 'services', string>
 >;
-
-// Copied from dashboard.tsx, like the other pages: the kit's Button keeps its label on one line at
-// a fixed height, and long Italian labels would widen the page at 375 px. cn() uses tailwind-merge.
-const wrappingLabel = 'h-auto max-w-full whitespace-normal py-2 text-center';
-
-// Copied from services/index.tsx: a native select with the same look as the kit's Input.
-const selectClass =
-    'border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs outline-none focus-visible:outline-hidden focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm';
 
 // The provider's weekly hours: one Card per day, from Monday, each with its slots, and the form to
 // add one. The slots come ordered by day and start from the server.

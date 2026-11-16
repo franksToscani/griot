@@ -105,7 +105,10 @@ trait BookingRules
     }
 
     /**
-     * The customer's details: name trimmed, phone in international format, empty email and notes as null.
+     * The customer's details: name on one line (every run of spaces, line breaks included, becomes
+     * one space, so that a name cannot write lines that look like fields in the text emails), phone
+     * in international format, empty email and notes as null. The same for the public form and the
+     * provider's own bookings.
      */
     public function customer(): CustomerDetails
     {
@@ -113,7 +116,7 @@ trait BookingRules
         $notes = trim($this->string('notes')->toString());
 
         return new CustomerDetails(
-            name: trim($this->string('customer_name')->toString()),
+            name: trim((string) preg_replace('/\s+/u', ' ', $this->string('customer_name')->toString())),
             phone: trim($this->string('customer_phone')->toString()),
             email: $email !== '' ? $email : null,
             notes: $notes !== '' ? $notes : null,
