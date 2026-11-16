@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { SectionTitle } from '@/components/home/section-title';
 import { useReveal } from '@/hooks/use-reveal';
 import { revealDelay } from '@/lib/motion';
 
@@ -24,9 +25,7 @@ export function ScrollRow<Item extends { id: number }>({
 
     return (
         <section className="flex min-w-0 flex-col gap-4">
-            <h2 id={titleId} className="text-xl font-semibold">
-                {title}
-            </h2>
+            <SectionTitle id={titleId}>{title}</SectionTitle>
             <div
                 role="region"
                 aria-labelledby={titleId}

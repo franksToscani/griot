@@ -209,13 +209,13 @@ test('the card: a link to the page with its touch target, the name as h3 with th
     $card = hfSource('components/home/featured-provider-card.tsx');
 
     expect($card)
-        ->toMatch("/<Link\\s+href=\\{show\\(provider\\.slug\\)\\}\\s+className=\\{cn\\(\\s*'flex w-64 flex-col [^']*border[^']*outline-none[^']*focus-visible:ring-\\[3px\\][^']*focus-visible:outline-hidden',\\s*touchTarget,\\s*CARD_MOTION\\.card,?\\s*\\)\\}\\s*>/")
+        ->toMatch("/<Link\\s+href=\\{show\\(provider\\.slug\\)\\}\\s+className=\\{cn\\(\\s*'flex w-64 flex-col [^']*border[^']*outline-none[^']*focus-visible:ring-\\[3px\\][^']*focus-visible:outline-hidden',\\s*touchTarget,\\s*CARD_REST,\\s*CARD_MOTION\\.card,?\\s*\\)\\}\\s*>/")
         // Since #144 step 10 it rises under the mouse or the focus, with the classes shared with the
         // cards of the categories (HomeMotionTest).
-        ->toContain("import { CARD_MOTION } from '@/lib/motion';")
+        ->toContain("import { CARD_MOTION, CARD_REST } from '@/lib/motion';")
         ->toContain("import { show } from '@/routes/providers';")
         // The heading inside the link says the name and the city; the city shown is not read twice.
-        ->toMatch("/<h3 className=\"font-medium break-words\">\\s*\\{provider\\.name\\}\\s*<span className=\"sr-only\">\\s*\\{t\\('home\\.featured\\.in_city', \\{ city: provider\\.city \\}\\)\\}\\s*<\\/span>\\s*<\\/h3>/")
+        ->toMatch("/<h3 className=\"text-lg font-semibold break-words\">\\s*\\{provider\\.name\\}\\s*<span className=\"sr-only\">\\s*\\{t\\('home\\.featured\\.in_city', \\{ city: provider\\.city \\}\\)\\}\\s*<\\/span>\\s*<\\/h3>/")
         ->toMatch('/<p aria-hidden="true" className="text-sm text-muted-foreground">\s*\{provider\.city\}\s*<\/p>/')
         ->toMatch('/<Badge variant="secondary">\s*\{category\.name\}\s*<\/Badge>/')
         // Always a photo: no avatar.

@@ -169,7 +169,9 @@ test('the cards rise and their photo grows under the mouse and the focus alike, 
     foreach (['category-card', 'featured-provider-card'] as $card) {
         $source = hmSource("js/components/home/{$card}.tsx");
         expect($source)
-            ->toContain("import { CARD_MOTION } from '@/lib/motion';")
+            // With the resting shadow of the cards (visual polish).
+            ->toContain("import { CARD_MOTION, CARD_REST } from '@/lib/motion';")
+            ->toContain('CARD_REST')
             ->toContain('CARD_MOTION.card,')
             ->toContain('CARD_MOTION.frame')
             ->toContain('CARD_MOTION.photo,')

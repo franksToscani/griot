@@ -186,10 +186,11 @@ test('the band of the home page uses the tokens measured above, never red', func
         ->and(accTokens('dark')['hero-foreground'][0])->toBeGreaterThan(0.95);
 });
 
-test('without their border, the amber, light green and white tiles of the categories would not show on the page', function () {
-    // Why every tile has a border (docs/home.md): their own colour is below 3:1 against the
-    // background in at least one theme. The brown alone would be enough.
-    foreach (['highlight', 'info', 'card'] as $tone) {
+test('without their border, the sand tiles and the card of the professionals would not show on the page', function () {
+    // Why the empty tile of a category and the card of the professionals have a border (visual
+    // polish, docs/home.md): the sand is below 3:1 against the background in both themes. The
+    // border of the tile (input) is measured above against the background.
+    foreach (['secondary'] as $tone) {
         $light = accTokens('light');
         $dark = accTokens('dark');
         $lowest = min(
@@ -198,6 +199,14 @@ test('without their border, the amber, light green and white tiles of the catego
         );
 
         expect($lowest)->toBeLessThan(3.0, $tone);
+    }
+
+    // The orange edge on the left of the card of the professionals (border-l-brand) tells the card
+    // apart from the page: 3:1 against the page's background, in both themes. Decorative, it says
+    // nothing (on the sand inside the card it is 2.99:1 in the light theme, not needed).
+    foreach (['light', 'dark'] as $theme) {
+        $t = accTokens($theme);
+        expect(accRatio(accSrgb($t['brand']), accSrgb($t['background'])))->toBeGreaterThanOrEqual(3.0, "{$theme}: brand on the background");
     }
 });
 

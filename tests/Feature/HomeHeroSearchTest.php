@@ -208,7 +208,7 @@ test('from edge to edge, square corners, a height in rem; its content in the sit
     expect(hhsSource('layouts/public-layout.tsx'))
         ->toContain("const FULL_WIDTH_PAGES = ['home', 'providers/index'];")
         ->toMatch("/className=\\{cn\\(\\s*'w-full flex-1 outline-none',\\s*!fullWidth && 'mx-auto max-w-6xl px-4 py-6',?\\s*\\)\\}/");
-    expect(hhsSource('pages/home.tsx'))->toContain('<div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10">');
+    expect(hhsSource('pages/home.tsx'))->toContain('<div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-10">');
 });
 
 test('the h1 is the same, alone in the band; no heading in the search nor in the slides', function () {

@@ -2,6 +2,8 @@
 
 Le foto che il sito mostra di suo (oggi il carousel della home, issue #144). Le foto del lavoro dei provider non sono qui: le caricano loro, con la casella del consenso (`docs/gallery.md`).
 
+**Le categorie senza foto** mostrano un riquadro vuoto, uguale per tutte: fondo sabbia con un piccolo segno neutro (`components/empty-picture.tsx`, [home.md](home.md)). Serve solo finché mancano le foto: la vera soluzione è aggiungere quella della categoria (sezione « Aggiungere una foto »). Oggi hanno una foto barbiere, nails e treccine.
+
 ## Regole (decisione #142)
 
 - Solo da Unsplash, Pexels o Pixabay, con una licenza che permette l'uso commerciale. Mai immagini prese dal web.

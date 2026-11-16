@@ -163,10 +163,12 @@ test('one h1, in the band at the top; an h2 per section and an h3 per step, with
 
     expect($levels($intro))->toBe(['1'])
         ->and($levels($page))->toBe([])
-        ->and(array_count_values($levels($steps)))->toBe(['2' => 1, '3' => 1])
+        // The h2 of the sections comes from SectionTitle (visual polish), shared with the rows.
+        ->and(array_count_values($levels($steps)))->toBe(['3' => 1])
+        ->and($levels(hpSource('components/home/section-title.tsx')))->toBe(['2'])
         // The help panel and the arrow: no heading of their own (the Sheet's title is the kit's).
         ->and($levels(hpSource('components/home/floating-actions.tsx')))->toBe([])
-        ->and($levels($row))->toBe(['2'])
+        ->and($levels($row))->toBe([])
         ->and($levels($card))->toBe(['3'])
         // The carousel (#144 step 5) has no heading: the name of a category is a paragraph.
         ->and($levels(hpSource('components/home/home-carousel.tsx')))->toBe([])
@@ -176,9 +178,10 @@ test('one h1, in the band at the top; an h2 per section and an h3 per step, with
         ->and($levels(hpSource('components/home/home-search.tsx').hpSource('components/search-fields.tsx')))->toBe([])
         // The band comes first, then the sections; the h3 are inside the steps' list.
         ->and($page)->toMatch('/<HomeHero[\s\S]*<CategoriesSection[\s\S]*<ScrollRow[\s\S]*<HowItWorks \/>[\s\S]*<ProfessionalsBand \/>[\s\S]*<HomeFloatingActions \/>/')
-        ->and($steps)->toMatch('/<h2[\s\S]*<ol[^>]*>[\s\S]*<h3[\s\S]*<\/ol>/')
+        // The h2 of the sections from SectionTitle (visual polish), before the steps and the items.
+        ->and($steps)->toMatch('/<SectionTitle[\s\S]*<ol[^>]*>[\s\S]*<h3[\s\S]*<\/ol>/')
         // The row's h2 comes before its items: the cards' h3 are under it.
-        ->and($row)->toMatch('/<h2 id=\{titleId\}[\s\S]*<ul[\s\S]*\{renderItem\(item\)\}/');
+        ->and($row)->toMatch('/<SectionTitle id=\{titleId\}>[\s\S]*<ul[\s\S]*\{renderItem\(item\)\}/');
     expect($intro)->toMatch("/<h1 className=\"max-w-2xl text-3xl leading-tight font-semibold text-balance break-words md:text-4xl lg:text-5xl\">\\s*\\{t\\('home\\.intro\\.title'\\)\\}\\s*<\\/h1>/");
 });
 
@@ -201,7 +204,7 @@ test('the steps are an ordered list, the categories a list in a region that scro
 
     expect($row)
         // Named by the title of its section, focusable for the arrow keys; only the row scrolls.
-        ->toMatch('/<h2 id=\{titleId\}/')
+        ->toContain('<SectionTitle id={titleId}>{title}</SectionTitle>')
         ->toMatch('/<div\s+role="region"\s+aria-labelledby=\{titleId\}\s+tabIndex=\{0\}\s+className="overflow-x-auto [^"]*outline-none[^"]*focus-visible:ring-\[3px\][^"]*focus-visible:outline-hidden"/')
         // Since #144 step 10 8px around the cards, which rise under the focus, and a reveal.
         ->toMatch('/<ul ref=\{reveal\} className="flex snap-x gap-3 p-2 pb-4">\s*\{items\.map\(\(item, index\) => \(\s*<li\s+key=\{item\.id\}\s+className="reveal-item shrink-0 snap-start"\s+style=\{revealDelay\(index\)\}\s*>/')

@@ -47,6 +47,11 @@ export function startsHidden({
 // frame. The shadow is there with "reduce motion" too: it does not move. Tailwind 4 moves with the
 // translate and scale properties (transforms of their own), so those are the ones that change:
 // translate for the card, transition-transform (transform, translate, scale, rotate) for the photo.
+// One rule for the cards, the tiles and the photos of the cards (visual polish): a thin border, this
+// small shadow at rest (the same as the kit's Card, which keeps its own), a stronger one under the
+// mouse or the focus (CARD_MOTION.card), rounded-xl.
+export const CARD_REST = 'shadow-sm';
+
 export const CARD_MOTION = {
     card: 'group hover:shadow-md focus-visible:shadow-md motion-safe:transition-[translate,box-shadow] motion-safe:duration-200 motion-safe:ease-out motion-safe:hover:-translate-y-0.5 motion-safe:focus-visible:-translate-y-0.5',
     frame: 'overflow-hidden',
