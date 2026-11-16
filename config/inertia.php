@@ -13,13 +13,14 @@ return [
     |
     | See: https://inertiajs.com/server-side-rendering
     |
+    | Off (#115): Griot has no SSR bundle and the build is "vp build" only.
+    | The link previews are written by the server (docs/link-previews.md).
+    | Written here, because Inertia's own default is "on".
+    |
     */
 
     'ssr' => [
-        'enabled' => true,
-        'url' => 'http://127.0.0.1:13714',
-        // 'bundle' => base_path('bootstrap/ssr/ssr.mjs'),
-
+        'enabled' => false,
     ],
 
     /*
