@@ -53,7 +53,8 @@ function accPairs(string $theme): array
         // the name of the site; the cards, the muted surfaces, the amber, the orange (brand), the
         // light green (info), the orange decor line, the sidebar.
         ['links and the name of the site (text-primary) on the background', accSrgb($t['primary']), $background, 4.5],
-        ['the name of the site in the sidebar', accSrgb($t['primary']), accSrgb($t['sidebar']), 4.5],
+        // The name as text (forced colours, collapsed sidebar) is the text's brown (app-logo.tsx).
+        ['the name of the site in the sidebar', accSrgb($t['foreground']), accSrgb($t['sidebar']), 4.5],
         ['text on the cards', accSrgb($t['card-foreground']), accSrgb($t['card']), 4.5],
         ['muted text on the grey surfaces', accSrgb($t['muted-foreground']), accSrgb($t['muted']), 4.5],
         ['active item (accent)', accSrgb($t['accent-foreground']), accSrgb($t['accent']), 4.5],
@@ -223,6 +224,13 @@ test('the old tokens and the old ring opacities do not reach the thresholds', fu
         // and 4.34).
         ->and(accRatio(accSrgb(accTailwind('red-600')), accSrgb(accTailwind('red-50'))))->toBeLessThan(4.5)
         ->and(accRatio(accSrgb(accTailwind('neutral-500')), accSrgb(accTailwind('neutral-100'))))->toBeLessThan(4.5);
+
+    // Palette C: the focus ring of its first draft, at 50% on the amber of today, stays under 3:1
+    // (2.95): the darker ring of app.css is needed. And the exact orange of the logo, 11 degrees
+    // from the red of the errors (BrandPaletteTest wants 20).
+    $amber = accTokens('light')['highlight'];
+    expect(accRatio(accOver([0.22, 0.05, 175.0], 0.5, $amber), accSrgb($amber)))->toBeLessThan(3.0)
+        ->and(abs(38.0 - accTokens('light')['destructive'][2]))->toBeLessThan(20.0);
 });
 
 test('the delete-account warning and the appearance tabs use the colours measured above', function () {

@@ -38,7 +38,7 @@ export default function AppLogo() {
                     className={`hidden dark:not-forced-colors:block ${IMAGE}`}
                 />
             </span>
-            <span className="hidden text-xl leading-none font-bold tracking-tight text-primary group-data-[collapsible=icon]:sr-only group-data-[collapsible=icon]:inline forced-colors:inline">
+            <span className="hidden text-xl leading-none font-bold tracking-tight text-foreground group-data-[collapsible=icon]:sr-only group-data-[collapsible=icon]:inline forced-colors:inline">
                 {name}
             </span>
         </>

@@ -2,10 +2,17 @@
 
 @import 'tw-animate-css';
 
-/* Noto Sans, variable (weights 100-900), from the project's own node_modules: no external service, at
-   build time or in the browser. Every subset comes with its unicode-range, so a page downloads only
-   the ones it needs: latin for Italian, French and English; latin-ext (ɛ ɔ ŋ ṣ) and vietnamese (ẹ ọ)
-   only when a name contains those letters. */
+/* The fonts (docs/accessibility.md, "Tipografia"), variable, from the project's own node_modules: no
+   external service, at build time or in the browser. Every subset comes with its unicode-range, so a
+   page downloads only the ones it needs.
+   - Atkinson Hyperlegible Next for the text (weights 200-800: the site uses 400, 500 and 600), made
+     for reading at small sizes;
+   - Fraunces for the titles (h1-h3, --font-heading), a soft serif, weights 600-700;
+   - Noto Sans only as the fallback of both, for the letters they lack (ẹ ọ in the text): the
+     browser downloads one of its subsets only when a page has such a letter.
+   An Italian, French or English page gets the latin subsets of Atkinson and Fraunces only. */
+@import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
+@import '@fontsource-variable/fraunces/wght.css';
 @import '@fontsource-variable/noto-sans/wght.css';
 
 @source '../views';
@@ -15,9 +22,11 @@
 
 @theme {
     --font-sans:
-        'Noto Sans Variable', ui-sans-serif, system-ui, sans-serif,
-        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-        'Noto Color Emoji';
+        'Atkinson Hyperlegible Next Variable', 'Noto Sans Variable',
+        ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-heading:
+        'Fraunces Variable', 'Noto Sans Variable', ui-serif, Georgia, serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -80,96 +89,99 @@
 }
 
 :root {
-    /* The warm palette of the provisional logo (docs/accessibility.md, "Palette"): brown for the
-       text, the buttons and the band of the home page, on a cream background; amber and orange
-       only as backgrounds with brown text; light green for information; the reds and greens of
-       Tailwind for errors and confirmations. Every pair is measured in AccessibilityContrastTest. */
-    --background: oklch(0.99 0.006 80);
+    /* Palette C (docs/accessibility.md, "Palette"): the brown of the logo for the text and the band of
+       the home page, on a warm white; the teal of the old "Laguna" palette for the actions, the
+       links, the focus and the active items; the orange and the amber of the logo only as
+       backgrounds with brown text; sand for the badges; the reds and greens of Tailwind for errors
+       and confirmations. Every pair is measured in AccessibilityContrastTest. */
+    --background: oklch(0.985 0.004 80);
     --foreground: oklch(0.25 0.07 40);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.25 0.07 40);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.25 0.07 40);
-    --primary: oklch(0.32 0.08 40);
-    --primary-foreground: oklch(0.985 0.012 85);
-    --secondary: oklch(0.95 0.035 80);
+    --primary: oklch(0.42 0.085 172);
+    --primary-foreground: oklch(0.99 0.006 85);
+    --secondary: oklch(0.95 0.03 75);
     --secondary-foreground: oklch(0.3 0.08 40);
-    --muted: oklch(0.965 0.015 75);
-    --muted-foreground: oklch(0.47 0.045 50);
-    --accent: oklch(0.93 0.05 80);
-    --accent-foreground: oklch(0.3 0.08 40);
+    --muted: oklch(0.965 0.012 75);
+    --muted-foreground: oklch(0.47 0.04 50);
+    --accent: oklch(0.93 0.04 175);
+    --accent-foreground: oklch(0.3 0.07 175);
     --destructive: oklch(0.577 0.245 27.325);
     --destructive-foreground: oklch(0.577 0.245 27.325);
-    --border: oklch(0.9 0.025 70);
-    --input: oklch(0.58 0.045 55);
+    --border: oklch(0.9 0.02 70);
+    --input: oklch(0.58 0.04 60);
     /* Darker than primary: the kit draws the ring at 50%, which must still reach 3:1, on the
        amber too. */
-    --ring: oklch(0.2 0.06 40);
+    --ring: oklch(0.19 0.045 175);
     --radius: 0.625rem;
-    --highlight: oklch(0.82 0.165 79);
+    --highlight: oklch(0.84 0.15 72);
     --highlight-foreground: oklch(0.25 0.07 40);
-    --brand: oklch(0.71 0.17 55);
-    --brand-foreground: oklch(0.25 0.07 40);
-    --info: oklch(0.94 0.05 150);
-    --info-foreground: oklch(0.33 0.09 150);
-    --info-border: oklch(0.55 0.13 150);
-    /* The orange of the logo, darker: a thin line still at 3:1 on the cream. */
-    --decor: oklch(0.64 0.18 50);
+    --brand: oklch(0.65 0.19 48);
+    --brand-foreground: oklch(0.2 0.06 40);
+    --info: oklch(0.94 0.04 180);
+    --info-foreground: oklch(0.34 0.08 175);
+    --info-border: oklch(0.52 0.09 172);
+    /* The orange line under the public header: a line, never text (3:1 on the background). Close to
+       the orange of the logo, but at least 20 degrees of hue from the red of the errors
+       (BrandPaletteTest): the orange never says "error". */
+    --decor: oklch(0.65 0.19 48);
     --hero: oklch(0.25 0.07 40);
     --hero-foreground: oklch(0.985 0.012 85);
-    --sidebar: oklch(0.97 0.015 75);
+    --sidebar: oklch(0.97 0.012 75);
     --sidebar-foreground: oklch(0.25 0.07 40);
-    --sidebar-primary: oklch(0.32 0.08 40);
-    --sidebar-primary-foreground: oklch(0.985 0.012 85);
-    --sidebar-accent: oklch(0.93 0.045 78);
-    --sidebar-accent-foreground: oklch(0.3 0.08 40);
-    --sidebar-border: oklch(0.9 0.025 70);
-    --sidebar-ring: oklch(0.2 0.06 40);
+    --sidebar-primary: oklch(0.42 0.085 172);
+    --sidebar-primary-foreground: oklch(0.99 0.006 85);
+    --sidebar-accent: oklch(0.93 0.04 178);
+    --sidebar-accent-foreground: oklch(0.3 0.07 175);
+    --sidebar-border: oklch(0.9 0.02 70);
+    --sidebar-ring: oklch(0.19 0.045 175);
 }
 
 .dark {
-    /* Dark brown background, cream text; amber for the buttons, the links of the name and the
-       focus ring, with dark brown text on it. */
-    --background: oklch(0.17 0.025 45);
+    /* Palette C, dark: a dark brown background with cream text; light teal for the actions, the
+       links and the focus; the band of the home page brown, close to the background. */
+    --background: oklch(0.17 0.02 50);
     --foreground: oklch(0.96 0.015 80);
-    --card: oklch(0.21 0.03 45);
+    --card: oklch(0.21 0.025 50);
     --card-foreground: oklch(0.96 0.015 80);
-    --popover: oklch(0.21 0.03 45);
+    --popover: oklch(0.21 0.025 50);
     --popover-foreground: oklch(0.96 0.015 80);
-    --primary: oklch(0.82 0.165 79);
-    --primary-foreground: oklch(0.22 0.06 40);
-    --secondary: oklch(0.3 0.05 50);
+    --primary: oklch(0.8 0.11 172);
+    --primary-foreground: oklch(0.2 0.04 190);
+    --secondary: oklch(0.3 0.045 55);
     --secondary-foreground: oklch(0.96 0.015 80);
-    --muted: oklch(0.25 0.03 45);
+    --muted: oklch(0.25 0.025 50);
     --muted-foreground: oklch(0.78 0.03 70);
-    --accent: oklch(0.32 0.06 50);
+    --accent: oklch(0.31 0.05 185);
     --accent-foreground: oklch(0.96 0.015 80);
     --destructive: oklch(0.396 0.141 25.723);
     --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.32 0.035 45);
-    --input: oklch(0.58 0.05 60);
-    --ring: oklch(0.82 0.165 79);
-    /* Dark enough for the amber focus ring at 50% to reach 3:1 on it. */
-    --highlight: oklch(0.3 0.07 70);
+    --border: oklch(0.32 0.03 50);
+    --input: oklch(0.58 0.045 60);
+    --ring: oklch(0.85 0.09 172);
+    /* Dark enough for the light teal focus ring at 50% to reach 3:1 on it. */
+    --highlight: oklch(0.32 0.07 70);
     --highlight-foreground: oklch(0.95 0.07 85);
-    --brand: oklch(0.71 0.17 55);
-    --brand-foreground: oklch(0.22 0.06 40);
+    --brand: oklch(0.71 0.17 50);
+    --brand-foreground: oklch(0.2 0.06 40);
     /* As the amber: dark enough for the focus ring at 50%. */
-    --info: oklch(0.27 0.06 150);
-    --info-foreground: oklch(0.94 0.05 150);
-    --info-border: oklch(0.62 0.13 150);
-    --decor: oklch(0.71 0.17 55);
+    --info: oklch(0.28 0.05 185);
+    --info-foreground: oklch(0.94 0.03 180);
+    --info-border: oklch(0.65 0.1 175);
+    --decor: oklch(0.71 0.17 50);
     /* Close to the background: the band has a thin border above and under it (lib/home-hero.ts). */
     --hero: oklch(0.27 0.07 40);
     --hero-foreground: oklch(0.985 0.012 85);
-    --sidebar: oklch(0.2 0.03 45);
+    --sidebar: oklch(0.2 0.025 50);
     --sidebar-foreground: oklch(0.96 0.015 80);
-    --sidebar-primary: oklch(0.82 0.165 79);
-    --sidebar-primary-foreground: oklch(0.22 0.06 40);
-    --sidebar-accent: oklch(0.31 0.05 50);
+    --sidebar-primary: oklch(0.8 0.11 172);
+    --sidebar-primary-foreground: oklch(0.2 0.04 190);
+    --sidebar-accent: oklch(0.31 0.05 185);
     --sidebar-accent-foreground: oklch(0.96 0.015 80);
-    --sidebar-border: oklch(0.32 0.035 45);
-    --sidebar-ring: oklch(0.82 0.165 79);
+    --sidebar-border: oklch(0.32 0.03 50);
+    --sidebar-ring: oklch(0.85 0.09 172);
 }
 
 @layer base {
@@ -179,6 +191,14 @@
 
     body {
         @apply bg-background text-foreground;
+    }
+
+    /* The titles in Fraunces (--font-heading), in one place: every h1, h2 and h3 of the site, the
+       titles of the sections and of the cards included. Their size and weight stay the classes'. */
+    h1,
+    h2,
+    h3 {
+        font-family: var(--font-heading);
     }
 }
 
