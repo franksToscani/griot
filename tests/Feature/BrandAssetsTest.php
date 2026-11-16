@@ -192,7 +192,8 @@ test('in forced colours the images give way to the name as text, and the square 
 
     expect($logo)
         ->toContain("const IMAGE = 'h-7 w-auto md:h-9 forced-colors:hidden';")
-        ->toMatch('/<span className="hidden [^"]*\btext-primary\b[^"]*\bforced-colors:inline\b[^"]*">\s*\{name\}/')
+        // In the text's brown (palette C: the buttons are teal).
+        ->toMatch('/<span className="hidden [^"]*\btext-foreground\b[^"]*\bforced-colors:inline\b[^"]*">\s*\{name\}/')
         // The collapsed sidebar: the images go, the name stays for screen readers.
         ->toContain('<span className="contents group-data-[collapsible=icon]:hidden">')
         ->toMatch('/group-data-\[collapsible=icon\]:sr-only/');

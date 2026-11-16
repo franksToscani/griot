@@ -20,27 +20,27 @@
         <style>
             :root {
                 color-scheme: light dark;
-                --background: oklch(0.99 0.006 80);
+                --background: oklch(0.985 0.004 80);
                 --foreground: oklch(0.25 0.07 40);
-                --muted-foreground: oklch(0.47 0.045 50);
-                --primary: oklch(0.32 0.08 40);
-                --primary-foreground: oklch(0.985 0.012 85);
-                --input: oklch(0.58 0.045 55);
-                --ring: oklch(0.2 0.06 40);
-                --decor: oklch(0.64 0.18 50);
+                --muted-foreground: oklch(0.47 0.04 50);
+                --primary: oklch(0.42 0.085 172);
+                --primary-foreground: oklch(0.99 0.006 85);
+                --input: oklch(0.58 0.04 60);
+                --ring: oklch(0.19 0.045 175);
+                --decor: oklch(0.65 0.19 48);
                 --hero: oklch(0.25 0.07 40);
             }
 
             @media (prefers-color-scheme: dark) {
                 :root {
-                    --background: oklch(0.17 0.025 45);
+                    --background: oklch(0.17 0.02 50);
                     --foreground: oklch(0.96 0.015 80);
                     --muted-foreground: oklch(0.78 0.03 70);
-                    --primary: oklch(0.82 0.165 79);
-                    --primary-foreground: oklch(0.22 0.06 40);
-                    --input: oklch(0.58 0.05 60);
-                    --ring: oklch(0.82 0.165 79);
-                    --decor: oklch(0.71 0.17 55);
+                    --primary: oklch(0.8 0.11 172);
+                    --primary-foreground: oklch(0.2 0.04 190);
+                    --input: oklch(0.58 0.045 60);
+                    --ring: oklch(0.85 0.09 172);
+                    --decor: oklch(0.71 0.17 50);
                     --hero: oklch(0.27 0.07 40);
                 }
             }

@@ -10,7 +10,7 @@ Il logo del sito è **provvisorio**: un'idea di Franks, ricavata da un'immagine 
 | Menu laterale ridotto, pagine di accesso, pagine d'errore (`components/app-logo-icon.tsx`, `errors/layout.blade.php`) | il segnaposto su un quadrato marrone con gli angoli arrotondati | 32 o 36 px                                     |
 | Scheda del browser (`public/favicon.ico`)                                                                             | l'icona quadrata                                                | 16, 32 e 48 px nello stesso file               |
 | Schermata di un telefono (`public/apple-touch-icon.png`)                                                              | l'icona quadrata, opaca e senza angoli (iOS li arrotonda)       | 180 px                                         |
-| Anteprima dei link (`public/og-default.png`, [link-previews.md](link-previews.md))                                    | sfondo crema, la scritta al centro, il filo arancio             | 1200×630                                       |
+| Anteprima dei link (`public/og-default.png`, [link-previews.md](link-previews.md))                                    | sfondo bianco caldo, la scritta al centro, il filo arancio      | 1200×630                                       |
 
 `public/favicon.svg` non c'è più: il segno nuovo esiste solo come immagine, non come disegno vettoriale. Tutti i browser leggono `favicon.ico`.
 
@@ -61,6 +61,17 @@ Lo script scrive i file al loro posto e stampa misure e pesi. Un secondo argomen
 - **Se arriva un'immagine simile** (scritta e segnaposto su fondo bianco): cambiare `LOGO`, `WORD` e `PIN_SEED` nello script e rilanciarlo. Nomi, misure e codice restano uguali.
 - **Se arriva un SVG**: è la strada migliore. Si può tornare a un `favicon.svg` e disegnare il segno in SVG (come la vecchia « G »), lasciando a `brand.ts` lo stesso ruolo. Le misure in pagina (`h-7 md:h-9`) e i nomi accessibili non cambiano.
 - In entrambi i casi aggiornare questa pagina e le misure dichiarate in `lib/brand.ts` (lo controlla `BrandAssetsTest`).
+
+## Cosa dipende dal logo provvisorio
+
+Il logo verrà rifatto. La palette C e la tipografia (rinnovo visivo, PR 1) ne dipendono così:
+
+- **Dipendono dal logo, da rivedere quando cambia:**
+    - i colori presi dal logo: il marrone `--hero` (`oklch(0.25 0.07 40)`, il marrone esatto delle lettere), che è anche il colore del testo; l'arancio di `--brand` e `--decor` (vicino a quello del logo, `#f14e05`, ma spostato a `oklch(0.65 0.19 48)` per stare a 20° di tinta dal rosso degli errori); l'ambra di `--highlight`. Se i colori del logo nuovo restano « più o meno quelli », vanno rimisurati e i contrasti ricalcolati (`AccessibilityContrastTest`);
+    - le costanti `BROWN`, `CREAM`, `BACKGROUND` e `DECOR` di `scripts/brand-assets.php`, uguali ai token (`BrandAssetsTest`);
+    - lo script stesso, scritto per **questa** immagine (`WORD`, `PIN_SEED`, gli archi arancio tolti dalle lettere): con un logo diverso va in gran parte riscritto;
+    - tutte le immagini generate (scritta, segnaposto, icone, favicon, `apple-touch-icon`, `og-default.png`) e i test che ne leggono i pixel (`BrandAssetsTest`, `VisualIdentityTest`, `LinkPreviewTest`).
+- **Non dipendono dal logo:** il turchese delle azioni, il bianco caldo, la sabbia dei badge, gli stati, i caratteri (Atkinson Hyperlegible Next e Fraunces sono scelti per la leggibilità, non per somigliare alle lettere del logo).
 
 ## Accessibilità
 

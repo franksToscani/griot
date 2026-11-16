@@ -53,16 +53,10 @@ test('the font is inside the project: no external service, at build time or in t
             ->not->toContain('laravel-vite-plugin/fonts');
     }
 
-    $css = vidSource('resources/css/app.css');
-    expect($css)
+    // The families, their order and their licences: TypographyTest.
+    expect(vidSource('resources/css/app.css'))
         ->toContain("@import '@fontsource-variable/noto-sans/wght.css';")
-        ->toMatch("/--font-sans:\s*'Noto Sans Variable',/")
         ->not->toContain('Instrument Sans');
-
-    // In the dependencies, and under the SIL Open Font License.
-    $package = json_decode(vidSource('package.json'), true);
-    expect($package['dependencies'])->toHaveKey('@fontsource-variable/noto-sans');
-    expect(vidSource('node_modules/@fontsource-variable/noto-sans/LICENSE'))->toContain('SIL Open Font License, Version 1.1');
 });
 
 test('the subsets of the font cover the letters of the names: ɛ ɔ ŋ ṣ in latin-ext, ẹ ọ in vietnamese', function () {
@@ -145,10 +139,11 @@ test('the name of the site is the logo named by the app name, and real text, bol
         ->and(substr_count(vidSource('resources/js/components/app-logo.tsx'), 'alt={name}'))->toBe(2);
     expect(vidSource('resources/js/components/app-logo.tsx'))
         // The name as text: in forced colours, and for screen readers in the collapsed sidebar.
-        ->toMatch('/<span className="[^"]*\bfont-bold\b[^"]*\btext-primary\b[^"]*">\s*\{name\}\s*<\/span>/')
+        ->toMatch('/<span className="[^"]*\bfont-bold\b[^"]*\btext-foreground\b[^"]*">\s*\{name\}\s*<\/span>/')
         ->not->toMatch('/\b(?:border|bg|text)-decor\b/');
-    // Brown in the light theme: dark, between red and yellow.
-    [$lightness, $chroma, $hue] = accTokens('light')['primary'];
+    // Brown in the light theme, the colour of the text (palette C: the buttons are teal): dark,
+    // between red and yellow.
+    [$lightness, $chroma, $hue] = accTokens('light')['foreground'];
     expect($lightness)->toBeLessThan(0.4)
         ->and($chroma)->toBeGreaterThan(0.04)
         ->and($hue)->toBeGreaterThanOrEqual(30.0)->toBeLessThanOrEqual(60.0);

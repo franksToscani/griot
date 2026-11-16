@@ -615,6 +615,13 @@ Gli issue di questo sprint sono 11: #74, #112, #115, #130, #133, #177, #178, #17
 - **Fatto:** traduzioni mandate una volta sola (#178): una prop « once » di Inertia con la chiave della lingua e del contenuto, non più a ogni navigazione ([translations.md](translations.md)). I titoli delle pagine erano già tutti tradotti.
 - **Fatto:** badge di categoria duplicato (#179): sulla pagina del professionista i badge restano in testa, ogni gruppo di servizi ha la sua categoria come titolo h3 ([providers-list.md](providers-list.md)).
 
+## Rinnovo visivo
+
+Fuori dagli sprint, prima del lancio: una palette e una tipografia che diano al sito un aspetto curato e caldo, indipendenti dal logo provvisorio. Analisi e anteprima del 16 novembre 2026 (palette A, B e C, due coppie di caratteri).
+
+- **Fatto, PR 1:** palette C (marrone del logo per testo e fascia, turchese di « Laguna » per azioni, focus e stato attivo, arancio e ambra come sfondi, bianco caldo) e tipografia (Atkinson Hyperlegible Next per il testo, Fraunces per i titoli, Noto Sans solo come riserva), con l'anteprima dei link rigenerata ([accessibility.md](accessibility.md), [brand.md](brand.md)).
+- **PR 2:** i ritocchi delle pagine: le categorie senza foto, la fascia per i professionisti, la barretta sotto i titoli delle sezioni, le schede dei professionisti, bordi e ombre, i prezzi nella pagina di un professionista.
+
 ## Sprint 11: mappa e posizione
 
 Chi cerca vede sulla mappa, accanto alla lista, in quale zona lavorano i professionisti, senza che nessun indirizzo preciso diventi pubblico. Issue #170-#174 (5). Da fare **prima del lancio**: dopo le prime sessioni con i professionisti (Sprint 7) e dopo le decisioni della #170.

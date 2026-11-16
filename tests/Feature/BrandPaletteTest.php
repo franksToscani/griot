@@ -42,7 +42,7 @@ function bpHex(string $theme, string $token): string
     return sprintf('#%02X%02X%02X', ...array_map(fn (float $channel) => (int) round($channel * 255), accSrgb(accTokens($theme)[$token])));
 }
 
-test('no colour written by hand in React, but the loading bar, which repeats the brown of the buttons', function () {
+test('no colour written by hand in React, but the loading bar, which repeats the teal of the buttons', function () {
     $written = [];
 
     foreach (bpReactSources() as $path => $source) {
@@ -53,10 +53,10 @@ test('no colour written by hand in React, but the loading bar, which repeats the
         }
     }
 
-    expect($written)->toBe(['app.tsx' => ['#54220F']])
-        // The same brown as --primary of the light theme.
-        ->and(bpHex('light', 'primary'))->toBe('#54220F');
-    expect(bpSource('resources/js/app.tsx'))->toMatch("/progress: \\{\\s*(\\/\\/[^\\n]*\\s*)*color: '#54220F',\\s*\\}/");
+    expect($written)->toBe(['app.tsx' => ['#005C48']])
+        // The same teal as --primary of the light theme (palette C).
+        ->and(bpHex('light', 'primary'))->toBe('#005C48');
+    expect(bpSource('resources/js/app.tsx'))->toMatch("/progress: \\{\\s*(\\/\\/[^\\n]*\\s*)*color: '#005C48',\\s*\\}/");
 });
 
 test('the colours of Tailwind\'s palette only where they are known: errors, confirmations, the kit', function () {
