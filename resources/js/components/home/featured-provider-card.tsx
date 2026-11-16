@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from '@/hooks/use-translation';
 import { fallbackSrc, srcSet } from '@/lib/gallery';
-import { CARD_MOTION } from '@/lib/motion';
+import { CARD_MOTION, CARD_REST } from '@/lib/motion';
 import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
 import { show } from '@/routes/providers';
@@ -26,6 +26,7 @@ export function FeaturedProviderCard({
             className={cn(
                 'flex w-64 flex-col overflow-hidden rounded-xl border bg-card text-card-foreground outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-hidden',
                 touchTarget,
+                CARD_REST,
                 CARD_MOTION.card,
             )}
         >
@@ -52,7 +53,7 @@ export function FeaturedProviderCard({
             <div className="flex flex-col gap-2 p-4">
                 {/* The heading says the name and the city: "Trecce Sahel, a Bologna". The city
                     below is the same words, for the eye: not read twice. */}
-                <h3 className="font-medium break-words">
+                <h3 className="text-lg font-semibold break-words">
                     {provider.name}
                     <span className="sr-only">
                         {t('home.featured.in_city', { city: provider.city })}

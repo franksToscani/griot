@@ -1,27 +1,16 @@
 // The row "Categorie" of the home page (docs/home.md): the small rules, apart from React so that
 // they can be tested with Node. One card per category, in the order of the prop (the offered ones
-// first): the photo of HOME_PHOTOS, or a coloured tile when the category has none. An offered card
-// is a link; the others say "In arrivo".
+// first): the photo of HOME_PHOTOS, or the same empty tile for every category that has none. An
+// offered card is a link; the others say "In arrivo".
 // Only types are imported: Node runs this file as it is (HomeCategoriesRowTest), without the "@/"
 // paths of Vite.
 import type { HomePhoto, SlideImage } from '@/lib/home-carousel';
 import type { HomeCategory } from '@/types';
 
-// The colours of the tiles of the categories without a photo, in turn: brown, amber, light green,
-// white. Only the tokens of resources/css/app.css; never red. The tile holds no text (the name is
-// under it, on the page's background), so only its edge matters: CATEGORY_TILE_EDGE.
-export const CATEGORY_TONES = [
-    'bg-primary',
-    'bg-highlight',
-    'bg-info',
-    'bg-card',
-] as const;
-
-export type CategoryTone = (typeof CATEGORY_TONES)[number];
-
-// The edge of every tile, whatever its colour: the amber, the light green and the white are too
-// close to the page's background (below 3:1), the border is not (AccessibilityContrastTest). It
-// stays in forced colours, where the background of the tile is gone.
+// The tile of a category without a photo (components/empty-picture.tsx, docs/photos.md): the same
+// for every category, until the photo exists. The tile holds no text (the name is under it), so
+// only its edge matters: the sand is too close to the page's background (below 3:1), the border is
+// not (AccessibilityContrastTest). It stays in forced colours, where the background is gone.
 export const CATEGORY_TILE_EDGE = 'border border-input';
 
 // The width of a card (w-36, 9rem): the browser takes the 640 px size, even on a screen at 3x.
@@ -31,9 +20,8 @@ export type CategoryCard = {
     id: number;
     slug: string;
     name: string;
-    // The photo, or null: then the tile, with its tone.
+    // The photo, or null: then the empty tile (CATEGORY_TILE).
     image: SlideImage | null;
-    tone: CategoryTone | null;
     // Something to book: a link to the list. Otherwise a card that says "In arrivo".
     offered: boolean;
 };
@@ -62,30 +50,16 @@ export function categoryImage(
     };
 }
 
-// The cards, in the order of the categories. The tones go in turn over the categories without a
-// photo only: the first tile is brown, the second amber, and so on, whatever photos are between.
+// The cards, in the order of the categories: each with its photo, or none (the empty tile).
 export function categoryCards(
     categories: HomeCategory[],
     photos: Record<string, HomePhoto> = {},
 ): CategoryCard[] {
-    let tiles = 0;
-
-    return categories.map((category) => {
-        const image = categoryImage(category.slug, photos);
-        const card = {
-            id: category.id,
-            slug: category.slug,
-            name: category.name,
-            offered: category.offered,
-        };
-
-        if (image === null) {
-            const tone = CATEGORY_TONES[tiles % CATEGORY_TONES.length];
-            tiles += 1;
-
-            return { ...card, image: null, tone };
-        }
-
-        return { ...card, image, tone: null };
-    });
+    return categories.map((category) => ({
+        id: category.id,
+        slug: category.slug,
+        name: category.name,
+        offered: category.offered,
+        image: categoryImage(category.slug, photos),
+    }));
 }

@@ -66,13 +66,15 @@ test('the number of the step is in the text of its heading, not only in the pict
 test('the orange bar under the title: decorative, without text, gone in forced colours', function () {
     $steps = hiwSource('components/home/how-it-works.tsx');
 
-    expect($steps)
-        ->toMatch("/\\{t\\('home\\.steps\\.title'\\)\\}\\s*<\\/h2>\\s*(\\{\\/\\*[\\s\\S]*?\\*\\/\\}\\s*)?<span\\s+aria-hidden=\"true\"\\s+className=\"block h-1 w-12 rounded-full bg-brand forced-colors:hidden\"\\s*\\/>/");
-    // The orange of the brand: the bar and the two lines between the circles, every one
-    // decorative and gone in forced colours, never under a text. Nowhere else on the page.
+    // The title and its bar come from SectionTitle, shared by the sections of the home page.
+    expect($steps)->toMatch("/<SectionTitle id=\\{HOW_IT_WORKS_TITLE_ID\\} focusable>\\s*\\{t\\('home\\.steps\\.title'\\)\\}\\s*<\\/SectionTitle>/");
+    expect(hiwSource('components/home/section-title.tsx'))
+        ->toMatch('/<\/h2>\s*<span\s+aria-hidden="true"\s+className="block h-1 w-12 rounded-full bg-brand forced-colors:hidden"\s*\/>/');
+    // The orange of the brand here: the two lines between the circles, every one decorative and
+    // gone in forced colours, never under a text. Nowhere on the page itself.
     preg_match_all('/<span\s+aria-hidden="true"\s+className="([^"]*bg-brand[^"]*)"/', $steps, $orange);
-    expect(substr_count($steps, 'bg-brand'))->toBe(3)
-        ->and($orange[1])->toHaveCount(3)
+    expect(substr_count($steps, 'bg-brand'))->toBe(2)
+        ->and($orange[1])->toHaveCount(2)
         ->and(substr_count(hiwSource('pages/home.tsx'), 'bg-brand'))->toBe(0);
     foreach ($orange[1] as $classes) {
         expect($classes)->toContain('forced-colors:hidden');
@@ -114,14 +116,16 @@ test('the band exists only with a contact of the site: the shared prop, nothing 
     expect(hiwContact())->toBe(['email' => null, 'whatsapp_url' => null, 'phone_url' => null]);
 });
 
-test('a title, a sentence, the links: underlined, 44px on phones, the cream focus ring, WhatsApp says it opens a new tab', function () {
+test('a title, a sentence, the links: underlined, 44px on phones, the usual focus ring, WhatsApp says it opens a new tab', function () {
     $band = hiwSource('components/home/professionals-band.tsx');
 
     expect($band)
-        ->toMatch('/<section\\s+ref=\\{reveal\\}\\s+aria-labelledby=\\{TITLE_ID\\}\\s+className="bg-hero text-hero-foreground dark:border dark:border-input"/')
+        // A light card since the visual polish: sand, brown text, the orange edge on the left.
+        ->toMatch('/<section\\s+ref=\\{reveal\\}\\s+aria-labelledby=\\{TITLE_ID\\}\\s+className="rounded-xl border border-l-4 border-l-brand bg-secondary text-secondary-foreground"/')
+        ->not->toContain('bg-hero')
         ->toMatch("/<h2 id=\\{TITLE_ID\\} className=\"text-xl font-semibold\">\\s*\\{t\\('home\\.pros\\.title'\\)\\}\\s*<\\/h2>/")
         ->toContain("{t('home.pros.text')}")
-        ->toMatch("/const LINK = cn\\(\\s*'rounded-sm underline underline-offset-4 outline-none focus-visible:ring-\\[3px\\] focus-visible:ring-hero-foreground focus-visible:outline-hidden',\\s*touchTarget,?\\s*\\);/")
+        ->toMatch("/const LINK = cn\\(\\s*'rounded-sm font-semibold underline underline-offset-4 outline-none focus-visible:ring-\\[3px\\] focus-visible:ring-ring\\/50 focus-visible:outline-hidden',\\s*touchTarget,?\\s*\\);/")
         ->and(substr_count($band, 'className={LINK}'))->toBe(2)
         ->and($band)->toMatch('/target="_blank"\s+rel="noopener noreferrer"\s+className=\{LINK\}\s*>\s*\{t\(\'home\.pros\.whatsapp\'\)\}\s*<NewTabHint \/>/')
         ->not->toMatch('/aria-label(?!ledby)/');
@@ -191,7 +195,9 @@ test('only tokens of the palette, the orange never near an error', function () {
     preg_match_all('/(?<![\w-])(?:[\w-]+:)*(?:bg|text|border|ring)-([a-z0-9]+(?:-[a-z0-9]+)*)(?:\/\d+)?(?![\w-])/', $sources, $colours);
     $tokens = array_unique($colours[1]);
     // primary and primary-foreground: the badge with the number of a step (since the PR of the empty home page).
-    $allowed = ['hero', 'hero-foreground', 'input', 'highlight', 'highlight-foreground', 'brand', 'card', 'card-foreground', 'muted-foreground', 'primary', 'primary-foreground', 'xl', 'sm', 'lg'];
+    // secondary, the orange left edge (border-l-4, border-l-brand) and the usual ring: the light card
+    // of the professionals (visual polish).
+    $allowed = ['hero', 'hero-foreground', 'input', 'highlight', 'highlight-foreground', 'brand', 'card', 'card-foreground', 'muted-foreground', 'primary', 'primary-foreground', 'secondary', 'secondary-foreground', 'ring', 'l-4', 'l-brand', 'xl', 'sm', 'lg'];
 
     expect(array_values(array_diff($tokens, $allowed)))->toBe([])
         ->and($sources)->not->toMatch('/#[0-9a-fA-F]{6}\b|rgba?\(|oklch\(/')

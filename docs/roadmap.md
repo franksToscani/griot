@@ -620,7 +620,7 @@ Gli issue di questo sprint sono 11: #74, #112, #115, #130, #133, #177, #178, #17
 Fuori dagli sprint, prima del lancio: una palette e una tipografia che diano al sito un aspetto curato e caldo, indipendenti dal logo provvisorio. Analisi e anteprima del 16 novembre 2026 (palette A, B e C, due coppie di caratteri).
 
 - **Fatto, PR 1:** palette C (marrone del logo per testo e fascia, turchese di « Laguna » per azioni, focus e stato attivo, arancio e ambra come sfondi, bianco caldo) e tipografia (Atkinson Hyperlegible Next per il testo, Fraunces per i titoli, Noto Sans solo come riserva), con l'anteprima dei link rigenerata ([accessibility.md](accessibility.md), [brand.md](brand.md)).
-- **PR 2:** i ritocchi delle pagine: le categorie senza foto, la fascia per i professionisti, la barretta sotto i titoli delle sezioni, le schede dei professionisti, bordi e ombre, i prezzi nella pagina di un professionista.
+- **Fatto, PR 2:** i ritocchi delle pagine: un riquadro neutro uguale per le categorie e le schede senza foto (mai il segno del logo provvisorio), la fascia per i professionisti come scheda chiara, la barretta arancio sotto i titoli delle sezioni, i nomi e i prezzi più marcati, una regola sola per bordi, ombre e angoli, più spazio tra le sezioni della home. L'altezza della fascia in alto resta com'era ([accessibility.md](accessibility.md), [home.md](home.md)).
 
 ## Sprint 11: mappa e posizione
 

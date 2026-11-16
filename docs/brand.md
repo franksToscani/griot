@@ -72,6 +72,7 @@ Il logo verrà rifatto. La palette C e la tipografia (rinnovo visivo, PR 1) ne d
     - lo script stesso, scritto per **questa** immagine (`WORD`, `PIN_SEED`, gli archi arancio tolti dalle lettere): con un logo diverso va in gran parte riscritto;
     - tutte le immagini generate (scritta, segnaposto, icone, favicon, `apple-touch-icon`, `og-default.png`) e i test che ne leggono i pixel (`BrandAssetsTest`, `VisualIdentityTest`, `LinkPreviewTest`).
 - **Non dipendono dal logo:** il turchese delle azioni, il bianco caldo, la sabbia dei badge, gli stati, i caratteri (Atkinson Hyperlegible Next e Fraunces sono scelti per la leggibilità, non per somigliare alle lettere del logo).
+- **Il motivo neutro dei riquadri vuoti** (rinnovo visivo, PR 2): le categorie senza foto e le schede dei professionisti senza foto del lavoro mostrano un fondo sabbia con l'icona `Sparkles` di lucide (`components/empty-picture.tsx`), **mai il segnaposto del logo** (`pin-*.webp`): con il logo nuovo non c'è niente da rifare lì. Restano legati al logo solo l'arancio della barretta sotto i titoli e del bordo della scheda per i professionisti (`--brand`), da rimisurare come gli altri colori.
 
 ## Accessibilità
 

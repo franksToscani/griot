@@ -377,8 +377,12 @@ function ServiceItem({
         <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h4 className="font-medium">{service.name}</h4>
-                <p className="text-sm">
-                    {formatPrice(locale, service.price)}
+                {/* The price on the right, in bold, with digits of the same width (the prices of
+                    the services line up); the duration next to it, smaller and grey. */}
+                <p className="text-sm text-muted-foreground">
+                    <span className="text-base font-bold text-foreground tabular-nums">
+                        {formatPrice(locale, service.price)}
+                    </span>
                     {' · '}
                     {formatDuration(
                         t,

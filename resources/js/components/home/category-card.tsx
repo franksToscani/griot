@@ -1,18 +1,19 @@
 import { Link } from '@inertiajs/react';
+import { EmptyPicture } from '@/components/empty-picture';
 import { useTranslation } from '@/hooks/use-translation';
 import {
     CATEGORY_PHOTO_SIZES,
     CATEGORY_TILE_EDGE,
 } from '@/lib/home-categories';
 import type { CategoryCard as Card } from '@/lib/home-categories';
-import { CARD_MOTION } from '@/lib/motion';
+import { CARD_MOTION, CARD_REST } from '@/lib/motion';
 import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
 import { index } from '@/routes/providers';
 
-// A card of the row "Categorie" of the home page (docs/home.md). On top a photo or a coloured
-// tile, 6rem high, slightly rounded corners; under it the name, on the page's background. Never
-// text on the photo, never a heading.
+// A card of the row "Categorie" of the home page (docs/home.md). On top a photo or the empty tile
+// (EmptyPicture), 6rem high, rounded as the cards (rounded-xl), with the cards' resting shadow;
+// under it the name, on the page's background. Never text on the photo, never a heading.
 // - Offered (something to book): one link to the list filtered on the category; the name is the
 //   link's text. Under the mouse or the focus it rises and its photo grows inside its frame
 //   (CARD_MOTION, shared with the featured providers).
@@ -37,7 +38,7 @@ export function CategoryCard({ card }: { card: Card }) {
         <Link
             href={index({ query: { category: card.slug } })}
             className={cn(
-                'group flex w-36 flex-col gap-2 rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-hidden',
+                'group flex w-36 flex-col gap-2 rounded-xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-hidden',
                 touchTarget,
                 CARD_MOTION.card,
             )}
@@ -50,24 +51,24 @@ export function CategoryCard({ card }: { card: Card }) {
     );
 }
 
-// The photo, decorative (the name is in the text under it), or the coloured tile. The frame keeps
-// the photo's corners and cuts it when it grows (only on an offered card, inside its group).
+// The photo, decorative (the name is in the text under it), or the empty tile, the same for every
+// category. The frame keeps the photo's corners and cuts it when it grows (only on an offered card,
+// inside its group).
 function CardImage({ card }: { card: Card }) {
     if (card.image === null) {
         return (
-            <span
-                aria-hidden="true"
+            <EmptyPicture
                 className={cn(
-                    'block h-24 w-full rounded-md',
+                    'h-24 w-full rounded-xl',
                     CATEGORY_TILE_EDGE,
-                    card.tone,
+                    CARD_REST,
                 )}
             />
         );
     }
 
     return (
-        <span className={cn('block rounded-md', CARD_MOTION.frame)}>
+        <span className={cn('block rounded-xl', CARD_REST, CARD_MOTION.frame)}>
             <img
                 src={card.image.src}
                 srcSet={card.image.srcSet}
@@ -78,7 +79,7 @@ function CardImage({ card }: { card: Card }) {
                 loading="lazy"
                 decoding="async"
                 className={cn(
-                    'h-24 w-full rounded-md bg-muted object-cover',
+                    'h-24 w-full rounded-xl bg-muted object-cover',
                     CARD_MOTION.photo,
                 )}
             />

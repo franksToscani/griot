@@ -88,18 +88,18 @@ function hcrOffered(string $slug): Category
 // The cards
 // ---------------------------------------------------------------------------------------------
 
-test('one card per category, in the order of the prop: a photo, or a tile in turn brown, amber, light green, white', function () {
+test('one card per category, in the order of the prop: a photo, or none (the same empty tile for all)', function () {
     $cards = hcrRun("h.categoryCards([cat(5, 'couture'), cat(2, 'treccine'), cat(9, 'cucina'), cat(1, 'vuota'), cat(7, 'barbiere'), cat(3, 'altro'), cat(4, 'sartoria'), cat(8, 'constructor')], photos)");
 
     expect(array_column($cards, 'id'))->toBe([5, 2, 9, 1, 7, 3, 4, 8])
         ->and(array_column($cards, 'slug'))->toBe(['couture', 'treccine', 'cucina', 'vuota', 'barbiere', 'altro', 'sartoria', 'constructor'])
         ->and(array_column($cards, 'name'))->toBe(['N5', 'N2', 'N9', 'N1', 'N7', 'N3', 'N4', 'N8'])
-        // The tones go round over the tiles only; a photo has none. A photo without sizes, or a
-        // name of the prototype of an object, is no photo.
-        ->and(array_column($cards, 'tone'))->toBe(['bg-primary', null, 'bg-highlight', 'bg-info', null, 'bg-card', 'bg-primary', 'bg-highlight'])
-        ->and(array_map(fn (array $card) => $card['image'] === null, $cards))->toBe([true, false, true, true, false, true, true, true]);
+        // No colour in turn any more (visual polish): a card has a photo or none. A photo without
+        // sizes, or a name of the prototype of an object, is no photo.
+        ->and(array_map(fn (array $card) => $card['image'] === null, $cards))->toBe([true, false, true, true, false, true, true, true])
+        ->and(array_merge(...array_map('array_keys', $cards)))->not->toContain('tone');
     expect(hcrRun('h.categoryCards([], photos)'))->toBe([])
-        ->and(array_column(hcrRun("h.categoryCards([cat(1, 'treccine')])"), 'tone'))->toBe(['bg-primary']);
+        ->and(hcrRun("h.categoryCards([cat(1, 'treccine')])")[0]['image'])->toBeNull();
 });
 
 test('the photo of a card: the 640 size as src, every size in srcset, the real size of the photo', function () {
@@ -132,7 +132,7 @@ test('the name under the photo or the tile, never on it: the image first, then t
         ->and(substr_count(hcrCard(), '{card.name}'))->toBe(1);
     // The photo or the tile (CardImage, shared by both cards): one or the other, never a text.
     expect(hcrImage())
-        ->toMatch('/if \(card\.image === null\) \{\s*return \(\s*<span[^>]*\/>\s*\);\s*\}\s*return \(\s*<span[^>]*>\s*<img[^>]*\/>\s*<\/span>\s*\);/')
+        ->toMatch('/if \(card\.image === null\) \{\s*return \(\s*<EmptyPicture[^>]*\/>\s*\);\s*\}\s*return \(\s*<span[^>]*>\s*<img[^>]*\/>\s*<\/span>\s*\);/')
         ->not->toContain('{card.name}');
     expect(hcrCard().hcrImage())->not->toMatch('/\b(absolute|inset-|bg-gradient|from-black|bg-black)/');
 });
@@ -150,15 +150,15 @@ test('the photo is decorative, lazy, with its width and height: nothing jumps', 
         ->toContain('loading="lazy"')
         ->toContain('decoding="async"')
         // Since #144 step 10 it grows a little under the mouse or the focus (HomeMotionTest).
-        ->toMatch("/className=\\{cn\\(\\s*'h-24 w-full rounded-md [^']*object-cover',\\s*CARD_MOTION\\.photo,?\\s*\\)\\}/")
+        ->toMatch("/className=\\{cn\\(\\s*'h-24 w-full rounded-xl [^']*object-cover',\\s*CARD_MOTION\\.photo,?\\s*\\)\\}/")
         ->not->toContain('eager')
         ->not->toContain('fetchPriority');
 });
 
-test('a category without a photo: a tile filled with its token, with the measured border, decorative', function () {
-    expect(hcrImage())->toMatch("/<span\\s+aria-hidden=\"true\"\\s+className=\\{cn\\(\\s*'block h-24 w-full rounded-md',\\s*CATEGORY_TILE_EDGE,\\s*card\\.tone,?\\s*\\)\\}\\s*\\/>/");
+test('a category without a photo: the same empty tile for all, with the measured border, decorative', function () {
+    expect(hcrImage())->toMatch("/<EmptyPicture\\s+className=\\{cn\\(\\s*'h-24 w-full rounded-xl',\\s*CATEGORY_TILE_EDGE,\\s*CARD_REST,?\\s*\\)\\}\\s*\\/>/");
     expect(hcrSource('lib/home-categories.ts'))
-        ->toMatch("/export const CATEGORY_TONES = \\[\\s*'bg-primary',\\s*'bg-highlight',\\s*'bg-info',\\s*'bg-card',?\\s*\\] as const;/")
+        ->not->toContain('CATEGORY_TONES')
         ->toContain("export const CATEGORY_TILE_EDGE = 'border border-input';");
 });
 
@@ -167,13 +167,13 @@ test('no colour written by hand, never red: only tokens of the theme', function 
 
     preg_match_all('/(?<![\w-])(?:hover:|focus-visible:|group-hover:)?(?:bg|text|border|ring)-([a-z]+(?:-[a-z]+)*)(?:\/\d+)?(?![\w-])/', $sources, $colours);
     // muted-foreground and the size xs: the label "In arrivo" (since the PR of the empty home page).
-    expect(array_values(array_diff(array_unique($colours[1]), ['primary', 'highlight', 'info', 'card', 'input', 'muted', 'muted-foreground', 'ring', 'xs'])))->toBe([])
+    expect(array_values(array_diff(array_unique($colours[1]), ['input', 'muted', 'muted-foreground', 'ring', 'xs'])))->toBe([])
         ->and($sources)->not->toMatch('/#[0-9a-f]{3,8}\b|oklch\(|rgba?\(|hsla?\(|\[(?:#|rgb|oklch)/i')
         ->and($sources)->not->toMatch('/\b(bg|text|border|ring)-(decor|destructive|red|rose|orange|[a-z]+-\d{2,3})\b/');
 });
 
 test('a phone can use it: a card 9rem wide, more than 44px high, a visible focus not cut by the row', function () {
-    expect(hcrCard())->toMatch("/^<Link\\s+href=[^>]*className=\\{cn\\(\\s*'group flex w-36 flex-col gap-2 rounded-md outline-none focus-visible:ring-\\[3px\\] focus-visible:ring-ring\\/50 focus-visible:outline-hidden',\\s*touchTarget,\\s*CARD_MOTION\\.card,?\\s*\\)\\}/");
+    expect(hcrCard())->toMatch("/^<Link\\s+href=[^>]*className=\\{cn\\(\\s*'group flex w-36 flex-col gap-2 rounded-xl outline-none focus-visible:ring-\\[3px\\] focus-visible:ring-ring\\/50 focus-visible:outline-hidden',\\s*touchTarget,\\s*CARD_MOTION\\.card,?\\s*\\)\\}/");
     // The row keeps 8px around the cards: the 2px a card rises under the focus plus its 3px ring
     // (since #144 step 10). It scrolls, the page not.
     expect(hcrSource('components/home/scroll-row.tsx'))
@@ -187,7 +187,7 @@ test('a phone can use it: a card 9rem wide, more than 44px high, a visible focus
 
 test('a region named by the visible title, focusable, snapping; only the categories\' own section', function () {
     expect(hcrSource('components/home/scroll-row.tsx'))
-        ->toMatch('/<h2 id=\{titleId\}/')
+        ->toContain('<SectionTitle id={titleId}>{title}</SectionTitle>')
         ->toMatch('/<div\s+role="region"\s+aria-labelledby=\{titleId\}\s+tabIndex=\{0\}\s+className="overflow-x-auto [^"]*outline-none[^"]*focus-visible:outline-hidden"/')
         ->toContain('snap-x');
     expect(hcrSource('pages/home.tsx'))->toContain("const CATEGORIES_TITLE_ID = 'home-categories-title';");

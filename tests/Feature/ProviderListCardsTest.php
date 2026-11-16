@@ -293,10 +293,13 @@ test('the card is one link, its cover decorative and lazy, the name an h2', func
         ->toContain('sizes={COVER_SIZES}')
         ->toContain('aspect-[4/3]');
     expect($card)
-        ->toMatch('/<h2 className="truncate font-medium">\{provider\.name\}<\/h2>/')
-        // Without a cover the avatar, in a box of the same shape.
-        ->toMatch('/<div className="flex aspect-\[4\/3\][^"]*">\s*<ProviderAvatar\s+name=\{provider\.name\}\s+avatarUrl=\{provider\.avatar_url\}/')
-        ->toMatch("/t\\('providers\\.card\\.summary', \\{\\s*services,\\s*price: t\\('providers\\.card\\.from_price', \\{\\s*price: formatPrice\\(locale, provider\\.min_price\\),?\\s*\\}\\),?\\s*\\}\\)/")
+        ->toMatch('/<h2 className="truncate text-lg font-semibold">\s*\{provider\.name\}\s*<\/h2>/')
+        // Without a cover the avatar on the empty picture (sand, a neutral sign), the same shape.
+        ->toMatch('/<EmptyPicture className="aspect-\[4\/3\] w-full">\s*<ProviderAvatar\s+name=\{provider\.name\}\s+avatarUrl=\{provider\.avatar_url\}/')
+        // "3 servizi · da 30,00 €" with the price in bold: the summary with :price left in it.
+        ->toMatch("/const price = t\\('providers\\.card\\.from_price', \\{\\s*price: formatPrice\\(locale, provider\\.min_price\\),?\\s*\\}\\);/")
+        ->toMatch("/t\\('providers\\.card\\.summary', \\{\\s*services,?\\s*\\}\\)\\.split\\(\\s*':price',?\\s*\\)/")
+        ->toMatch('/\{before\}\s*<strong className="font-bold tabular-nums">\{price\}<\/strong>\s*\{after\}/')
         ->toContain("t('providers.card.services_one')")
         ->toContain("t('providers.card.services', { count: provider.services_count })");
 });
@@ -305,8 +308,8 @@ test('the card moves only as the cards of the home page, never with a transition
     $card = plcSource('components/provider-card.tsx');
 
     expect($card)
-        ->toContain("import { CARD_MOTION } from '@/lib/motion';")
-        ->toMatch("/focus-visible:outline-hidden',\\s*touchTarget,\\s*CARD_MOTION\\.card,?\\s*\\)\\}/")
+        ->toContain("import { CARD_MOTION, CARD_REST } from '@/lib/motion';")
+        ->toMatch("/focus-visible:outline-hidden',\\s*touchTarget,\\s*CARD_REST,\\s*CARD_MOTION\\.card,?\\s*\\)\\}/")
         ->toContain('CARD_MOTION.frame')
         ->toContain('CARD_MOTION.photo,');
     expect(withoutMotionSafe($card.plcSource('pages/providers/index.tsx').plcSource('components/provider-sort.tsx')))

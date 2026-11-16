@@ -1,10 +1,11 @@
 import { Link } from '@inertiajs/react';
+import { EmptyPicture } from '@/components/empty-picture';
 import { ProviderAvatar } from '@/components/provider-avatar';
 import { Badge } from '@/components/ui/badge';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatPrice } from '@/lib/format';
 import { fallbackSrc, srcSet } from '@/lib/gallery';
-import { CARD_MOTION } from '@/lib/motion';
+import { CARD_MOTION, CARD_REST } from '@/lib/motion';
 import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
 import { show } from '@/routes/providers';
@@ -27,6 +28,12 @@ export function ProviderCard({ provider }: { provider: ProviderListItem }) {
         provider.services_count === 1
             ? t('providers.card.services_one')
             : t('providers.card.services', { count: provider.services_count });
+    const price = t('providers.card.from_price', {
+        price: formatPrice(locale, provider.min_price),
+    });
+    const [before, after = ''] = t('providers.card.summary', {
+        services,
+    }).split(':price');
 
     return (
         <Link
@@ -34,6 +41,7 @@ export function ProviderCard({ provider }: { provider: ProviderListItem }) {
             className={cn(
                 'flex w-full flex-col overflow-hidden rounded-xl border bg-card text-card-foreground outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-hidden',
                 touchTarget,
+                CARD_REST,
                 CARD_MOTION.card,
             )}
         >
@@ -55,16 +63,18 @@ export function ProviderCard({ provider }: { provider: ProviderListItem }) {
                     />
                 </div>
             ) : (
-                <div className="flex aspect-[4/3] w-full items-center justify-center bg-muted">
+                <EmptyPicture className="aspect-[4/3] w-full">
                     <ProviderAvatar
                         name={provider.name}
                         avatarUrl={provider.avatar_url}
                         className="size-20"
                     />
-                </div>
+                </EmptyPicture>
             )}
             <div className="flex min-w-0 flex-col gap-2 p-4">
-                <h2 className="truncate font-medium">{provider.name}</h2>
+                <h2 className="truncate text-lg font-semibold">
+                    {provider.name}
+                </h2>
                 <p className="text-sm text-muted-foreground">{provider.city}</p>
                 {provider.categories.length > 0 && (
                     <ul className="flex flex-wrap gap-2">
@@ -77,13 +87,12 @@ export function ProviderCard({ provider }: { provider: ProviderListItem }) {
                         ))}
                     </ul>
                 )}
+                {/* "3 servizi · da 30,00 €", the price in bold: the summary of each language with
+                    :price left in it, split around it. */}
                 <p className="text-sm">
-                    {t('providers.card.summary', {
-                        services,
-                        price: t('providers.card.from_price', {
-                            price: formatPrice(locale, provider.min_price),
-                        }),
-                    })}
+                    {before}
+                    <strong className="font-bold tabular-nums">{price}</strong>
+                    {after}
                 </p>
             </div>
         </Link>

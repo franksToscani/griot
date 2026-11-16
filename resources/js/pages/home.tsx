@@ -45,7 +45,7 @@ export default function Home({ categories, featured, cities }: Props) {
         <>
             <Head title={t('home.title')} />
             <HomeHero cities={cities} slides={slides} />
-            <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10">
+            <div className="mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 py-10">
                 {/* Every category, even before the first professional: the offered ones are
                     links, the others say "In arrivo". No category at all: no section. */}
                 {categories.length > 0 && (

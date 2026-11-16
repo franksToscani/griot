@@ -227,7 +227,8 @@ test('"Come funziona": a row of circles joined by a line from 768 px, a column o
     expect($steps)
         ->toContain("export const HOW_IT_WORKS_TITLE_ID = 'home-steps-title';")
         ->toMatch('/<section\s+aria-labelledby=\{HOW_IT_WORKS_TITLE_ID\}/')
-        ->toMatch('/<h2\s+id=\{HOW_IT_WORKS_TITLE_ID\}\s+tabIndex=\{-1\}\s+className="text-xl font-semibold outline-none focus-visible:outline-hidden"\s*>/')
+        // The title from SectionTitle (visual polish), which the help panel can focus.
+        ->toMatch('/<SectionTitle id=\{HOW_IT_WORKS_TITLE_ID\} focusable>/')
         // The horizontal line: from 768 px, decorative, between the centres of the circles.
         ->toMatch('/<span\s+aria-hidden="true"\s+className="absolute top-\[1\.4375rem\] right-\[calc\(\(100%_-_3rem\)\/6\)\] left-\[calc\(\(100%_-_3rem\)\/6\)\] hidden h-0\.5 bg-brand md:block forced-colors:hidden"\s*\/>/')
         // On phones: the column of the circles, the cards beside it; the line goes down between two circles.
@@ -314,9 +315,12 @@ test('"Come funziona" in the help closes the panel and puts the focus on the tit
     expect(huSource('components/home/floating-actions.tsx'))
         ->toMatch('/onClick=\{\(\) => \{\s*goToSteps\.current = true;\s*setOpen\(false\);\s*\}\}/')
         ->toMatch('/onCloseAutoFocus=\{\(event\) => \{\s*if \(!goToSteps\.current\) \{\s*return;\s*\}\s*goToSteps\.current = false;\s*event\.preventDefault\(\);[\s\S]*?document\.getElementById\(HOW_IT_WORKS_TITLE_ID\)\?\.focus\(\);/');
-    // The title takes the focus from a script only: tabIndex -1, never with the Tab.
-    expect(huSource('components/home/how-it-works.tsx'))
-        ->toMatch('/id=\{HOW_IT_WORKS_TITLE_ID\}\s*tabIndex=\{-1\}/');
+    // The title takes the focus from a script only: tabIndex -1, never with the Tab (SectionTitle
+    // with "focusable").
+    expect(huSource('components/home/how-it-works.tsx'))->toContain('<SectionTitle id={HOW_IT_WORKS_TITLE_ID} focusable>');
+    expect(huSource('components/home/section-title.tsx'))
+        ->toContain('tabIndex={focusable ? -1 : undefined}')
+        ->toContain("focusable && 'outline-none focus-visible:outline-hidden'");
 });
 
 test('the "Chiama" link is built on the server from the same number as WhatsApp', function () {

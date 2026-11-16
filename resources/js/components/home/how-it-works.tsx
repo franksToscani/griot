@@ -1,4 +1,5 @@
 import { CalendarCheck, MailCheck, Search } from 'lucide-react';
+import { SectionTitle } from '@/components/home/section-title';
 import { useReveal } from '@/hooks/use-reveal';
 import { useTranslation } from '@/hooks/use-translation';
 import { revealDelay } from '@/lib/motion';
@@ -31,22 +32,10 @@ export function HowItWorks() {
             aria-labelledby={HOW_IT_WORKS_TITLE_ID}
             className="flex flex-col gap-6"
         >
-            <div className="flex flex-col gap-2">
-                {/* tabIndex -1: the focus can be put here by the help panel, never by the Tab. */}
-                <h2
-                    id={HOW_IT_WORKS_TITLE_ID}
-                    tabIndex={-1}
-                    className="text-xl font-semibold outline-none focus-visible:outline-hidden"
-                >
-                    {t('home.steps.title')}
-                </h2>
-                {/* A short orange bar under the title: decorative, no text on it, no meaning.
-                    Gone in forced colours, where it would say nothing. */}
-                <span
-                    aria-hidden="true"
-                    className="block h-1 w-12 rounded-full bg-brand forced-colors:hidden"
-                />
-            </div>
+            {/* focusable: the help panel can put the focus on the title, never the Tab key. */}
+            <SectionTitle id={HOW_IT_WORKS_TITLE_ID} focusable>
+                {t('home.steps.title')}
+            </SectionTitle>
             <ol ref={steps} className="relative grid gap-6 md:grid-cols-3">
                 {/* The line between the centres of the first and the last circle, from 768 px:
                     behind the circles, at half their height (3rem), never under a text. */}
