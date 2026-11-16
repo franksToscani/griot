@@ -23,6 +23,12 @@ declare module '@inertiajs/core' {
                 whatsapp_url: string | null;
                 phone_url: string | null;
             };
+            // The provider's sidebar (ShareProviderNavigation): only in the private area and the
+            // settings, null for a user without a provider, missing on the public pages.
+            provider_nav?: {
+                pending_requests: number;
+                public_slug: string | null;
+            } | null;
             [key: string]: unknown;
         };
     }

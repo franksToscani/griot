@@ -108,8 +108,8 @@ test('each page polls the props of the Back and Forward reload, at its interval,
     $map = lbsSource('lib/live-pages.ts');
     expect($map)->toContain("'{$page}': {$only},");
 })->with([
-    'the provider\'s list' => ['provider/bookings/index', "['bookings']", 'PROVIDER_INTERVAL', 'true'],
-    'the provider\'s booking' => ['provider/bookings/show', "['booking']", 'PROVIDER_INTERVAL', 'booking\.can_confirm \|\|\s*booking\.can_reject \|\|\s*booking\.can_cancel'],
+    'the provider\'s list' => ['provider/bookings/index', "['bookings', 'provider_nav']", 'PROVIDER_INTERVAL', 'true'],
+    'the provider\'s booking' => ['provider/bookings/show', "['booking', 'provider_nav']", 'PROVIDER_INTERVAL', 'booking\.can_confirm \|\|\s*booking\.can_reject \|\|\s*booking\.can_cancel'],
     'the customer\'s page' => ['bookings/show', "['booking', 'can_cancel']", 'CUSTOMER_INTERVAL', "booking\.status !== 'cancelled' &&\s*!hasStarted\(booking\.local_date, booking\.local_start\)"],
 ]);
 

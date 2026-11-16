@@ -215,7 +215,7 @@ test('breadcrumbs and menus carry keys, translated by the components that show t
     expect(substr_count($types, 'titleKey: string;'))->toBe(2)
         ->and($types)->not->toMatch('/^\s+title: string;/m');
     expect(substr_count($breadcrumbs, '{t(item.titleKey)}'))->toBe(2);
-    expect($main)->toContain("{t('nav.menu')}")->toContain('<span>{t(item.titleKey)}</span>');
+    expect($main)->toContain('{t(group.labelKey)}')->toContain('<span>{t(item.titleKey)}</span>');
     expect($footer)->toContain('<span>{t(item.titleKey)}</span>');
     expect($settings)->toContain('{t(item.titleKey)}');
     expect($auth)->toContain('t(titleKey)')->toContain('t(descriptionKey)');

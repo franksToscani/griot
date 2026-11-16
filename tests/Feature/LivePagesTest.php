@@ -125,8 +125,8 @@ test('the customer\'s private page: the reload of "booking" and "can_cancel" giv
 
 test('the map names the components and the props of the controllers', function () {
     expect(lpMap())->toBe([
-        'provider/bookings/index' => ['bookings'],
-        'provider/bookings/show' => ['booking'],
+        'provider/bookings/index' => ['bookings', 'provider_nav'],
+        'provider/bookings/show' => ['booking', 'provider_nav'],
         'bookings/show' => ['booking', 'can_cancel'],
     ]);
 
@@ -140,6 +140,11 @@ test('the map names the components and the props of the controllers', function (
         $source = (string) file_get_contents(app_path("Http/Controllers/{$controllers[$component]}.php"));
         expect($source)->toContain("Inertia::render('{$component}', [");
         foreach ($props as $prop) {
+            // provider_nav is shared by ShareProviderNavigation, not rendered by the controller.
+            if ($prop === 'provider_nav') {
+                continue;
+            }
+
             expect($source)->toMatch("/^\s+'{$prop}' => /m");
         }
     }

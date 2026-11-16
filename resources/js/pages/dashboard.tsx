@@ -1,4 +1,4 @@
-import { Form, Head, Link } from '@inertiajs/react';
+import { Form, Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { ProviderAvatar } from '@/components/provider-avatar';
@@ -26,11 +26,10 @@ import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
-import { edit, preview, publish, unpublish } from '@/routes/provider';
-import { index as availabilityIndex } from '@/routes/provider/availability';
+import { touchTarget } from '@/lib/touch-target';
+import { cn } from '@/lib/utils';
+import { publish, unpublish } from '@/routes/provider';
 import { index as bookingsIndex } from '@/routes/provider/bookings';
-import { index as servicesIndex } from '@/routes/provider/services';
-import { show } from '@/routes/providers';
 import type { ProviderArea, PublishingStatus } from '@/types';
 
 type Props = {
@@ -50,7 +49,9 @@ const isMissingCode = (code: string): code is MissingCode =>
 // the Card at 375 px. cn() uses tailwind-merge, so these classes replace the kit's ones.
 const wrappingLabel = 'h-auto max-w-full whitespace-normal py-2 text-center';
 
-// The provider's private area: a greeting and the status of the public profile.
+// The provider's private area: a greeting, the requests waiting for an answer and the status of the
+// public profile. The sections (profile, services, availability, bookings, preview, public page)
+// are in the sidebar (components/app-sidebar.tsx).
 export default function Dashboard({ provider, publishing }: Props) {
     const { t } = useTranslation();
 
@@ -92,62 +93,8 @@ export default function Dashboard({ provider, publishing }: Props) {
                             </Badge>
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="flex flex-wrap gap-2">
-                        {/* Always: published or not, the profile can be edited. */}
-                        <Button asChild className={wrappingLabel}>
-                            <Link href={edit()}>
-                                {t('provider.area.edit_profile')}
-                            </Link>
-                        </Button>
-                        <Button
-                            asChild
-                            variant="outline"
-                            className={wrappingLabel}
-                        >
-                            <Link href={servicesIndex()}>
-                                {t('provider.area.services')}
-                            </Link>
-                        </Button>
-                        <Button
-                            asChild
-                            variant="outline"
-                            className={wrappingLabel}
-                        >
-                            <Link href={availabilityIndex()}>
-                                {t('provider.area.availability')}
-                            </Link>
-                        </Button>
-                        <Button
-                            asChild
-                            variant="outline"
-                            className={wrappingLabel}
-                        >
-                            <Link href={bookingsIndex()}>
-                                {t('provider.area.bookings')}
-                            </Link>
-                        </Button>
-                        {/* Always: the owner sees the page as the customers do, published or not. */}
-                        <Button
-                            asChild
-                            variant="outline"
-                            className={wrappingLabel}
-                        >
-                            <Link href={preview()}>
-                                {t('provider.area.preview')}
-                            </Link>
-                        </Button>
-                        {/* Only when published: an unpublished page gives a 404 to everyone. */}
-                        {provider.is_published && (
-                            <Button
-                                asChild
-                                variant="outline"
-                                className={wrappingLabel}
-                            >
-                                <Link href={show(provider.slug)}>
-                                    {t('provider.area.public_page')}
-                                </Link>
-                            </Button>
-                        )}
+                    <CardContent>
+                        <PendingSummary />
                     </CardContent>
                     <Separator />
                     <CardContent className="flex flex-col gap-3">
@@ -166,6 +113,34 @@ export default function Dashboard({ provider, publishing }: Props) {
                 </Card>
             </div>
         </>
+    );
+}
+
+// The requests waiting for an answer (Booking::awaitingAnswer()), from the sidebar's shared prop:
+// no query of its own. A link to the list filtered by "in attesa", which also shows the pending
+// requests already started (docs/bookings.md): the list can hold more than this number.
+function PendingSummary() {
+    const { t } = useTranslation();
+    const pending = usePage().props.provider_nav?.pending_requests ?? 0;
+
+    if (pending === 0) {
+        return <p className="text-sm">{t('provider.area.pending_none')}</p>;
+    }
+
+    return (
+        <p className="text-sm">
+            <Link
+                href={bookingsIndex({ query: { status: 'pending' } })}
+                className={cn(
+                    'font-medium underline underline-offset-4',
+                    touchTarget,
+                )}
+            >
+                {pending === 1
+                    ? t('provider.area.pending_one')
+                    : t('provider.area.pending', { count: pending })}
+            </Link>
+        </p>
     );
 }
 

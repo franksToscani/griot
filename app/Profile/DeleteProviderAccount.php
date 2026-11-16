@@ -26,7 +26,8 @@ final class DeleteProviderAccount
      */
     public static function hasBookings(User $user): bool
     {
-        return $user->provider()->first()?->bookings()->exists() ?? false;
+        // The relation, read once per request: the sidebar (ShareProviderNavigation) uses it too.
+        return $user->provider?->bookings()->exists() ?? false;
     }
 
     /**

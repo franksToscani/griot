@@ -137,9 +137,30 @@ class Booking extends Model
     }
 
     /**
-     * Only the pending requests to remind the provider of: created at or before $createdBefore, not
-     * started yet, and never reminded. RemindPendingBookings reads them with this scope, and reads
-     * each one again with it under the lock.
+     * Only the requests that wait for the provider's answer and can still be confirmed: pending,
+     * not anonymous, and not started yet. The same condition as BookingTransitions::canConfirm(),
+     * written for the database (a test compares the two). The number next to "Prenotazioni" in the
+     * sidebar counts these (ShareProviderNavigation), and awaitingReminder() starts from them. A
+     * pending request already started can still be rejected, but is not counted: it is shown in the
+     * list filtered by "in attesa" (docs/bookings.md).
+     *
+     * @param  Builder<Booking>  $query
+     */
+    #[Scope]
+    protected function awaitingAnswer(Builder $query): void
+    {
+        // Moved to UTC first, like the stored values (see overlapping()). Strictly after now: at
+        // the exact start the slot has begun, as in canConfirm().
+        $query
+            ->where('status', BookingStatus::Pending)
+            ->whereNull('anonymized_at')
+            ->where('starts_at', '>', CarbonImmutable::now()->utc());
+    }
+
+    /**
+     * Only the pending requests to remind the provider of: awaiting an answer (awaitingAnswer()),
+     * created at or before $createdBefore, and never reminded. RemindPendingBookings reads them with
+     * this scope, and reads each one again with it under the lock.
      *
      * @param  Builder<Booking>  $query
      */
@@ -148,10 +169,9 @@ class Booking extends Model
     {
         // Moved to UTC first, like the stored values (see overlapping()).
         $query
-            ->where('status', BookingStatus::Pending)
+            ->awaitingAnswer()
             ->whereNull('reminder_sent_at')
-            ->where('created_at', '<=', CarbonImmutable::instance($createdBefore)->utc())
-            ->where('starts_at', '>', CarbonImmutable::now()->utc());
+            ->where('created_at', '<=', CarbonImmutable::instance($createdBefore)->utc());
     }
 
     /**
