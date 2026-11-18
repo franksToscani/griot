@@ -589,7 +589,7 @@
     "privacy.recipients.planned": "I fornitori per la messa online del sito sono previsti e possono ancora cambiare.",
     "privacy.recipients.provider": "Al professionista che scegli, per gestire la prenotazione.",
     "privacy.recipients.whatsapp": "A WhatsApp, se il professionista sceglie di scriverti da lì: il messaggio contiene il tuo nome, i dati della prenotazione e il link alla sua pagina.",
-    "privacy.recipients.hosting": "Al servizio che ospita il sito (previsto: Render) e al database gestito che conserva i dati (da scegliere).",
+    "privacy.recipients.hosting": "Al servizio che ospita il sito e il database che conserva i dati: Render, nella regione di Francoforte.",
     "privacy.recipients.photos": "All'archivio delle immagini, che conserva le foto pubbliche dei professionisti (previsto: Scaleway, a Milano).",
     "privacy.recipients.email": "Al servizio di invio email, per le email sulla prenotazione e sull'account (fornitore da scegliere).",
     "privacy.recipients.no_one_else": "I dati non vengono comunicati ad altri per scopi pubblicitari.",

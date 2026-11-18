@@ -457,6 +457,48 @@ test('docs/deploy.md has every section of the runbook', function () {
     expect(dplSource('docs/production.md'))->toContain('[deploy.md](deploy.md)');
 });
 
+test('the backups of docs/deploy.md: the restore test of 18/11/2026, what is not tried yet, the decisions, the risk on the photos', function () {
+    $runbook = dplSource('docs/deploy.md');
+    preg_match('/\n## 9\. Backup e ripristino di PostgreSQL \(#63\)\n([\s\S]*?)\n### Le nove categorie/', $runbook, $section);
+    $backups = $section[1] ?? '';
+
+    foreach ([
+        '### Che cosa c\'è (verificato sulla dashboard il 18/11/2026)',
+        '### Decisioni (Franks, 18/11/2026)',
+        '### Prova di ripristino in locale (fatta il 18/11/2026)',
+        '### Non ancora provato: il ripristino completo su Render (da fare prima del lancio)',
+        '### Ogni mese: l\'esportazione manuale',
+        '### Rischio accettato: le foto non hanno copia (decisione del 18/11/2026)',
+        '### Registro delle prove e delle esportazioni',
+    ] as $heading) {
+        expect($backups)->toContain("\n{$heading}\n");
+    }
+
+    expect($backups)
+        // The sources: Render's own pages.
+        ->toContain('https://render.com/docs/postgresql-backups')
+        ->toContain('https://render.com/docs/free')
+        ->toContain('https://render.com/docs/notifications')
+        // The restore test, with the commands, and the rule on the copy.
+        ->toContain('pg_restore --no-owner --no-acl --dbname=griot_restore')
+        ->toContain('MAIL_MAILER=array QUEUE_CONNECTION=sync')
+        ->toContain('**Sulla copia non si lancia MAI `queue:work` né lo scheduler**')
+        ->toContain('dropdb griot_restore')
+        // The monthly export: encrypted, deleted after 14 days.
+        ->toContain('gpg --symmetric --cipher-algo AES256')
+        ->toContain('**cancellarlo dopo 14 giorni**')
+        // Why the restore on Render is not tried yet: DB_URL comes from the Blueprint.
+        ->toContain('`fromDatabase`')
+        ->toContain('Le foto su Scaleway **non hanno né copia né versioning**');
+
+    // Never a real address of a database or a bucket: only placeholders.
+    expect($runbook)->not->toMatch('#postgres(ql)?://(?!<)#')
+        // The placeholders of the runbook: <…> or nome-del-bucket (section 3).
+        ->not->toMatch('#https://(?!<|nome-del-bucket\.)[a-z0-9-]+\.s3\.[a-z-]+\.scw\.cloud#');
+    expect(dplSource('docs/production.md'))->toContain('## Backup e ripristino (#63)')
+        ->toContain('**Prova di ripristino in locale fatta e riuscita** (18/11/2026)');
+});
+
 test('every variable that render.yaml leaves to the dashboard is explained in docs/deploy.md', function () {
     $runbook = dplSource('docs/deploy.md');
     $synced = array_keys(array_filter(dplEnv(), fn (array $variable) => ($variable['sync'] ?? null) === false));
