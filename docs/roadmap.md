@@ -608,6 +608,7 @@ Gli issue di questo sprint sono 11: #74, #112, #115, #130, #133, #177, #178, #17
 - **Fatto:** pulizia dei residui dello starter kit (#115): tolti i componenti `collapsible`, `navigation-menu`, `toggle` e `toggle-group` con i loro pacchetti, l'SSR mai usato (spento nella config, via lo script `build:ssr`), la variante `header` del layout; un test unitario vero al posto dell'esempio; il pacchetto si chiama `griot/griot`; README aggiornato. Logo e favicon del kit erano già sostituiti.
 - **Fatto:** sessione che scade dopo 120 minuti (#130). Con i browser recenti un modulo inviato dopo la scadenza non dà più 419 (Laravel 13 accetta l'invio dallo stesso sito); per gli altri, dopo un 419 un token nuovo e un toast che dice di premere di nuovo Invia, con i campi ancora pieni ([production.md](production.md)).
 - **Fatto:** cancellare un account provider con prenotazioni (#133): rifiutata con un messaggio chiaro e il contatto del sito, mai una pagina 500; la pagina spiega il motivo al posto del pulsante ([media-storage.md](media-storage.md)).
+- **Fatto, fuori dagli issue:** eccezione a scadenza (2 dicembre 2026) nell'audit npm per GHSA-fc5q-39xc-vjpf (`picomatch`, nessuna versione corretta, solo strumenti di build), con lo script `scripts/npm-audit.mjs` e un giro dell'audit ogni lunedì ([ci.md](ci.md), « Eccezioni all'audit npm »).
 
 **Piccoli difetti noti**
 

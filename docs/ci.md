@@ -1,6 +1,6 @@
 # Griot: i controlli automatici su GitHub (CI)
 
-Cosa gira da solo a ogni push su `main` e a ogni Pull Request (issue #57), come leggerlo e come rifarlo in locale. I file sono in `.github/workflows/`; `tests/Feature/WorkflowFilesTest.php` li legge e fallisce se un job sparisce, cambia nome o perde un controllo.
+Cosa gira da solo a ogni push su `main`, a ogni Pull Request (issue #57) e, per il solo `audit`, ogni lunedì, come leggerlo e come rifarlo in locale. I file sono in `.github/workflows/`; `tests/Feature/WorkflowFilesTest.php` li legge e fallisce se un job sparisce, cambia nome o perde un controllo.
 
 ## I cinque job
 
@@ -23,6 +23,8 @@ Tutti e due i workflow:
 
 In `production-checks.yml` un push nuovo sulla stessa PR annulla il giro ancora in corso (`concurrency`); su `main` ogni giro arriva in fondo. Il job `ci` resta com'era.
 
+`production-checks.yml` gira anche **ogni lunedì alle 6:17 UTC** (`schedule`, `cron: '17 6 * * 1'`, sull'ultimo commit di `main`). In quel giro lavora solo `audit`: `production-build`, `tests-postgres` e `docker-build` hanno `if: github.event_name != 'schedule'` e risultano saltati. Serve a far diventare rosso l'audit quando esce un avviso nuovo o scade un'eccezione (sotto), anche in una settimana senza push. Un giro programmato rosso non tocca il sito già online; il prossimo merge su `main`, con `audit` rosso, non parte in produzione (`autoDeployTrigger: checksPass`). GitHub sospende i giri programmati dopo 60 giorni senza attività nella repository.
+
 ### `ci`
 
 Lo stesso `composer ci:check` di prima di ogni PR. Se è rosso, si rifà in locale con lo stesso comando.
@@ -33,9 +35,44 @@ Installa i pacchetti del lock (senza avviare l'applicazione) e lancia:
 
 - `composer audit`: tutti i pacchetti PHP, anche quelli di sviluppo;
 - `composer audit --no-dev`: quelli che vanno in produzione;
-- `npm audit --omit=dev`: i pacchetti npm che finiscono nella build.
+- `node scripts/npm-audit.mjs`: `npm audit --omit=dev` (i pacchetti npm in `dependencies`, che finiscono nella build), con le eccezioni a scadenza descritte sotto. Fallisce, come `npm audit`, su ogni avviso di qualunque gravità che non ha un'eccezione valida.
 
-Se è rosso: il log dice il pacchetto, l'avviso e la versione corretta. Si aggiorna quel pacchetto con un aggiornamento mirato (`composer update vendor/pacchetto -w`, oppure `npm update pacchetto`), si rilancia `composer audit` in locale e si apre una PR solo per quello. Un avviso può comparire anche senza nessuna modifica al codice, quando viene pubblicato: per questo il job gira a ogni push.
+Se è rosso: il log dice il pacchetto, l'avviso e la versione corretta. Si aggiorna quel pacchetto con un aggiornamento mirato (`composer update vendor/pacchetto -w`, oppure `npm update pacchetto`), si rilancia `composer audit` in locale e si apre una PR solo per quello. Un avviso può comparire anche senza nessuna modifica al codice, quando viene pubblicato: per questo il job gira a ogni push e ogni lunedì. Se per l'avviso npm non esiste ancora una versione corretta, si valuta un'eccezione (sotto), mai `npm audit fix --force`: propone di scendere a versioni maggiori più vecchie.
+
+#### Eccezioni all'audit npm
+
+Lo script `scripts/npm-audit.mjs` (solo Node, nessun pacchetto) lancia `npm audit --omit=dev --json` e ragiona **per avviso**, non per pacchetto: i pacchetti che arrivano a un avviso solo attraverso le loro dipendenze (vite, tinyglobby…) non hanno un'eccezione propria. L'elenco `EXCEPTIONS` in cima allo script associa l'ID di un avviso a una data di scadenza. Il job è rosso:
+
+- per ogni avviso che non è nell'elenco, di qualunque gravità;
+- per un avviso la cui eccezione è scaduta: verde fino alla data compresa, rosso dal giorno dopo (data UTC del giro);
+- per un'eccezione senza una data valida (`AAAA-MM-GG`);
+- se `npm audit` non risponde (registro irraggiungibile, risposta che non è un rapporto).
+
+Quando un avviso con eccezione non compare più, il log mostra un avvertimento: si tolgono l'eccezione dallo script e la sua voce da qui. La data è sempre quella del giorno: lo script non legge variabili d'ambiente né argomenti, quindi niente nel workflow può spostarla. Per provarlo con un'altra data si usa una copia fuori dalla repository con la riga di `today` cambiata.
+
+**Regola:** un'eccezione per avviso, sempre con una scadenza, al massimo 2-3 settimane; ognuna è scritta e motivata qui, con un issue di promemoria per la scadenza. Alla scadenza si ricontrolla e, se serve ancora, si rinnova con una PR che aggiorna la data e la motivazione.
+
+**Eccezioni in vigore:**
+
+| Avviso                                                                   | Pacchetto                                     | Scadenza        |
+| ------------------------------------------------------------------------ | --------------------------------------------- | --------------- |
+| [GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf) | `picomatch` `<=4.0.7`, ReDoS (CWE-1333, alta) | 2 dicembre 2026 |
+
+GHSA-fc5q-39xc-vjpf, perché è accettata (analisi del 18 novembre 2026):
+
+- **Nessuna versione corretta pubblicata:** la 4.0.7 è l'ultima di `picomatch` e l'avviso dice `first_patched_version: null`. `npm audit fix --force` proporrebbe `laravel-vite-plugin@2.1.0` e `@vitejs/plugin-react@5.2.0`, versioni maggiori più vecchie di quelle in uso con vite 8.
+- **Solo strumenti di build:** `picomatch` arriva da vite, `tinyglobby`, `fdir`, `@inertiajs/vite`, `laravel-vite-plugin`, `vite-plugin-full-reload`, `@vitejs/plugin-react` e `@rolldown/plugin-babel`. Sono in `dependencies` come nel kit di partenza, per questo `--omit=dev` li conta, ma girano solo in `npm run build` e `vp dev`. Il codice dell'app non importa `picomatch`.
+- **Nessun Node nell'immagine finale**, dedotto da `Dockerfile` e `.dockerignore`: Node e `npm ci` esistono solo nella fase `assets`; la fase `runtime` riparte dall'immagine FrankenPHP e copia solo `/app` dalla fase `vendor` (dove `.dockerignore` esclude `node_modules` e `npm ci` non gira) e `public/build` dalla fase `assets`.
+- **Schemi scritti solo da noi:** l'avviso richiede uno schema glob costruito apposta (`+(*)`, `+(*a)`). Gli schemi vengono da `vite.config.ts` e dai plugin; il testo confrontato sono i percorsi dei file della repository. Al massimo una PR malevola potrebbe bloccare una build della CI, o qualcuno il proprio `vp dev`.
+
+Non verificato:
+
+- l'immagine non si costruisce sui computer di sviluppo (niente Docker): l'assenza di Node e di `node_modules` nell'immagine finale viene dalla lettura del `Dockerfile`, non da un controllo sull'immagine, e il job `docker-build` non la verifica;
+- che `public/build` non contenga `picomatch` (un `grep` vuoto) è solo un indizio: la build locale può essere vecchia;
+- lo sfruttamento si basa sulla descrizione dell'avviso; il codice di vite non è stato letto per escludere che un percorso o un URL di `vp dev` diventi uno schema;
+- l'avviso può cambiare (intervallo, versione corretta): alla scadenza va riletto.
+
+Come si ricontrolla alla scadenza: `npm view picomatch dist-tags versions` (c'è una versione oltre la 4.0.7?) e la pagina dell'avviso (`first_patched_version`). Se c'è una versione corretta, si aggiornano i pacchetti con un aggiornamento mirato e si toglie l'eccezione; se non c'è, si rinnova la data rifacendo la valutazione qui sopra.
 
 ### `production-build`
 
