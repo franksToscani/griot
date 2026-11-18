@@ -205,9 +205,9 @@ test('the steps are an ordered list, the categories a list in a region that scro
     expect($row)
         // Named by the title of its section, focusable for the arrow keys; only the row scrolls.
         ->toContain('<SectionTitle id={titleId}>{title}</SectionTitle>')
-        ->toMatch('/<div\s+role="region"\s+aria-labelledby=\{titleId\}\s+tabIndex=\{0\}\s+className="overflow-x-auto [^"]*outline-none[^"]*focus-visible:ring-\[3px\][^"]*focus-visible:outline-hidden"/')
+        ->toMatch('/<div\s+role="region"\s+aria-labelledby=\{titleId\}\s+tabIndex=\{0\}\s+className="[^"]*\boverflow-x-auto\b[^"]*outline-none[^"]*focus-visible:ring-\[3px\][^"]*focus-visible:outline-hidden[^"]*"/')
         // Since #144 step 10 8px around the cards, which rise under the focus, and a reveal.
-        ->toMatch('/<ul ref=\{reveal\} className="flex snap-x gap-3 p-2 pb-4">\s*\{items\.map\(\(item, index\) => \(\s*<li\s+key=\{item\.id\}\s+className="reveal-item shrink-0 snap-start"\s+style=\{revealDelay\(index\)\}\s*>/')
+        ->toMatch('/<ul ref=\{reveal\} className="flex gap-3 p-2 pb-4">\s*\{items\.map\(\(item, index\) => \(\s*<li\s+key=\{item\.id\}\s+className="reveal-item shrink-0 snap-start"\s+style=\{revealDelay\(index\)\}\s*>/')
         ->toMatch('/<section className="flex min-w-0 flex-col gap-4">/');
 });
 
@@ -274,14 +274,16 @@ test('the texts of the home page exist in Italian, French and English, with the 
     // 10 more since the PR of the empty home page: "Vedi tutti i professionisti", "In arrivo", the
     // arrow and the 7 of the help panel.
     // 2 more since the nine categories (rename_and_merge_categories): two sentences of the carousel.
-    expect($keys)->toHaveCount(48)
+    // 4 more since the controls of the rows (ScrollRow): previous, next, pause and play.
+    expect($keys)->toHaveCount(52)
         ->and($keys)->not->toContain('home.search.q')
         ->and($keys)->not->toContain('home.intro.cta');
 
     // Every key the page uses, the steps and the sentences of the categories included.
     $used = hpSource('pages/home.tsx').hpSource('components/home/home-hero.tsx').hpSource('components/home/home-search.tsx').hpSource('components/home/featured-provider-card.tsx').hpSource('components/home/professionals-band.tsx')
         .hpSource('components/home/home-carousel.tsx').hpSource('lib/home-carousel.ts').hpSource('components/home/how-it-works.tsx')
-        .hpSource('components/home/floating-actions.tsx').hpSource('components/home/category-card.tsx');
+        .hpSource('components/home/floating-actions.tsx').hpSource('components/home/category-card.tsx')
+        .hpSource('components/home/scroll-row.tsx');
     foreach ($keys as $key) {
         $step = preg_match('/^home\.steps\.(choose|book|confirm)\.(title|text)$/', $key, $match) === 1;
         // The sentence of a category is read by its slug (lib/home-carousel.ts).

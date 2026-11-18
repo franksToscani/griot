@@ -180,7 +180,7 @@ test('a phone can use it: a card 11rem wide, more than 44px high, a visible focu
     // The row keeps 8px around the cards: the 2px a card rises under the focus plus its 3px ring
     // (since #144 step 10). It scrolls, the page not.
     expect(hcrSource('components/home/scroll-row.tsx'))
-        ->toContain('className="flex snap-x gap-3 p-2 pb-4"')
+        ->toContain('<ul ref={reveal} className="flex gap-3 p-2 pb-4">')
         ->toContain('className="reveal-item shrink-0 snap-start"');
 });
 
@@ -191,8 +191,12 @@ test('a phone can use it: a card 11rem wide, more than 44px high, a visible focu
 test('a region named by the visible title, focusable, snapping; only the categories\' own section', function () {
     expect(hcrSource('components/home/scroll-row.tsx'))
         ->toContain('<SectionTitle id={titleId}>{title}</SectionTitle>')
-        ->toMatch('/<div\s+role="region"\s+aria-labelledby=\{titleId\}\s+tabIndex=\{0\}\s+className="overflow-x-auto [^"]*outline-none[^"]*focus-visible:outline-hidden"/')
-        ->toContain('snap-x');
+        ->toMatch('/<div\s+role="region"\s+aria-labelledby=\{titleId\}\s+tabIndex=\{0\}\s+className="[^"]*\boverflow-x-auto\b[^"]*outline-none[^"]*focus-visible:outline-hidden[^"]*"/')
+        // The snap is on the row, the box that scrolls (since the PR of the row's controls; on the
+        // list it did nothing), and off while the row moves by itself or is dragged.
+        ->toContain('data-[snap=on]:snap-x')
+        ->toContain("data-snap={snap ? 'on' : 'off'}")
+        ->toContain('const snap = !row.dragging && !auto.active;');
     expect(hcrSource('pages/home.tsx'))->toContain("const CATEGORIES_TITLE_ID = 'home-categories-title';");
 });
 
