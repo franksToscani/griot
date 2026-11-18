@@ -629,7 +629,7 @@ Fuori dagli sprint, prima del lancio: una palette e una tipografia che diano al 
 - **Fatto, PR 1:** le nove categorie (Taglio uomo, Taglio donna, Treccine, Locs, Unghie, Make-up, Ciglia e sopracciglia, Moda afro, Food), con una migrazione di dati che rinomina, unisce ciglia e sopracciglia e aggiunge le nuove senza perdere servizi né prenotazioni; i vecchi slug valgono ancora nel filtro della lista; le foto di Taglio uomo e Unghie sono quelle di prima ([home.md](home.md), [deploy.md](deploy.md)).
 - **Fatto, PR 2:** il filtro della lista, i moduli dei servizi e la home ordinati per nome tradotto (`sortName()`); schede delle categorie più grandi (11rem, angoli `rounded-lg`); in « Come funziona » le schede si illuminano sotto il mouse ([home.md](home.md), [accessibility.md](accessibility.md)).
 - **Fatto, PR successiva:** le file della home con frecce ai lati (da 768 px) e trascinamento col mouse; la fila delle categorie scorre da sola, lentamente, fino alla fine, con il pulsante pausa/riprendi e solo senza « riduci movimento » (l'unica eccezione alla regola « nessun timer », [accessibility.md](accessibility.md)); l'aggancio delle schede ora funziona davvero ([home.md](home.md), « Controlli delle file »).
-- **Più avanti:** le foto delle categorie nuove quando arrivano.
+- **Fatto:** una foto per ognuna delle sei categorie che non l'avevano (Taglio donna, Locs, Make-up, Ciglia e sopracciglia, Moda afro, Food), con i ritagli 3:2 nello script, e una foto nuova per Treccine ([photos.md](photos.md)). Da decidere: la foto di Locs intera o ritagliata senza il volto.
 
 ## Sprint 11: mappa e posizione
 

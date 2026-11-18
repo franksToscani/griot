@@ -9,10 +9,12 @@
  * The originals are named after their photo (barbiere.jpg, nails.jpg, treccine.jpg), the name of
  * the generated files too: the slug of the category of their time. Since the new categories the
  * slug can differ (taglio-uomo uses barbiere, unghie uses nails): resources/js/lib/home-photos.ts
- * links each category to its files, docs/photos.md tells the names. For each one:
+ * links each category to its files, docs/photos.md tells the names. The photos added later are
+ * named after the slug of their category (taglio-donna.jpg, …). For each one:
  * the zones listed in ZONES are pixelated first (a brand on a label, a sticker), in the
- * coordinates of the original; then the photo is resized to each width of WIDTHS that is not
- * larger than the original (never enlarged) and written as WebP. GD writes the pixels only: no
+ * coordinates of the original; then the photo is cut to 3:2 by CROPS, when it is not 3:2 already;
+ * then it is resized to each width of WIDTHS that is not larger than the cut (never enlarged)
+ * and written as WebP. GD writes the pixels only: no
  * EXIF, no GPS, no comment. A size heavier than its limit is written again with a lower quality,
  * down to MIN_QUALITY; if it is still too heavy the script stops.
  *
@@ -26,7 +28,7 @@ const LIMITS = [640 => 60 * 1024, 1280 => 150 * 1024, 1920 => 300 * 1024];
 
 const QUALITY = 80;
 
-const MIN_QUALITY = 70;
+const MIN_QUALITY = 64;
 
 // The zones to make unreadable, per photo, in pixels of the original: [x1, y1, x2, y2].
 const ZONES = [
@@ -39,6 +41,22 @@ const ZONES = [
         [1990, 3080, 2620, 3660],
         [3500, 3880, 3950, 4480],
     ],
+];
+
+// The part of the original to keep, per photo, in pixels of the original: [x, y, width, height],
+// always 3:2 (the box of the carousel and of the cards). A photo not listed is used whole, and must
+// be 3:2 already.
+const CROPS = [
+    // Vertical: the scissors, the comb and the hands, the whole width.
+    'taglio-donna' => [0, 920, 1920, 1280],
+    // Vertical, on black: the head, the ear and the upper braids, down to the shoulders.
+    'treccine' => [187, 360, 1440, 960],
+    // 1920x1278: the whole photo, 3:2 to the pixel.
+    'locs' => [0, 0, 1917, 1278],
+    // 16:9: the brush, the hand and the eyelid; the earrings stay out.
+    'make-up' => [0, 0, 1620, 1080],
+    // About 5:4: the turban, the face and the fabrics, the whole width.
+    'moda-afro' => [0, 40, 1920, 1280],
 ];
 
 // The size of a block of the pixelation, in pixels of the original: at 1920 px wide a block is
@@ -70,8 +88,29 @@ foreach (glob(rtrim($originals, '/').'/*.{jpg,jpeg,png,webp}', GLOB_BRACE) ?: []
         pixelate($source, $x1, $y1, $x2, $y2);
     }
 
+    if (isset(CROPS[$slug])) {
+        [$x, $y, $w, $h] = CROPS[$slug];
+
+        if ($w * 2 !== $h * 3 || $x + $w > imagesx($source) || $y + $h > imagesy($source)) {
+            fwrite(STDERR, "{$slug}: the crop is not 3:2 or not inside the original\n");
+            exit(1);
+        }
+
+        $source = imagecrop($source, ['x' => $x, 'y' => $y, 'width' => $w, 'height' => $h]);
+
+        if ($source === false) {
+            fwrite(STDERR, "{$slug}: the crop failed\n");
+            exit(1);
+        }
+    }
+
     $width = imagesx($source);
     $height = imagesy($source);
+
+    if (abs($width * 2 - $height * 3) > 3) {
+        fwrite(STDERR, "{$slug}: {$width}x{$height} is not 3:2, add it to CROPS\n");
+        exit(1);
+    }
 
     foreach (WIDTHS as $side) {
         if ($side > $width) {
