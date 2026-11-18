@@ -28,11 +28,11 @@ Il progetto è **in sviluppo**, online in una fase privata con pochi professioni
 
 Versioni da `composer.json` e `package.json`:
 
-- PHP `^8.4`, Laravel `^13.17`, Laravel Fortify per l'accesso
+- PHP `^8.4`, Laravel 13 (`^13.17`), Laravel Fortify per l'accesso
 - Inertia.js 3 (`inertiajs/inertia-laravel` `^3.0`, `@inertiajs/react` `^3.0.0`), React `^19.2.0`, TypeScript `^5.7.2`
 - Tailwind CSS `^4.0.0`, componenti basati su Radix; Vite `^8.0.0` con `vite-plus` `0.3.0` (comando `vp`)
 - Test con Pest `^5.3`, stile con Pint `^1.27`, analisi statica con Larastan `^3.9`
-- Database: MySQL in sviluppo, SQLite in memoria nei test locali, PostgreSQL nella CI e in produzione
+- Database: PostgreSQL in produzione e nella CI; MySQL in sviluppo e SQLite in memoria nei test locali
 - Produzione su Render con un'immagine Docker (`Dockerfile`, `render.yaml`); foto su un archivio compatibile S3
 
 ## Avvio in locale
