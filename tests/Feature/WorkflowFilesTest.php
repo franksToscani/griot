@@ -155,7 +155,8 @@ test('the audit job fails on the advisories of Composer and npm, with caches, an
         ->and($workflow['concurrency'])->toHaveKey('cancel-in-progress');
 
     // Whole commands, one per line: nothing after them that could hide the failure.
-    expect(array_map('trim', explode("\n", $runs)))->toContain('composer audit', 'composer audit --no-dev', 'npm audit --omit=dev')
+    // npm audit --omit=dev runs inside scripts/npm-audit.mjs, with its exceptions that expire.
+    expect(array_map('trim', explode("\n", $runs)))->toContain('composer audit', 'composer audit --no-dev', 'node scripts/npm-audit.mjs')
         ->and($runs)->toContain('composer install')
         ->and($runs)->toContain('npm ci')
         ->and(wfStepUsing($audit, 'actions/cache'))->not->toBeNull()
