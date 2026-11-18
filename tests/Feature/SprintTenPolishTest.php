@@ -232,12 +232,13 @@ test('the limit of "Aggiungi prenotazione" is announced on its page', function (
 test('the categories follow the name shown in the page\'s language, in the list, the home and the provider\'s page', function () {
     $provider = Provider::factory()->published()->create();
     $braids = Category::factory()->create(['slug' => 'treccine', 'name' => 'Treccine']);
-    $lashes = Category::factory()->create(['slug' => 'ciglia', 'name' => 'Ciglia']);
+    $lashes = Category::factory()->create(['slug' => 'ciglia-sopracciglia', 'name' => 'Ciglia e sopracciglia']);
     Service::factory()->for($provider)->for($braids)->create();
     Service::factory()->for($provider)->for($lashes)->create();
 
-    // Italian: Ciglia, Treccine. English: Braids, Lashes (the saved Italian names would say the opposite).
-    foreach (['it' => ['Ciglia', 'Treccine'], 'en' => ['Braids', 'Lashes']] as $locale => $names) {
+    // Italian: Ciglia e sopracciglia, Treccine. English: Braids, Lashes & brows (the saved Italian
+    // names would say the opposite).
+    foreach (['it' => ['Ciglia e sopracciglia', 'Treccine'], 'en' => ['Braids', 'Lashes & brows']] as $locale => $names) {
         $this->withCookie('locale', $locale)
             ->get(route('providers.index'))
             ->assertInertia(fn (Assert $page) => $page->where('providers.data.0.categories', fn ($categories) => collect($categories)->pluck('name')->all() === $names));

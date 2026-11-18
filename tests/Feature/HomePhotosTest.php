@@ -117,9 +117,12 @@ test('the folder holds the WebP sizes and nothing else: no original, no file tha
 test('the size written in home-photos.ts is the size of the largest file', function () {
     $source = (string) file_get_contents(resource_path('js/lib/home-photos.ts'));
 
-    foreach (hphListed() as $slug => $widths) {
-        $largest = getimagesize(base_path(HPH_DIR."/{$slug}-".max($widths).'.webp'));
-        expect($source)->toMatch("/{$slug}: \\{\\s*width: {$largest[0]},\\s*height: {$largest[1]},/");
+    // The key is the slug of the category, the file keeps the name of its photo (docs/photos.md).
+    $keys = ['barbiere' => "'taglio-uomo'", 'nails' => 'unghie', 'treccine' => 'treccine'];
+
+    foreach (hphListed() as $photo => $widths) {
+        $largest = getimagesize(base_path(HPH_DIR."/{$photo}-".max($widths).'.webp'));
+        expect($source)->toMatch('/'.preg_quote($keys[$photo], '/')."\\: \\{\\s*width: {$largest[0]},\\s*height: {$largest[1]},/");
     }
 });
 

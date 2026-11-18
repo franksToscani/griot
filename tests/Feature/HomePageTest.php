@@ -68,28 +68,28 @@ test('three props of its own: the categories, the featured providers and the cit
 test('every category, the offered ones first, each with its translated name and whether it is offered', function () {
     $offered = hpOffered('treccine', 'Treccine');
     // Only an inactive service.
-    $inactive = Category::factory()->create(['slug' => 'ciglia', 'name' => 'Ciglia']);
+    $inactive = Category::factory()->create(['slug' => 'ciglia-sopracciglia', 'name' => 'Ciglia e sopracciglia']);
     Service::factory()->for(Provider::factory()->published())->for($inactive)->create(['is_active' => false]);
     // An active service of a provider not published.
-    $hidden = Category::factory()->create(['slug' => 'nails', 'name' => 'Nails']);
+    $hidden = Category::factory()->create(['slug' => 'unghie', 'name' => 'Unghie']);
     Service::factory()->for(Provider::factory())->for($hidden)->create(['is_active' => true]);
     // No service at all.
-    $couture = Category::factory()->create(['slug' => 'couture', 'name' => 'Couture']);
+    $couture = Category::factory()->create(['slug' => 'moda-afro', 'name' => 'Moda afro']);
 
     $this->withCookie('locale', 'en')->get('/')->assertInertia(fn (Assert $page) => $page
         ->where('categories', [
             ['id' => $offered->id, 'slug' => 'treccine', 'name' => 'Braids', 'offered' => true],
             // Then the others, by their English name: an unpublished provider does not count.
-            ['id' => $couture->id, 'slug' => 'couture', 'name' => 'Couture', 'offered' => false],
-            ['id' => $inactive->id, 'slug' => 'ciglia', 'name' => 'Lashes', 'offered' => false],
-            ['id' => $hidden->id, 'slug' => 'nails', 'name' => 'Nails', 'offered' => false],
+            ['id' => $couture->id, 'slug' => 'moda-afro', 'name' => 'Afro fashion', 'offered' => false],
+            ['id' => $inactive->id, 'slug' => 'ciglia-sopracciglia', 'name' => 'Lashes & brows', 'offered' => false],
+            ['id' => $hidden->id, 'slug' => 'unghie', 'name' => 'Nails', 'offered' => false],
         ]));
 });
 
 test('sorted on the name shown, which depends on the language', function () {
     hpOffered('treccine', 'Treccine');
-    hpOffered('barbiere', 'Barbiere');
-    hpOffered('ristorazione', 'Ristorazione');
+    hpOffered('taglio-uomo', 'Taglio uomo');
+    hpOffered('food', 'Food');
 
     $names = function (string $locale): array {
         $names = [];
@@ -100,9 +100,9 @@ test('sorted on the name shown, which depends on the language', function () {
         return $names;
     };
 
-    expect($names('it'))->toBe(['Barbiere', 'Ristorazione', 'Treccine'])
-        ->and($names('fr'))->toBe(['Barbier', 'Restauration', 'Tresses'])
-        ->and($names('en'))->toBe(['Barber', 'Braids', 'Food']);
+    expect($names('it'))->toBe(['Food', 'Taglio uomo', 'Treccine'])
+        ->and($names('fr'))->toBe(['Coupe homme', 'Food', 'Tresses'])
+        ->and($names('en'))->toBe(['Braids', 'Food', "Men's haircut"]);
 });
 
 test('one query for the categories, however many there are', function () {
@@ -273,7 +273,8 @@ test('the texts of the home page exist in Italian, French and English, with the 
     // 6 more since the PR of the icons: the number of a step and the band for the professionals.
     // 10 more since the PR of the empty home page: "Vedi tutti i professionisti", "In arrivo", the
     // arrow and the 7 of the help panel.
-    expect($keys)->toHaveCount(46)
+    // 2 more since the nine categories (rename_and_merge_categories): two sentences of the carousel.
+    expect($keys)->toHaveCount(48)
         ->and($keys)->not->toContain('home.search.q')
         ->and($keys)->not->toContain('home.intro.cta');
 
@@ -284,7 +285,8 @@ test('the texts of the home page exist in Italian, French and English, with the 
     foreach ($keys as $key) {
         $step = preg_match('/^home\.steps\.(choose|book|confirm)\.(title|text)$/', $key, $match) === 1;
         // The sentence of a category is read by its slug (lib/home-carousel.ts).
-        $sentence = preg_match('/^home\.carousel\.sentence\.(?!default$)[a-z]+$/', $key) === 1;
+        // The slugs can have a hyphen (taglio-uomo, make-up).
+        $sentence = preg_match('/^home\.carousel\.sentence\.(?!default$)[a-z]+(?:-[a-z]+)*$/', $key) === 1;
         expect(match (true) {
             $step => str_contains($used, "'{$match[1]}'") && str_contains($used, "`home.steps.\${step}.{$match[2]}`"),
             $sentence => str_contains($used, '`home.carousel.sentence.${category.slug}`'),

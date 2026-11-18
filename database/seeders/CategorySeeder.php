@@ -12,14 +12,20 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
+        // The nine categories (docs/home.md): the saved name is the Italian one, the shown name
+        // comes from lang/{it,fr,en}.json (categories.{slug}). Never the slugs of before the
+        // migration rename_and_merge_categories (barbiere, nails, ciglia, sopracciglia, couture,
+        // ristorazione): run in production, this seeder would add them again.
         $categories = [
+            'taglio-uomo' => 'Taglio uomo',
+            'taglio-donna' => 'Taglio donna',
             'treccine' => 'Treccine',
-            'barbiere' => 'Barbiere',
-            'nails' => 'Nails',
-            'ciglia' => 'Ciglia',
-            'sopracciglia' => 'Sopracciglia',
-            'couture' => 'Couture',
-            'ristorazione' => 'Ristorazione',
+            'locs' => 'Locs',
+            'unghie' => 'Unghie',
+            'make-up' => 'Make-up',
+            'ciglia-sopracciglia' => 'Ciglia e sopracciglia',
+            'moda-afro' => 'Moda afro',
+            'food' => 'Food',
         ];
 
         foreach ($categories as $slug => $name) {

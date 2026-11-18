@@ -209,7 +209,7 @@ test('the categories can be seeded in production, on their own', function () {
     // The command of docs/production.md.
     expect(Artisan::call('db:seed', ['--class' => CategorySeeder::class, '--force' => true]))->toBe(0);
 
-    expect(Category::query()->count())->toBe(7)
+    expect(Category::query()->count())->toBe(9)
         ->and(User::query()->count())->toBe(0);
     expect((string) file_get_contents(base_path('docs/production.md')))->toContain('php artisan db:seed --class=CategorySeeder --force');
 });

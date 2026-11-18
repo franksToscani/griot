@@ -24,7 +24,7 @@ La ricerca testuale di `/providers`, insieme ai filtri per categoria e città. S
 
 Le categorie hanno nel database lo slug e il nome italiano; il nome mostrato viene dalle chiavi `categories.{slug}` di `lang/*.json` (`Category::displayName()`). Per questo il confronto con le categorie si fa in PHP, non con LIKE: si leggono tutte le categorie (sono poche) e si tengono quelle in cui la parola compare nello slug, nel nome salvato o nel nome **nella lingua attiva** (`Category::mentions()`). Poi la query cerca i servizi attivi di quelle categorie.
 
-Quindi « coiffeur » non trova « barbiere » se la lingua attiva è l'italiano: si cerca nella lingua in cui si legge la pagina, più lo slug e il nome italiano.
+Gli slug delle categorie possono avere un trattino (`taglio-uomo`, `make-up`, `ciglia-sopracciglia`): « locs », « make-up » e « food » si trovano anche dallo slug. Quindi « coiffeur » non trova « taglio uomo » se la lingua attiva è l'italiano: si cerca nella lingua in cui si legge la pagina, più lo slug e il nome italiano.
 
 ## LIKE uguale su SQLite, MySQL e PostgreSQL
 

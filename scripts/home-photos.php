@@ -6,7 +6,10 @@
  *
  *     php scripts/home-photos.php /path/to/the/originals
  *
- * The originals are named after the slug of their category (barbiere.jpg, …). For each one:
+ * The originals are named after their photo (barbiere.jpg, nails.jpg, treccine.jpg), the name of
+ * the generated files too: the slug of the category of their time. Since the new categories the
+ * slug can differ (taglio-uomo uses barbiere, unghie uses nails): resources/js/lib/home-photos.ts
+ * links each category to its files, docs/photos.md tells the names. For each one:
  * the zones listed in ZONES are pixelated first (a brand on a label, a sticker), in the
  * coordinates of the original; then the photo is resized to each width of WIDTHS that is not
  * larger than the original (never enlarged) and written as WebP. GD writes the pixels only: no
