@@ -85,6 +85,7 @@ function CategoriesSection({ categories }: { categories: HomeCategory[] }) {
             title={t('home.categories.title')}
             items={categoryCards(categories, HOME_PHOTOS)}
             renderItem={(card) => <CategoryCard card={card} />}
+            autoScroll
         />
     );
 }

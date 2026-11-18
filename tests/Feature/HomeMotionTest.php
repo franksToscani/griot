@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Process;
+use Symfony\Component\Finder\Finder;
 
 // The motion of the home page (#144 step 10, docs/accessibility.md "Movimento"): the reveal on
 // scroll, the entrance of the band, the cross-fade of the carousel, the cards under the mouse or
@@ -22,6 +23,9 @@ function hmSources(): string
         'js/components/home/featured-provider-card.tsx', 'js/components/home/scroll-row.tsx', 'js/components/home/professionals-band.tsx',
         'js/lib/home-hero.ts', 'js/lib/motion.ts', 'js/hooks/use-reveal.ts', 'js/components/home/how-it-works.tsx',
         'js/components/home/floating-actions.tsx',
+        // The controls of the rows (arrows, drag): no timer either. The automatic scroll of the
+        // categories (hooks/use-auto-scroll.ts) is the one exception, checked on its own.
+        'js/hooks/use-scroll-row.ts', 'js/lib/row-scroll.ts',
     ];
 
     return implode("\n", array_map(fn (string $file) => hmSource($file), $files));
@@ -69,6 +73,48 @@ test('no timer anywhere in the home page or the hook: only the scroll, the mouse
         ->not->toMatch('/scroll-smooth|scroll-behavior|behavior:\s*[\'"]smooth/');
     // Nothing loops: no infinite animation in the motion of the home page.
     expect(hmMotionCss())->not->toMatch('/infinite|alternate/');
+});
+
+test('the one exception: the slow automatic scroll of the categories, only without "reduce motion", with a pause', function () {
+    $hook = hmSource('js/hooks/use-auto-scroll.ts');
+
+    // Frames only, never an interval or a timeout, and the frame is cancelled when it must stop.
+    expect($hook)
+        ->toContain('frame = window.requestAnimationFrame(tick);')
+        ->toContain('return () => window.cancelAnimationFrame(frame);')
+        ->not->toMatch('/\b(setInterval|setTimeout|autoPlay|autoplay)\b/')
+        ->not->toMatch('/scroll-smooth|scroll-behavior|behavior:\s*[\'"]smooth|scrollTo\(|scrollBy\(|scrollIntoView/')
+        // Nothing moves before "reduce motion" is known, and it stops when the setting changes.
+        ->toContain('const [reduceMotion, setReduceMotion] = useState(true);')
+        ->toContain("window.matchMedia('(prefers-reduced-motion: reduce)')")
+        ->toContain("query.addEventListener('change', update);")
+        // The rules in one pure function: enabled, no reduce motion, overflow, no pause, visible, in front, no mouse over.
+        ->toContain('const runs = autoScrollRuns({')
+        ->toContain('if (!runs || element === null) {')
+        // At the end it stops for good.
+        ->toMatch('/if \(step\.ended\) \{\s*onEnd\(\);\s*return;\s*\}/');
+
+    // requestAnimationFrame nowhere else on the home page: every component of the home page, the
+    // page, the other hooks and rules of its motion (hmSources). The provider's area uses it to
+    // move the focus after a change, which is not a motion.
+    $home = (new Finder)->files()->in(resource_path('js/components/home'))->name('*.tsx');
+    foreach ($home as $file) {
+        expect($file->getContents())->not->toMatch('/\\brequestAnimationFrame\\b/', $file->getRelativePathname());
+    }
+    expect(hmSources())->not->toMatch('/\\brequestAnimationFrame\\b/');
+
+    // Only ScrollRow uses the hook, only when asked (false by default), only for the categories.
+    $row = hmSource('js/components/home/scroll-row.tsx');
+    $page = hmSource('js/pages/home.tsx');
+    expect($row)->toContain('autoScroll = false,')
+        ->toContain('enabled: autoScroll,')
+        // The pause button: always on the page, invisible when there is nothing to pause.
+        ->toMatch("/\\{autoScroll && \\(\\s*<Button[\\s\\S]*?!auto\\.available && 'invisible',/");
+    expect(substr_count($page, 'autoScroll'))->toBe(1)
+        ->and($page)->toMatch('/function CategoriesSection[\s\S]*<ScrollRow[\s\S]*autoScroll\s*\/>/')
+        ->and($page)->toMatch('/<ScrollRow\s+titleId=\{FEATURED_TITLE_ID\}(?:(?!\/>)[\s\S])*\/>/');
+    preg_match('/<ScrollRow\s+titleId=\{FEATURED_TITLE_ID\}(?:(?!\/>)[\s\S])*\/>/', $page, $featured);
+    expect($featured[0])->not->toContain('autoScroll');
 });
 
 test('the reveal uses IntersectionObserver once per element, and lets it go when the page goes', function () {
@@ -185,7 +231,7 @@ test('the cards rise and their photo grows under the mouse and the focus alike, 
 });
 
 test('the focus is never cut: the row keeps 8px around a card that rises 2px with a 3px ring', function () {
-    expect(hmSource('js/components/home/scroll-row.tsx'))->toContain('className="flex snap-x gap-3 p-2 pb-4"');
+    expect(hmSource('js/components/home/scroll-row.tsx'))->toContain('<ul ref={reveal} className="flex gap-3 p-2 pb-4">');
     // The ring is on the card itself: it moves with it, nothing covers it.
     foreach (['category-card', 'featured-provider-card'] as $card) {
         expect(hmSource("js/components/home/{$card}.tsx"))
