@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import { EmptyPicture } from '@/components/empty-picture';
 import { useTranslation } from '@/hooks/use-translation';
 import {
+    CATEGORY_CARD,
     CATEGORY_PHOTO_SIZES,
     CATEGORY_TILE_EDGE,
 } from '@/lib/home-categories';
@@ -12,8 +13,8 @@ import { cn } from '@/lib/utils';
 import { index } from '@/routes/providers';
 
 // A card of the row "Categorie" of the home page (docs/home.md). On top a photo or the empty tile
-// (EmptyPicture), 6rem high, rounded as the cards (rounded-xl), with the cards' resting shadow;
-// under it the name, on the page's background. Never text on the photo, never a heading.
+// (EmptyPicture), 7rem high, with the cards' resting shadow; under it the name, on the page's
+// background. Never text on the photo, never a heading. 11rem wide (CATEGORY_CARD).
 // - Offered (something to book): one link to the list filtered on the category; the name is the
 //   link's text. Under the mouse or the focus it rises and its photo grows inside its frame
 //   (CARD_MOTION, shared with the featured providers).
@@ -24,7 +25,7 @@ export function CategoryCard({ card }: { card: Card }) {
 
     if (!card.offered) {
         return (
-            <div className="flex w-36 flex-col gap-2">
+            <div className={cn('flex flex-col gap-2', CATEGORY_CARD.width)}>
                 <CardImage card={card} />
                 <span className="font-medium break-words">{card.name}</span>
                 <span className="w-fit rounded-full border border-input px-2 py-0.5 text-xs font-medium text-muted-foreground">
@@ -38,7 +39,9 @@ export function CategoryCard({ card }: { card: Card }) {
         <Link
             href={index({ query: { category: card.slug } })}
             className={cn(
-                'group flex w-36 flex-col gap-2 rounded-xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-hidden',
+                'group flex flex-col gap-2 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-hidden',
+                CATEGORY_CARD.width,
+                CATEGORY_CARD.corners,
                 touchTarget,
                 CARD_MOTION.card,
             )}
@@ -59,7 +62,9 @@ function CardImage({ card }: { card: Card }) {
         return (
             <EmptyPicture
                 className={cn(
-                    'h-24 w-full rounded-xl',
+                    'w-full',
+                    CATEGORY_CARD.image,
+                    CATEGORY_CARD.corners,
                     CATEGORY_TILE_EDGE,
                     CARD_REST,
                 )}
@@ -68,7 +73,14 @@ function CardImage({ card }: { card: Card }) {
     }
 
     return (
-        <span className={cn('block rounded-xl', CARD_REST, CARD_MOTION.frame)}>
+        <span
+            className={cn(
+                'block',
+                CATEGORY_CARD.corners,
+                CARD_REST,
+                CARD_MOTION.frame,
+            )}
+        >
             <img
                 src={card.image.src}
                 srcSet={card.image.srcSet}
@@ -79,7 +91,9 @@ function CardImage({ card }: { card: Card }) {
                 loading="lazy"
                 decoding="async"
                 className={cn(
-                    'h-24 w-full rounded-xl bg-muted object-cover',
+                    'w-full bg-muted object-cover',
+                    CATEGORY_CARD.image,
+                    CATEGORY_CARD.corners,
                     CARD_MOTION.photo,
                 )}
             />

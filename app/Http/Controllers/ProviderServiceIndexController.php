@@ -37,7 +37,10 @@ class ProviderServiceIndexController extends Controller
         return Inertia::render('provider/services/index', [
             // resolve() gives plain lists, without a "data" wrapper.
             'services' => ProviderServiceResource::collection($services)->resolve($request),
-            'categories' => CategoryResource::collection(Category::query()->orderBy('name')->get())->resolve($request),
+            // In alphabetical order of the name shown in the page's language (Category::sortName()).
+            'categories' => CategoryResource::collection(
+                Category::query()->get()->sortBy(fn (Category $c) => $c->sortName())->values(),
+            )->resolve($request),
         ]);
     }
 }

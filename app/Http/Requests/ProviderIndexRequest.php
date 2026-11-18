@@ -142,13 +142,16 @@ class ProviderIndexRequest extends FormRequest
     }
 
     /**
-     * Categories with at least one active service of a published provider, by name.
+     * Categories with at least one active service of a published provider, in alphabetical order
+     * of the name shown in the page's language (Category::sortName()), not of the saved Italian
+     * name.
      *
      * @return Collection<int, Category>
      */
     public function categoryOptions(): Collection
     {
-        return $this->categoryOptions ??= Category::query()->offered()->orderBy('name')->get();
+        return $this->categoryOptions ??= Category::query()->offered()->get()
+            ->sortBy(fn (Category $c) => $c->sortName())->values();
     }
 
     /**

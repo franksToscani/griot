@@ -3,9 +3,19 @@ import { SectionTitle } from '@/components/home/section-title';
 import { useReveal } from '@/hooks/use-reveal';
 import { useTranslation } from '@/hooks/use-translation';
 import { revealDelay } from '@/lib/motion';
+import { cn } from '@/lib/utils';
 
 // The id of the title: the help panel of the home page takes the focus there (floating-actions).
 export const HOW_IT_WORKS_TITLE_ID = 'home-steps-title';
+
+// The card of a step lights up under the mouse (hover:, only where a pointer can hover: a tap never
+// leaves it lit) and when something inside it has the focus (focus-within, for a link one day):
+// an orange border and a halo, both drawn with box-shadow or the colour of the border, so the
+// layout never moves (the border keeps its width). Nothing rises or grows: the steps are not
+// links. Without "reduce motion" the light comes in 200 ms; with it, at once. The cards never take
+// the focus themselves (no tabIndex): there is nothing to do on them.
+const STEP_GLOW =
+    'hover:border-brand hover:shadow-lg hover:ring-4 hover:shadow-brand/20 hover:ring-brand/30 focus-within:border-brand focus-within:shadow-lg focus-within:ring-4 focus-within:shadow-brand/20 focus-within:ring-brand/30 motion-safe:transition-[border-color,box-shadow] motion-safe:duration-200 motion-safe:ease-out';
 
 // The three steps of "Come funziona", in their order: the keys of their texts.
 const STEPS = ['choose', 'book', 'confirm'] as const;
@@ -68,7 +78,12 @@ export function HowItWorks() {
                             >
                                 <Icon className="size-6" />
                             </span>
-                            <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 text-card-foreground md:w-full">
+                            <div
+                                className={cn(
+                                    'flex flex-col gap-3 rounded-xl border bg-card p-4 text-card-foreground md:w-full',
+                                    STEP_GLOW,
+                                )}
+                            >
                                 {/* The number in a badge: decorative, it is in the heading too. */}
                                 <span
                                     aria-hidden="true"

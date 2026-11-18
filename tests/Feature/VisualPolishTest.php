@@ -18,7 +18,7 @@ test('no colour in turn for the categories without a photo: the same empty tile 
     expect($lib)->not->toContain('CATEGORY_TONES')->not->toContain('tone')
         ->and($card)->not->toContain('card.tone')
         ->and($card.$lib)->not->toMatch('/\bbg-(primary|highlight|info|card|brand|hero)\b/')
-        ->and($card)->toMatch("/<EmptyPicture\\s+className=\\{cn\\(\\s*'h-24 w-full rounded-xl',\\s*CATEGORY_TILE_EDGE,\\s*CARD_REST,?\\s*\\)\\}\\s*\\/>/");
+        ->and($card)->toMatch("/<EmptyPicture\\s+className=\\{cn\\(\\s*'w-full',\\s*CATEGORY_CARD\\.image,\\s*CATEGORY_CARD\\.corners,\\s*CATEGORY_TILE_EDGE,\\s*CARD_REST,?\\s*\\)\\}\\s*\\/>/");
 });
 
 test('the empty picture: sand, a neutral sign hidden from screen readers, never the mark of the logo', function () {
@@ -82,9 +82,18 @@ test('one rule for the cards: a thin border, a small shadow at rest, a stronger 
         expect(vpSource($path))->toMatch("/'flex w-[a-z0-9-]+ flex-col overflow-hidden rounded-xl border[^']*',\\s*touchTarget,\\s*CARD_REST,\\s*CARD_MOTION\\.card,/");
     }
 
+    // The one exception (PR 2 of the categories): the cards of the categories are rounded-lg, a
+    // little less, from CATEGORY_CARD only, on the card, the frame, the photo and the tile alike.
     $category = vpSource('components/home/category-card.tsx');
-    expect($category)->toContain("className={cn('block rounded-xl', CARD_REST, CARD_MOTION.frame)}")
-        ->not->toContain('rounded-md');
+    expect($category)->toMatch("/<span\\s+className=\\{cn\\(\\s*'block',\\s*CATEGORY_CARD\\.corners,\\s*CARD_REST,\\s*CARD_MOTION\\.frame,?\\s*\\)\\}\\s*>/")
+        ->and(substr_count($category, 'CATEGORY_CARD.corners'))->toBe(4)
+        ->and($category)->not->toMatch('/\\brounded-(?!full\\b)[a-z0-9]+/');
+    expect(vpSource('lib/home-categories.ts'))->toContain("corners: 'rounded-lg',")
+        ->and(substr_count(vpSource('lib/home-categories.ts'), "'rounded-lg'"))->toBe(1);
+    // Nowhere else: the other cards keep rounded-xl.
+    foreach (['components/provider-card.tsx', 'components/home/featured-provider-card.tsx', 'components/home/how-it-works.tsx', 'components/home/professionals-band.tsx'] as $path) {
+        expect(vpSource($path))->not->toMatch('/\\brounded-lg\\b/');
+    }
     // The kit's Card keeps its own small shadow (shadow-sm): the same.
     expect(vpSource('components/ui/card.tsx'))->toContain('rounded-xl border py-6 shadow-sm');
 });

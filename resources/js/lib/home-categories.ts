@@ -13,8 +13,19 @@ import type { HomeCategory } from '@/types';
 // not (AccessibilityContrastTest). It stays in forced colours, where the background is gone.
 export const CATEGORY_TILE_EDGE = 'border border-input';
 
-// The width of a card (w-36, 9rem): the browser takes the 640 px size, even on a screen at 3x.
-export const CATEGORY_PHOTO_SIZES = '9rem';
+// The size of a card of the categories (PR 2 of the categories): 11rem wide, its photo or tile
+// 7rem high. Its corners are rounded-lg (10px), a little less than the other cards (rounded-xl,
+// 12px): the one exception to the rule of the cards (docs/accessibility.md), for these cards only,
+// on the card, the frame of the photo, the photo and the empty tile alike.
+export const CATEGORY_CARD = {
+    width: 'w-44',
+    image: 'h-28',
+    corners: 'rounded-lg',
+} as const;
+
+// The width of a card (w-44, 11rem, 176 px): even on a screen at 3x (528 px) the browser takes
+// the 640 px size.
+export const CATEGORY_PHOTO_SIZES = '11rem';
 
 export type CategoryCard = {
     id: number;

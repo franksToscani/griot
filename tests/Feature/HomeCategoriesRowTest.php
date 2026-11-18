@@ -109,7 +109,8 @@ test('the photo of a card: the 640 size as src, every size in srcset, the real s
         'width' => 1920,
         'height' => 1280,
     ]);
-    expect(hcrSource('lib/home-categories.ts'))->toContain("export const CATEGORY_PHOTO_SIZES = '9rem';");
+    // 11rem (176 px) wide: at 3x 528 px, so the 640 px size is still enough (PR 2 of the categories).
+    expect(hcrSource('lib/home-categories.ts'))->toContain("export const CATEGORY_PHOTO_SIZES = '11rem';");
     // The page gives the cards the photos of the carousel, in the row of the categories.
     expect(hcrSource('pages/home.tsx'))
         ->toMatch("/<ScrollRow\\s+titleId=\\{CATEGORIES_TITLE_ID\\}\\s+title=\\{t\\('home\\.categories\\.title'\\)\\}\\s+items=\\{categoryCards\\(categories, HOME_PHOTOS\\)\\}\\s+renderItem=\\{\\(card\\) => <CategoryCard card=\\{card\\} \\/>\\}/");
@@ -150,13 +151,13 @@ test('the photo is decorative, lazy, with its width and height: nothing jumps', 
         ->toContain('loading="lazy"')
         ->toContain('decoding="async"')
         // Since #144 step 10 it grows a little under the mouse or the focus (HomeMotionTest).
-        ->toMatch("/className=\\{cn\\(\\s*'h-24 w-full rounded-xl [^']*object-cover',\\s*CARD_MOTION\\.photo,?\\s*\\)\\}/")
+        ->toMatch("/className=\\{cn\\(\\s*'w-full bg-muted object-cover',\\s*CATEGORY_CARD\\.image,\\s*CATEGORY_CARD\\.corners,\\s*CARD_MOTION\\.photo,?\\s*\\)\\}/")
         ->not->toContain('eager')
         ->not->toContain('fetchPriority');
 });
 
 test('a category without a photo: the same empty tile for all, with the measured border, decorative', function () {
-    expect(hcrImage())->toMatch("/<EmptyPicture\\s+className=\\{cn\\(\\s*'h-24 w-full rounded-xl',\\s*CATEGORY_TILE_EDGE,\\s*CARD_REST,?\\s*\\)\\}\\s*\\/>/");
+    expect(hcrImage())->toMatch("/<EmptyPicture\\s+className=\\{cn\\(\\s*'w-full',\\s*CATEGORY_CARD\\.image,\\s*CATEGORY_CARD\\.corners,\\s*CATEGORY_TILE_EDGE,\\s*CARD_REST,?\\s*\\)\\}\\s*\\/>/");
     expect(hcrSource('lib/home-categories.ts'))
         ->not->toContain('CATEGORY_TONES')
         ->toContain("export const CATEGORY_TILE_EDGE = 'border border-input';");
@@ -172,8 +173,10 @@ test('no colour written by hand, never red: only tokens of the theme', function 
         ->and($sources)->not->toMatch('/\b(bg|text|border|ring)-(decor|destructive|red|rose|orange|[a-z]+-\d{2,3})\b/');
 });
 
-test('a phone can use it: a card 9rem wide, more than 44px high, a visible focus not cut by the row', function () {
-    expect(hcrCard())->toMatch("/^<Link\\s+href=[^>]*className=\\{cn\\(\\s*'group flex w-36 flex-col gap-2 rounded-xl outline-none focus-visible:ring-\\[3px\\] focus-visible:ring-ring\\/50 focus-visible:outline-hidden',\\s*touchTarget,\\s*CARD_MOTION\\.card,?\\s*\\)\\}/");
+test('a phone can use it: a card 11rem wide, more than 44px high, a visible focus not cut by the row', function () {
+    expect(hcrCard())->toMatch("/^<Link\\s+href=[^>]*className=\\{cn\\(\\s*'group flex flex-col gap-2 outline-none focus-visible:ring-\\[3px\\] focus-visible:ring-ring\\/50 focus-visible:outline-hidden',\\s*CATEGORY_CARD\\.width,\\s*CATEGORY_CARD\\.corners,\\s*touchTarget,\\s*CARD_MOTION\\.card,?\\s*\\)\\}/");
+    // The size of the cards, in one place: 11rem wide, the photo 7rem high, rounded-lg.
+    expect(hcrSource('lib/home-categories.ts'))->toMatch("/export const CATEGORY_CARD = \\{\\s*width: 'w-44',\\s*image: 'h-28',\\s*corners: 'rounded-lg',\\s*\\} as const;/");
     // The row keeps 8px around the cards: the 2px a card rises under the focus plus its 3px ring
     // (since #144 step 10). It scrolls, the page not.
     expect(hcrSource('components/home/scroll-row.tsx'))

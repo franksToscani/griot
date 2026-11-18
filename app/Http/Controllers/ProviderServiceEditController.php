@@ -36,7 +36,10 @@ class ProviderServiceEditController extends Controller
         return Inertia::render('provider/services/edit', [
             // resolve() gives plain values, without a "data" wrapper.
             'service' => (new ProviderServiceResource($service))->resolve($request),
-            'categories' => CategoryResource::collection(Category::query()->orderBy('name')->get())->resolve($request),
+            // In alphabetical order of the name shown in the page's language (Category::sortName()).
+            'categories' => CategoryResource::collection(
+                Category::query()->get()->sortBy(fn (Category $c) => $c->sortName())->values(),
+            )->resolve($request),
             // The same rule as the deletion, from ManageService: two exists() queries.
             'bookings' => [
                 'has_bookings' => $manageService->blockedBy($service) !== null,
