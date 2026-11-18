@@ -213,31 +213,107 @@ Dalla pagina **Deploys** del servizio, un deploy riuscito → **Rollback** → *
 
 ## 9. Backup e ripristino di PostgreSQL (#63)
 
-Da https://render.com/docs/postgresql-backups (pagina letta):
+### Che cosa c'è (verificato sulla dashboard il 18/11/2026)
 
-- **Recupero a un punto nel tempo**: i database a pagamento sono salvati di continuo. Sul workspace Hobby si può tornare a un momento degli **ultimi 3 giorni** (7 sui workspace Pro o superiori). Non vale per il piano gratuito.
-- **Il ripristino crea un database nuovo**, non sovrascrive quello esistente. Pagina **Recovery** del database → **Restore Database** → nome e momento (non negli ultimi dieci minuti) → **Start Recovery**. Poi si collega il servizio al database nuovo (`DB_URL`).
-- **Esportazioni**: dalla pagina **Recovery**, **Create export**. Un archivio compresso che Render tiene **7 giorni**.
+- **Database:** PostgreSQL 18, piano `0.1c-256mb` (6 $ al mese), gestito dal Blueprint (`render.yaml`), 15 GB di spazio.
+- **Recupero a un punto nel tempo: attivo, finestra di 3 giorni.** Il workspace è Hobby; 7 giorni solo sui workspace Pro o superiori. Da https://render.com/docs/postgresql-backups (pagina letta): i database a pagamento sono salvati di continuo; non si può tornare agli ultimi dieci minuti; **il ripristino crea un database nuovo**, non sovrascrive quello esistente (pagina **Recovery** del database → **Restore Database** → nome e momento → **Start Recovery**).
+- **Esportazioni manuali:** pagina **Recovery** → **Create export**, un archivio `.dir.tar.gz` (formato directory di `pg_dump`) che Render tiene 7 giorni. Render non le programma da solo.
+- **Avvisi di Render:** impostati su « Only failure notifications » (https://render.com/docs/notifications). Riguardano deploy, servizi che non rispondono e cron job; **non** i backup né le esportazioni del database: per quelli Render non manda avvisi.
+- **Il piano gratuito dei database non va bene per Griot**: secondo https://render.com/docs/free un database gratuito scade 30 giorni dopo la creazione (poi 14 giorni per passare a un piano a pagamento, quindi viene cancellato con tutti i dati) e non ha nessuna forma di backup.
 
-**Una copia manuale periodica** con `pg_dump`, dal proprio computer, conservata fuori da Render. L'indirizzo esterno del database si trova nel menu **Connect** della pagina del database; le connessioni esterne sono sempre cifrate (https://render.com/docs/postgresql-creating-connecting). Valori tra `<…>` da sostituire, mai da scrivere in un file:
+### Decisioni (Franks, 18/11/2026)
 
-```bash
-pg_dump "<URL esterno del database>" --format=custom --no-owner --file="griot-<AAAA-MM-GG>.dump"
-```
+- **Copie fuori da Render: solo manuali, per ora.** Un'esportazione al mese (procedura qui sotto), con un promemoria nel calendario. Il file si cifra subito, si tiene il meno possibile e si cancella **dopo 14 giorni**.
+- **Copie automatiche con allarme** (un cron job di Render che salva ogni notte una copia in un bucket privato, più un controllo `backups:check` che avvisa per email se l'ultima copia manca, circa 1 $ al mese): **da decidere** dopo la prova del ripristino completo su Render e prima di aprire a molti professionisti.
+- **Niente workspace Pro per ora:** la finestra del recupero a un punto nel tempo resta di 3 giorni.
+- **I segreti** (`APP_KEY`, le due chiavi di Scaleway, la password della posta) hanno una copia in un gestore di password, fuori dalla repository e da Render. Gli altri valori della dashboard si ricostruiscono da questo documento e da [production.md](production.md).
 
-Ripristino di prova in un database **vuoto** (per esempio un PostgreSQL locale):
+### Prova di ripristino in locale (fatta il 18/11/2026)
 
-```bash
-pg_restore --no-owner --dbname="<URL di un database vuoto>" "griot-<AAAA-MM-GG>.dump"
-```
+Un'esportazione vera, ripristinata in un PostgreSQL sul proprio computer, senza toccare la produzione. Il file contiene dati personali dei clienti: tutto avviene in una cartella fuori dalla repository e alla fine si cancella.
 
-Il file contiene dati personali dei clienti: va tenuto in un posto sicuro e cancellato quando non serve più ([legal.md](legal.md)).
+**Esito del 18/11/2026: riuscita.** PostgreSQL 18.6 locale (pacchetto di sistema `postgresql-18`, più `php8.5-pgsql` per PHP). `pg_restore` in 0,156 s, exit 0, nessun errore. Conteggi uguali alla produzione: 3 servizi, 10 prenotazioni, 9 categorie, 1 utente, 1 professionista, 3 foto, 23 migrazioni. 10 chiavi esterne ripristinate, contatori degli id coerenti, `migrate:status` tutto « Ran »; con `php artisan serve` la home e l'elenco si aprono (le foto no: restano su Scaleway). Pulizia fatta: database cancellato, cartella cancellata, niente in `Downloads`.
 
-**La prova di ripristino va fatta davvero e registrata** (#63). Modello di registro, da copiare in un posto privato (non nella repository, perché contiene date e dettagli dei dati):
+**Passi**, con valori tra `<…>` da sostituire (mai scritti in un file):
 
-| Data | Tipo (punto nel tempo / esportazione / pg_dump) | Momento ripristinato | Database di destinazione | Controlli fatti (righe di `bookings`, `providers`, `users`) | Esito | Durata | Note |
-| ---- | ----------------------------------------------- | -------------------- | ------------------------ | ----------------------------------------------------------- | ----- | ------ | ---- |
-|      |                                                 |                      |                          |                                                             |       |        |      |
+1. Prima, dalla Shell di Render, i conteggi della produzione (servizi, prenotazioni, categorie, utenti, professionisti, foto, migrazioni), per confrontarli dopo.
+2. Pagina **Recovery** del database → **Create export** → scaricare l'archivio.
+3. In locale, una volta sola: `sudo apt install postgresql-18 php8.5-pgsql` (la stessa versione principale della produzione) e un utente PostgreSQL che possa creare database.
+4. Ripristino, in una cartella fuori dalla repository:
+
+    ```bash
+    mkdir -p ~/<cartella-di-prova> && cd ~/<cartella-di-prova>
+    tar -xzf <archivio>.dir.tar.gz
+    createdb griot_restore
+    time pg_restore --no-owner --no-acl --dbname=griot_restore <cartella-scompattata>
+    ```
+
+    Deve finire con exit 0 e nessun errore.
+
+5. Controlli sul database ripristinato:
+
+    ```bash
+    psql griot_restore -c "select count(*) from services"   # e così per bookings, categories, users, providers, provider_photos, migrations
+    psql griot_restore -c "select count(*) from pg_constraint where contype = 'f'"   # le chiavi esterne
+    psql griot_restore -c "select max(id) from bookings"
+    psql griot_restore -c "select last_value from bookings_id_seq"   # mai più basso del max(id)
+    ```
+
+6. L'app sulla copia, con le variabili passate **solo al comando** (mai scritte in `.env`), dalla cartella del progetto e senza configurazione in cache (`php artisan config:clear` se serve):
+
+    ```bash
+    DB_CONNECTION=pgsql DB_HOST=/var/run/postgresql DB_DATABASE=griot_restore DB_USERNAME="$USER" DB_PASSWORD= \
+    MAIL_MAILER=array QUEUE_CONNECTION=sync MEDIA_DISK_DRIVER=local \
+    php artisan migrate:status
+    ```
+
+    Poi, con le stesse variabili, `php artisan serve --port=<una porta libera>` e aprire la home e l'elenco.
+
+    **Sulla copia non si lancia MAI `queue:work` né lo scheduler** (`schedule:work`, `schedule:run`): la tabella `jobs` può contenere email per clienti veri, che partirebbero davvero.
+
+7. Pulizia:
+
+    ```bash
+    dropdb griot_restore
+    rm -r ~/<cartella-di-prova>
+    ```
+
+    E cancellare l'archivio da `Downloads` (e dal cestino). Il disco del computer non è cifrato: i dati in chiaro devono restarci il meno possibile.
+
+8. Una riga nel registro privato delle prove (sotto), mai nella repository.
+
+### Non ancora provato: il ripristino completo su Render (da fare prima del lancio)
+
+Il recupero a un punto nel tempo crea un **database nuovo**, con un nome nuovo. Il servizio prende `DB_URL` da `fromDatabase` nel Blueprint (`render.yaml`, `name: griot-db`): per collegarlo al database ripristinato serve una modifica a `render.yaml` (una PR) oppure un `DB_URL` scritto a mano nella pagina **Environment**. **Non sappiamo** se una sincronizzazione del Blueprint sovrascriverebbe un `DB_URL` scritto a mano. È proprio il caso in cui il sito servirebbe davvero, quindi va provato prima del lancio: un ripristino di prova in un database temporaneo, come ricollegare il servizio (senza farlo sulla produzione, o in un momento senza utenti), quanto tempo serve, e poi cancellare il database temporaneo (che si paga finché esiste).
+
+### Ogni mese: l'esportazione manuale
+
+1. Pagina **Recovery** del database → **Create export** → scaricare l'archivio.
+2. Cifrarlo subito e togliere il file in chiaro:
+
+    ```bash
+    gpg --symmetric --cipher-algo AES256 <archivio>.dir.tar.gz
+    rm <archivio>.dir.tar.gz
+    ```
+
+    La frase di accesso va nel gestore di password, mai accanto al file. Svuotare anche `Downloads` e il cestino.
+
+3. Tenere il file cifrato fuori dalla repository e **cancellarlo dopo 14 giorni** (un secondo promemoria nel calendario).
+4. Una riga nel registro privato (data dell'esportazione, data di cancellazione).
+
+Per leggerlo: `gpg --decrypt <archivio>.dir.tar.gz.gpg > <archivio>.dir.tar.gz`, poi i passi della prova qui sopra.
+
+### Rischio accettato: le foto non hanno copia (decisione del 18/11/2026)
+
+Le foto su Scaleway **non hanno né copia né versioning**. Se una foto viene cancellata (per un bug, un errore o una chiave rubata, che può anche cancellare) è persa per sempre, salvo che il professionista la ricarichi. Anche un ripristino del database a qualche giorno prima non la riporta. **Da rivedere prima di aprire a molti professionisti.** Per chi deciderà: con il versioning le versioni vecchie si possono far scadere con una regola di ciclo di vita (serve anche per non tenere troppo le foto che un professionista ha cancellato); secondo la documentazione di Scaleway il versioning, una volta attivato, si può sospendere ma non togliere (da verificare su https://www.scaleway.com/en/docs/object-storage/how-to/use-bucket-versioning/).
+
+### Registro delle prove e delle esportazioni
+
+Da copiare in un posto privato (non nella repository, perché contiene date e dettagli dei dati):
+
+| Data | Tipo (punto nel tempo / esportazione / pg_dump) | Momento ripristinato | Database di destinazione | Controlli fatti (righe di `bookings`, `providers`, `users`) | Esito | Durata | Cancellato il | Note |
+| ---- | ----------------------------------------------- | -------------------- | ------------------------ | ----------------------------------------------------------- | ----- | ------ | ------------- | ---- |
+|      |                                                 |                      |                          |                                                             |       |        |               |      |
 
 ### Le nove categorie (migrazione `rename_and_merge_categories`)
 
@@ -251,7 +327,7 @@ Una migrazione di soli dati: rinomina quattro categorie (`barbiere` → `taglio-
 
     Annotare anche il totale dei servizi e delle prenotazioni (`App\Models\Service::count()`, `App\Models\Booking::count()`).
 
-2. **Una copia del database**: un'esportazione dalla dashboard o un `pg_dump`, come in questa sezione. Il `down()` della migrazione **non sa separare** i servizi uniti di ciglia e sopracciglia: per tornare indietro del tutto serve questa copia.
+2. **Una copia del database**: un'esportazione dalla dashboard, come in « Ogni mese: l'esportazione manuale » qui sopra. Il `down()` della migrazione **non sa separare** i servizi uniti di ciglia e sopracciglia: per tornare indietro del tutto serve questa copia.
 3. **Merge** su `main`: con i controlli verdi parte il deploy, e il `preDeployCommand` lancia la migrazione. Se fallisce, il deploy si ferma e la versione di prima resta online (la migrazione è in una transazione: tutto o niente).
 4. **Dopo il deploy**, gli stessi conteggi: nove categorie; i servizi di `barbiere`, `nails`, `couture` e `ristorazione` sotto i nomi nuovi; `ciglia-sopracciglia` con la somma di ciglia e sopracciglia; `taglio-donna`, `locs` e `make-up` a 0. Il totale dei servizi e delle prenotazioni **identico** a prima.
 5. **Il `CategorySeeder` non serve**: la migrazione fa tutto. Se lo si lancia, deve essere la versione nuova (nove slug): quella vecchia ricreerebbe `barbiere` e le altre come categorie in più.

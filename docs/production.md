@@ -117,6 +117,16 @@ Per IP (con i proxy fidati, l'IP vero del cliente), in `AppServiceProvider`, val
 
 L'area del provider ha i suoi limiti per utente (foto, servizi, prenotazioni). Oltre il limite: la pagina 429 del sito, o un errore nel modulo dove c'è un modulo.
 
+## Backup e ripristino (#63)
+
+Tutto in [deploy.md](deploy.md), sezione 9. In breve, al 18/11/2026:
+
+- PostgreSQL su Render, piano a pagamento `0.1c-256mb`: recupero a un punto nel tempo degli ultimi 3 giorni (workspace Hobby) ed esportazioni manuali tenute 7 giorni. Il piano gratuito non va bene: scade dopo 30 giorni e non ha backup.
+- **Prova di ripristino in locale fatta e riuscita** (18/11/2026): un'esportazione vera in un PostgreSQL 18 locale, conteggi uguali alla produzione, l'app si avvia sulla copia. Sulla copia mai `queue:work` né lo scheduler.
+- **Ancora da fare prima del lancio:** il ripristino completo su Render (database nuovo, servizio ricollegato: `DB_URL` viene dal Blueprint).
+- Copie fuori da Render: un'esportazione al mese, cifrata con `gpg`, cancellata dopo 14 giorni. Copie automatiche con allarme: da decidere.
+- Le foto su Scaleway non hanno copia né versioning: rischio accettato il 18/11/2026, da rivedere prima di aprire a molti professionisti.
+
 ## Test
 
 I controlli automatici su GitHub sono in [ci.md](ci.md). `tests/Feature/ProductionHardeningTest.php` (comando, `auth.user`, seeder, proxy, intestazioni, limite della lista, pagine in produzione, esempio dell'ambiente, versione di PHP) e `tests/Feature/Auth/RegistrationTest.php` (la registrazione non esiste).

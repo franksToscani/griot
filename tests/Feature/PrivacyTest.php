@@ -381,6 +381,19 @@ test('the Italian texts of the forms are exactly the expected ones', function ()
         ->and(__('privacy.link'))->toBe('Informativa sulla privacy');
 });
 
+test('the privacy page names the host of the site and its database: Render, in Frankfurt, no more "to be chosen"', function (string $locale, string $city, string $toChoose) {
+    $text = __('privacy.recipients.hosting', [], $locale);
+
+    expect($text)->toContain('Render')
+        ->toContain($city)
+        ->not->toContain($toChoose)
+        ->not->toContain('(');
+})->with([
+    'italiano' => ['it', 'Francoforte', 'da scegliere'],
+    'français' => ['fr', 'Francfort', 'à choisir'],
+    'english' => ['en', 'Frankfurt', 'to be chosen'],
+]);
+
 test('the privacy page names the region of the photo storage: Milan, never Paris', function (string $locale, string $city) {
     $text = __('privacy.recipients.photos', [], $locale);
 
