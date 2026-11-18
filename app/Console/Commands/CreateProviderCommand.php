@@ -5,12 +5,14 @@ namespace App\Console\Commands;
 use App\Models\User;
 use App\Profile\CreateProviderProfile;
 use App\Profile\ProfileDetails;
+use App\Support\InitialPassword;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Symfony\Component\Console\Formatter\OutputFormatter;
 
 /**
  * The only way to create a provider's account, now that nobody registers by themselves (issue
@@ -19,6 +21,10 @@ use Illuminate\Support\Str;
  * password is random and written once in the output, never stored in clear nor logged: the
  * provider changes it from the settings (Security) or with "forgot password". Nothing forces the
  * change at the first login yet.
+ *
+ * The password can contain "<", ">" and "\": it is escaped for the console formatter, which
+ * would otherwise read "\<" as an escaped "<" or "</>" as a tag, and show a password different
+ * from the saved one.
  */
 #[Signature('provider:create
     {name : The name of the provider, also the name of their page}
@@ -28,14 +34,9 @@ use Illuminate\Support\Str;
 class CreateProviderCommand extends Command
 {
     /**
-     * The length of the initial password.
-     */
-    public const PASSWORD_LENGTH = 20;
-
-    /**
      * Execute the console command.
      */
-    public function handle(CreateProviderProfile $profiles): int
+    public function handle(CreateProviderProfile $profiles, InitialPassword $passwords): int
     {
         $data = [
             'name' => $this->text('name'),
@@ -58,7 +59,7 @@ class CreateProviderCommand extends Command
             return self::FAILURE;
         }
 
-        $password = Str::password(self::PASSWORD_LENGTH);
+        $password = $passwords->generate();
 
         $provider = DB::transaction(function () use ($data, $password, $profiles) {
             $user = User::query()->create([
@@ -73,7 +74,7 @@ class CreateProviderCommand extends Command
         });
 
         $this->info(__('console.provider_create.done', ['name' => $provider->name, 'slug' => $provider->slug]));
-        $this->line(__('console.provider_create.password', ['password' => $password]));
+        $this->line(__('console.provider_create.password', ['password' => OutputFormatter::escape($password)]));
         $this->warn(__('console.provider_create.change'));
 
         return self::SUCCESS;
