@@ -173,7 +173,7 @@ class ProviderSeeder extends Seeder
                 'city' => 'Milano',
                 'whatsapp' => '+393330000002',
                 'instagram' => 'barberia.lagos',
-                'category' => 'barbiere',
+                'category' => 'taglio-uomo',
                 'is_published' => true,
                 'published_days_ago' => 12,
                 'services' => [
@@ -231,7 +231,7 @@ class ProviderSeeder extends Seeder
                 'city' => 'Torino',
                 'whatsapp' => '+393330000003',
                 'instagram' => 'unghie.kente',
-                'category' => 'nails',
+                'category' => 'unghie',
                 'is_published' => true,
                 'published_days_ago' => 30,
                 'services' => [
@@ -279,7 +279,7 @@ class ProviderSeeder extends Seeder
                 'city' => 'Roma',
                 'whatsapp' => null,
                 'instagram' => 'atelier.wax',
-                'category' => 'couture',
+                'category' => 'moda-afro',
                 'is_published' => false,
                 'services' => [
                     [

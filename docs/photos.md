@@ -2,7 +2,9 @@
 
 Le foto che il sito mostra di suo (oggi il carousel della home, issue #144). Le foto del lavoro dei provider non sono qui: le caricano loro, con la casella del consenso (`docs/gallery.md`).
 
-**Le categorie senza foto** mostrano un riquadro vuoto, uguale per tutte: fondo sabbia con un piccolo segno neutro (`components/empty-picture.tsx`, [home.md](home.md)). Serve solo finché mancano le foto: la vera soluzione è aggiungere quella della categoria (sezione « Aggiungere una foto »). Oggi hanno una foto barbiere, nails e treccine.
+**Nome della foto e slug della categoria.** La colonna « Slug » delle tabelle qui sotto è il nome della foto: quello dei file (`barbiere-640.webp`) e dell'originale per `scripts/home-photos.php`, che erano lo slug della categoria. Dalle nove categorie lo slug può essere diverso, e `resources/js/lib/home-photos.ts` collega ogni categoria ai suoi file: `taglio-uomo` usa la foto `barbiere`, `unghie` la foto `nails`, `treccine` la sua. I file non sono stati rinominati né rigenerati.
+
+**Le categorie senza foto** mostrano un riquadro vuoto, uguale per tutte: fondo sabbia con un piccolo segno neutro (`components/empty-picture.tsx`, [home.md](home.md)). Serve solo finché mancano le foto: la vera soluzione è aggiungere quella della categoria (sezione « Aggiungere una foto »). Oggi hanno una foto Taglio uomo, Unghie e Treccine. Per una categoria nuova: l'originale con il nome della foto, `php scripts/home-photos.php`, la voce con lo **slug** della categoria in `home-photos.ts` e le righe nelle tabelle qui sotto.
 
 ## Regole (decisione #142)
 

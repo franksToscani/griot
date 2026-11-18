@@ -183,7 +183,7 @@ test('nothing moves by itself, nothing sticks, no colour written by hand, no nam
     $code = (string) preg_replace(['#\{/\*.*?\*/\}#s', '#/\*.*?\*/#s', '#^\s*//.*$#m'], '', $sources);
     expect($code)->not->toMatch('/#[0-9a-fA-F]{3,6}\b/');
 
-    foreach (['treccine', 'barbiere', 'nails', 'ciglia', 'sopracciglia', 'couture', 'ristorazione'] as $slug) {
+    foreach (['taglio-uomo', 'taglio-donna', 'treccine', 'locs', 'unghie', 'make-up', 'ciglia-sopracciglia', 'moda-afro', 'food'] as $slug) {
         expect($sources)->not->toContain("'{$slug}'");
     }
 });
@@ -202,7 +202,8 @@ test('the texts of the carousel exist in Italian, French and English, with the s
     };
 
     $keys = array_values(array_filter(array_keys($json('it')), fn (string $key) => str_starts_with($key, 'home.carousel.')));
-    expect($keys)->toHaveCount(17);
+    // 19 since the nine categories: their sentences, the default one and the 9 others of the carousel.
+    expect($keys)->toHaveCount(19);
 
     foreach ($keys as $key) {
         foreach (['fr', 'en'] as $locale) {
@@ -213,8 +214,9 @@ test('the texts of the carousel exist in Italian, French and English, with the s
     }
 
     // A sentence of its own for every category of today.
-    preg_match_all("/'([a-z]+)' => '[^']+',/", (string) file_get_contents(database_path('seeders/CategorySeeder.php')), $slugs);
-    expect($slugs[1])->toHaveCount(7);
+    // The slugs can have a hyphen (taglio-uomo, make-up).
+    preg_match_all("/'([a-z]+(?:-[a-z]+)*)' => '[^']+',/", (string) file_get_contents(database_path('seeders/CategorySeeder.php')), $slugs);
+    expect($slugs[1])->toHaveCount(9);
     foreach ($slugs[1] as $slug) {
         expect($json('it'))->toHaveKey("home.carousel.sentence.{$slug}");
     }
@@ -225,7 +227,8 @@ test('the texts of the carousel exist in Italian, French and English, with the s
         ->and(__('home.carousel.position', ['number' => 2, 'total' => 7], 'it'))->toBe('Slide 2 di 7')
         ->and(__('home.carousel.go_to', ['number' => 3], 'it'))->toBe('Vai alla slide 3')
         ->and(__('home.carousel.cta', [], 'it').' '.__('home.carousel.cta_which', ['category' => 'Treccine'], 'it'))->toBe('Vedi i professionisti (Treccine)')
-        ->and(__('home.carousel.sentence.ristorazione', [], 'fr'))->toBe("Cuisine africaine\u{00A0}: découvrez qui la prépare et réservez.");
+        ->and(__('home.carousel.sentence.food', [], 'fr'))->toBe("Cuisine africaine\u{00A0}: découvrez qui la prépare et réservez.")
+        ->and(__('home.carousel.sentence.locs', [], 'en'))->toBe('Starting and looking after locs, from the first days to maintenance.');
 });
 
 test('the title of the home page says what the site is for', function () {

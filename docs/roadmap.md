@@ -622,6 +622,11 @@ Fuori dagli sprint, prima del lancio: una palette e una tipografia che diano al 
 - **Fatto, PR 1:** palette C (marrone del logo per testo e fascia, turchese di « Laguna » per azioni, focus e stato attivo, arancio e ambra come sfondi, bianco caldo) e tipografia (Atkinson Hyperlegible Next per il testo, Fraunces per i titoli, Noto Sans solo come riserva), con l'anteprima dei link rigenerata ([accessibility.md](accessibility.md), [brand.md](brand.md)).
 - **Fatto, PR 2:** i ritocchi delle pagine: un riquadro neutro uguale per le categorie e le schede senza foto (mai il segno del logo provvisorio), la fascia per i professionisti come scheda chiara, la barretta arancio sotto i titoli delle sezioni, i nomi e i prezzi più marcati, una regola sola per bordi, ombre e angoli, più spazio tra le sezioni della home. L'altezza della fascia in alto resta com'era ([accessibility.md](accessibility.md), [home.md](home.md)).
 
+## Categorie
+
+- **Fatto, PR 1:** le nove categorie (Taglio uomo, Taglio donna, Treccine, Locs, Unghie, Make-up, Ciglia e sopracciglia, Moda afro, Food), con una migrazione di dati che rinomina, unisce ciglia e sopracciglia e aggiunge le nuove senza perdere servizi né prenotazioni; i vecchi slug valgono ancora nel filtro della lista; le foto di Taglio uomo e Unghie sono quelle di prima ([home.md](home.md), [deploy.md](deploy.md)).
+- **PR 2:** il filtro della lista e il modulo dei servizi ordinati per nome tradotto (`sortName()`); le foto delle categorie nuove quando arrivano.
+
 ## Sprint 11: mappa e posizione
 
 Chi cerca vede sulla mappa, accanto alla lista, in quale zona lavorano i professionisti, senza che nessun indirizzo preciso diventi pubblico. Issue #170-#174 (5). Da fare **prima del lancio**: dopo le prime sessioni con i professionisti (Sprint 7) e dopo le decisioni della #170.

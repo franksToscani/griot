@@ -44,6 +44,21 @@ class ProviderIndexRequest extends FormRequest
      */
     public const SORTS = ['name', 'recent', 'price_asc', 'price_desc'];
 
+    /**
+     * The slugs of the categories before the migration rename_and_merge_categories, read as the
+     * new ones: a link shared before the change (?category=barbiere) still filters the list. No
+     * redirect, the address stays as it was. To remove in a few months (after spring 2027), when
+     * the old links are no longer around: then an old slug is ignored like any unknown filter.
+     */
+    public const OLD_CATEGORY_SLUGS = [
+        'barbiere' => 'taglio-uomo',
+        'nails' => 'unghie',
+        'couture' => 'moda-afro',
+        'ristorazione' => 'food',
+        'ciglia' => 'ciglia-sopracciglia',
+        'sopracciglia' => 'ciglia-sopracciglia',
+    ];
+
     /** @var Collection<int, Category>|null */
     private ?Collection $categoryOptions = null;
 
@@ -65,6 +80,13 @@ class ProviderIndexRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->commaToDot('max_price', 4);
+
+        // An old slug of a category becomes the new one before the validation (OLD_CATEGORY_SLUGS).
+        $category = $this->input('category');
+
+        if (is_string($category) && array_key_exists($category, self::OLD_CATEGORY_SLUGS)) {
+            $this->merge(['category' => self::OLD_CATEGORY_SLUGS[$category]]);
+        }
     }
 
     /**

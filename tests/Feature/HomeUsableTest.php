@@ -62,27 +62,27 @@ function huComingSoonCard(): string
 // The categories
 // ---------------------------------------------------------------------------------------------
 
-test('a new site, 7 categories and no professional: every category is there, none offered, by name', function () {
+test('a new site, 9 categories and no professional: every category is there, none offered, by name', function () {
     $this->seed(CategorySeeder::class);
 
     $categories = huCategories();
 
-    expect($categories)->toHaveCount(7)
-        ->and(array_column($categories, 'offered'))->toBe(array_fill(0, 7, false))
-        ->and(array_column($categories, 'name'))->toBe(['Barbiere', 'Ciglia', 'Couture', 'Nails', 'Ristorazione', 'Sopracciglia', 'Treccine']);
+    expect($categories)->toHaveCount(9)
+        ->and(array_column($categories, 'offered'))->toBe(array_fill(0, 9, false))
+        ->and(array_column($categories, 'name'))->toBe(['Ciglia e sopracciglia', 'Food', 'Locs', 'Make-up', 'Moda afro', 'Taglio donna', 'Taglio uomo', 'Treccine', 'Unghie']);
 });
 
 test('with some professionals, the offered categories come first, then the others, each group by name', function () {
     $this->seed(CategorySeeder::class);
     huOffer('treccine');
-    huOffer('barbiere');
+    huOffer('taglio-uomo');
 
     $categories = huCategories();
 
-    expect(array_column($categories, 'slug'))->toBe(['barbiere', 'treccine', 'ciglia', 'couture', 'nails', 'ristorazione', 'sopracciglia'])
-        ->and(array_column($categories, 'offered'))->toBe([true, true, false, false, false, false, false]);
+    expect(array_column($categories, 'slug'))->toBe(['taglio-uomo', 'treccine', 'ciglia-sopracciglia', 'food', 'locs', 'make-up', 'moda-afro', 'taglio-donna', 'unghie'])
+        ->and(array_column($categories, 'offered'))->toBe([true, true, false, false, false, false, false, false, false]);
     // In French the names, and so the order, change; the offered ones stay first.
-    expect(array_column(huCategories('fr'), 'name'))->toBe(['Barbier', 'Tresses', 'Cils', 'Couture', 'Ongles', 'Restauration', 'Sourcils']);
+    expect(array_column(huCategories('fr'), 'name'))->toBe(['Coupe homme', 'Tresses', 'Cils et sourcils', 'Coupe femme', 'Food', 'Locks', 'Maquillage', 'Mode afro', 'Ongles']);
 });
 
 test('the same queries whether no category or every category is offered', function () {
@@ -97,7 +97,7 @@ test('the same queries whether no category or every category is offered', functi
     };
 
     $none = $count();
-    foreach (['treccine', 'barbiere', 'nails', 'ciglia', 'sopracciglia', 'couture', 'ristorazione'] as $slug) {
+    foreach (['taglio-uomo', 'taglio-donna', 'treccine', 'locs', 'unghie', 'make-up', 'ciglia-sopracciglia', 'moda-afro', 'food'] as $slug) {
         huOffer($slug);
     }
 

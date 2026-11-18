@@ -1,7 +1,10 @@
 // The photos of the categories on the home page (issue #144, docs/photos.md): in the carousel and
 // in the row "Categorie". The WebP sizes made by scripts/home-photos.php, imported with Vite (their
 // names get a hash, so a cache never keeps an old one). width and height are those of the largest
-// size. A category that is not here has no slide, and a coloured tile in the row.
+// size. A category that is not here has no slide, and the empty tile in the row.
+// The keys are the slugs of the categories; the files keep the name of their photo (docs/photos.md):
+// "Taglio uomo" (taglio-uomo) uses the photo "barbiere", "Unghie" (unghie) the photo "nails", the
+// names of the categories before the migration rename_and_merge_categories.
 import barbiere1280 from '../../images/home/barbiere-1280.webp';
 import barbiere1920 from '../../images/home/barbiere-1920.webp';
 import barbiere640 from '../../images/home/barbiere-640.webp';
@@ -14,7 +17,7 @@ import treccine640 from '../../images/home/treccine-640.webp';
 import type { HomePhoto } from '@/lib/home-carousel';
 
 export const HOME_PHOTOS: Record<string, HomePhoto> = {
-    barbiere: {
+    'taglio-uomo': {
         width: 1920,
         height: 1280,
         variants: [
@@ -23,7 +26,7 @@ export const HOME_PHOTOS: Record<string, HomePhoto> = {
             { width: 1920, url: barbiere1920 },
         ],
     },
-    nails: {
+    unghie: {
         width: 1920,
         height: 1280,
         variants: [

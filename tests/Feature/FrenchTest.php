@@ -225,7 +225,7 @@ test('every category of the seeder has its name in every language', function () 
     $this->seed(CategorySeeder::class);
     $slugs = Category::query()->orderBy('slug')->pluck('slug');
 
-    expect($slugs)->toHaveCount(7);
+    expect($slugs)->toHaveCount(9);
 
     foreach (glob(lang_path('*.json')) ?: [] as $path) {
         $translations = json_decode((string) file_get_contents($path), true, flags: JSON_THROW_ON_ERROR);
@@ -252,12 +252,12 @@ test('a category shows the name of the language, or its saved name without a key
 test('the filters of the providers list show the categories in French', function () {
     $this->seed(CategorySeeder::class);
     $provider = Provider::factory()->published()->create();
-    Service::factory()->for($provider)->for(Category::query()->where('slug', 'barbiere')->sole())->create();
+    Service::factory()->for($provider)->for(Category::query()->where('slug', 'taglio-uomo')->sole())->create();
     frtFrench();
 
     $categories = frtProps($this->get(route('providers.index')))['filterOptions']['categories'];
 
-    expect(array_column($categories, 'name'))->toContain('Barbier')->not->toContain('Barbiere');
+    expect(array_column($categories, 'name'))->toContain('Coupe homme')->not->toContain('Taglio uomo');
 });
 
 // ---------------------------------------------------------------------------------------------
@@ -307,7 +307,11 @@ test('the French texts of the glossary are exactly the expected ones', function 
 test('the Italian texts changed in this phase are exactly the expected ones', function () {
     expect(__('provider.bookings.create.unpublished_link', [], 'it'))->toBe('Vai al mio pannello')
         ->and(__('categories.treccine', [], 'it'))->toBe('Treccine')
-        ->and(__('categories.ristorazione', [], 'it'))->toBe('Ristorazione');
+        // The categories since rename_and_merge_categories.
+        ->and(__('categories.food', [], 'it'))->toBe('Food')
+        ->and(__('categories.taglio-uomo', [], 'fr'))->toBe('Coupe homme')
+        ->and(__('categories.ciglia-sopracciglia', [], 'fr'))->toBe('Cils et sourcils')
+        ->and(__('categories.locs', [], 'fr'))->toBe('Locks');
 });
 
 // ---------------------------------------------------------------------------------------------

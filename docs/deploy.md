@@ -91,7 +91,7 @@ Traffico delle pagine che si aggiornano da sole ([bookings.md](bookings.md)): og
     php artisan db:seed --class=CategorySeeder --force
     ```
 
-    Mai `php artisan db:seed` senza `--class`: i dati di sviluppo si rifiutano fuori da `local` e `testing`.
+    Mai `php artisan db:seed` senza `--class`: i dati di sviluppo si rifiutano fuori da `local` e `testing`. Su un database che ha già le categorie di prima delle nove (sezione 9, « Le nove categorie ») non serve: le aggiorna la migrazione.
 
 7. **Controllare che il sito sia privato** (`SITE_NOINDEX=true` in `render.yaml`):
 
@@ -238,6 +238,23 @@ Il file contiene dati personali dei clienti: va tenuto in un posto sicuro e canc
 | Data | Tipo (punto nel tempo / esportazione / pg_dump) | Momento ripristinato | Database di destinazione | Controlli fatti (righe di `bookings`, `providers`, `users`) | Esito | Durata | Note |
 | ---- | ----------------------------------------------- | -------------------- | ------------------------ | ----------------------------------------------------------- | ----- | ------ | ---- |
 |      |                                                 |                      |                          |                                                             |       |        |      |
+
+### Le nove categorie (migrazione `rename_and_merge_categories`)
+
+Una migrazione di soli dati: rinomina quattro categorie (`barbiere` → `taglio-uomo`, `nails` → `unghie`, `couture` → `moda-afro`, `ristorazione` → `food`), unisce `ciglia` e `sopracciglia` in `ciglia-sopracciglia` spostando i servizi, e aggiunge `taglio-donna`, `locs` e `make-up`. Parte **da sola al deploy**, come ogni migrazione: il `preDeployCommand` di `render.yaml` lancia `php artisan migrate --force` prima che la versione nuova parta. La sequenza sicura:
+
+1. **Prima del merge**, i conteggi dalla **Shell** del servizio (sola lettura):
+
+    ```bash
+    php artisan tinker --execute="foreach (App\Models\Category::withCount('services')->orderBy('slug')->get() as \$c) echo \$c->slug.' '.\$c->services_count.PHP_EOL;"
+    ```
+
+    Annotare anche il totale dei servizi e delle prenotazioni (`App\Models\Service::count()`, `App\Models\Booking::count()`).
+
+2. **Una copia del database**: un'esportazione dalla dashboard o un `pg_dump`, come in questa sezione. Il `down()` della migrazione **non sa separare** i servizi uniti di ciglia e sopracciglia: per tornare indietro del tutto serve questa copia.
+3. **Merge** su `main`: con i controlli verdi parte il deploy, e il `preDeployCommand` lancia la migrazione. Se fallisce, il deploy si ferma e la versione di prima resta online (la migrazione è in una transazione: tutto o niente).
+4. **Dopo il deploy**, gli stessi conteggi: nove categorie; i servizi di `barbiere`, `nails`, `couture` e `ristorazione` sotto i nomi nuovi; `ciglia-sopracciglia` con la somma di ciglia e sopracciglia; `taglio-donna`, `locs` e `make-up` a 0. Il totale dei servizi e delle prenotazioni **identico** a prima.
+5. **Il `CategorySeeder` non serve**: la migrazione fa tutto. Se lo si lancia, deve essere la versione nuova (nove slug): quella vecchia ricreerebbe `barbiere` e le altre come categorie in più.
 
 ## 10. Aggiornare un segreto
 

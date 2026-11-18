@@ -221,13 +221,15 @@ test('the categories have their English names', function () {
     app()->setLocale('en');
 
     expect(Category::query()->orderBy('slug')->get()->mapWithKeys(fn (Category $category) => [$category->slug => $category->displayName()])->all())->toBe([
-        'barbiere' => 'Barber',
-        'ciglia' => 'Lashes',
-        'couture' => 'Couture',
-        'nails' => 'Nails',
-        'ristorazione' => 'Food',
-        'sopracciglia' => 'Brows',
+        'ciglia-sopracciglia' => 'Lashes & brows',
+        'food' => 'Food',
+        'locs' => 'Locs',
+        'make-up' => 'Make-up',
+        'moda-afro' => 'Afro fashion',
+        'taglio-donna' => "Women's haircut",
+        'taglio-uomo' => "Men's haircut",
         'treccine' => 'Braids',
+        'unghie' => 'Nails',
     ]);
 });
 

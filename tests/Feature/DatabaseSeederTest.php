@@ -34,7 +34,7 @@ test('the seeder creates the development data', function () {
 
     expect(seededTableCounts())->toBe([
         'users' => 5,
-        'categories' => 7,
+        'categories' => 9,
         'providers' => 4,
         'services' => 10,
         'service_options' => 14,

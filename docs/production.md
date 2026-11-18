@@ -63,6 +63,8 @@ Finché i testi legali non sono rivisti ([legal.md](legal.md)) il sito è online
     php artisan db:seed --class=CategorySeeder --force
     ```
 
+- Le nove categorie di oggi (`taglio-uomo`, `taglio-donna`, `treccine`, `locs`, `unghie`, `make-up`, `ciglia-sopracciglia`, `moda-afro`, `food`) sono arrivate su un database che aveva le sette di prima con la migrazione di dati `rename_and_merge_categories`, lanciata dal `preDeployCommand`: copia del database prima, conteggi prima e dopo, mai il seeder vecchio ([deploy.md](deploy.md), sezione 9).
+
 - `DatabaseSeeder`, `ProviderSeeder` e `BookingSeeder` scrivono dati di sviluppo (account con la password nota `password`, professionisti e prenotazioni inventati): fuori da `local` e `testing` si fermano con un'eccezione prima di scrivere qualsiasi cosa (`Database\Seeders\DevelopmentOnly`). Quindi mai `php artisan db:seed` senza `--class` in produzione: si fermerebbe comunque.
 
 ## Account dei professionisti
