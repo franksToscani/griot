@@ -77,6 +77,7 @@ Finché i testi legali non sono rivisti ([legal.md](legal.md)) il sito è online
     Il comando crea l'utente (email già verificata: la scrive il gestore) e il suo provider **non pubblicato**, con lo stesso nome e la città. Stampa una password iniziale casuale di 20 caratteri **una sola volta**: non viene salvata in chiaro né scritta nei log. Rifiuta un'email già usata (anche con maiuscole diverse), un'email non valida, un nome oltre 150 caratteri o una città vuota.
 
 - La password va comunicata al professionista in modo sicuro. Lui la cambia in « Impostazioni → Sicurezza » o con « Password dimenticata ». **Oggi niente obbliga a cambiarla al primo accesso**: se serve, è un lavoro a parte.
+- **Se la password mostrata non funziona, usare « Password dimenticata »** dalla pagina di login. Fino a novembre 2026 il comando poteva stampare una password diversa da quella salvata (circa una volta su 220: una `\` prima di `<` o `>` spariva, `</>` non compariva); ora il valore è stampato con `OutputFormatter::escape` ed è sempre quello salvato. Le password già create non cambiano.
 
 ## Dati condivisi con le pagine
 

@@ -7,6 +7,7 @@ use App\Models\Provider;
 use App\Models\Service;
 use App\Models\User;
 use App\Providers\AppServiceProvider;
+use App\Support\InitialPassword;
 use Database\Seeders\BookingSeeder;
 use Database\Seeders\CategorySeeder;
 use Database\Seeders\DatabaseSeeder;
@@ -96,6 +97,36 @@ test('provider:create makes the user and an unpublished provider, the password s
     Artisan::call('provider:create', ['name' => 'Trecce Lagos', 'email' => 'lagos@example.test', 'city' => 'Milano']);
     expect(Artisan::output())->not->toContain($password);
 });
+
+test('provider:create shows exactly the saved password, even with the characters of the console formatter', function (string $password) {
+    // The symbols of Str::password() include "<", ">" and "\": unescaped, the formatter shows
+    // "\<" as "<" and drops "</>" and "<info>", so the password shown is not the saved one.
+    expect(strlen($password))->toBe(InitialPassword::LENGTH);
+
+    $this->instance(InitialPassword::class, new class($password) extends InitialPassword
+    {
+        public function __construct(private readonly string $fixed) {}
+
+        public function generate(): string
+        {
+            return $this->fixed;
+        }
+    });
+
+    $code = Artisan::call('provider:create', ['name' => 'Trecce Sahel', 'email' => 'sahel@example.test', 'city' => 'Bologna']);
+    $output = Artisan::output();
+    $user = User::query()->where('email', 'sahel@example.test')->firstOrFail();
+
+    expect($code)->toBe(0)
+        // The whole value, at the end of its line, once.
+        ->and($output)->toContain(": {$password}\n")
+        ->and(substr_count($output, $password))->toBe(1)
+        ->and(Hash::check($password, $user->password))->toBeTrue();
+})->with([
+    'escapes, a closing tag, a style, a backslash at the end' => ['a\\<b\\>c</>d<info>ef\\'],
+    'only escapes' => ['\\<\\>\\<\\>\\<\\>\\<\\>\\<\\>'],
+    'a colour, a tag, two backslashes before "<"' => ['<fg=red>x</>\\\\<b>ok\\'],
+]);
 
 test('provider:create refuses an email already used, and wrong data, without creating anything', function (array $arguments) {
     User::factory()->create(['email' => 'taken@example.test']);
