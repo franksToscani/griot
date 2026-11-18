@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Category;
+use Database\Seeders\CategorySeeder;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 
@@ -11,13 +13,14 @@ const HPH_WIDTHS = [640, 1280, 1920];
 const HPH_LIMITS = [640 => 60 * 1024, 1280 => 150 * 1024, 1920 => 300 * 1024];
 
 /**
- * The photos listed in resources/js/lib/home-photos.ts: slug => [widths].
+ * The photos listed in resources/js/lib/home-photos.ts: slug => [widths]. Read with a path of its
+ * own: the dataset of the first test calls it before the application exists (no resource_path()).
  *
  * @return array<string, list<int>>
  */
 function hphListed(): array
 {
-    preg_match_all("/import \\w+ from '\\.\\.\\/\\.\\.\\/images\\/home\\/([a-z-]+?)-(\\d+)\\.webp';/", (string) file_get_contents(resource_path('js/lib/home-photos.ts')), $imports, PREG_SET_ORDER);
+    preg_match_all("/import \\w+ from '\\.\\.\\/\\.\\.\\/images\\/home\\/([a-z-]+?)-(\\d+)\\.webp';/", (string) file_get_contents(dirname(__DIR__, 2).'/resources/js/lib/home-photos.ts'), $imports, PREG_SET_ORDER);
     $photos = [];
     foreach ($imports as [, $slug, $width]) {
         $photos[$slug][] = (int) $width;
@@ -81,14 +84,14 @@ test('every size of every photo exists, is a real WebP of the right size, under 
     expect(substr($bytes, 0, 4).substr($bytes, 8, 4))->toBe('RIFFWEBP')
         ->and($size[2])->toBe(IMAGETYPE_WEBP)
         ->and($size[0])->toBe($width)
-        // The originals are 3:2 and are not cut.
+        // 3:2: the originals are, or are cut to it (CROPS of the script).
         ->and($size[1])->toBe((int) round($width * 2 / 3))
         ->and(strlen($bytes))->toBeLessThanOrEqual(HPH_LIMITS[$width], "{$slug}-{$width}: ".strlen($bytes).' bytes');
     // Only the pixels: no EXIF, no XMP, no ICC profile.
     expect(array_intersect(hphChunks($bytes), ['EXIF', 'XMP ', 'ICCP']))->toBe([]);
 })->with(function () {
-    foreach (['barbiere', 'nails', 'treccine'] as $slug) {
-        foreach (HPH_WIDTHS as $width) {
+    foreach (hphListed() as $slug => $widths) {
+        foreach ($widths as $width) {
             yield "{$slug} {$width}" => [$slug, $width];
         }
     }
@@ -107,7 +110,12 @@ test('the folder holds the WebP sizes and nothing else: no original, no file tha
     sort($expected);
 
     expect($files)->toBe($expected)
-        ->and(hphListed())->toBe(['barbiere' => HPH_WIDTHS, 'nails' => HPH_WIDTHS, 'treccine' => HPH_WIDTHS]);
+        // Treccine, Locs and Make-up, cut to 3:2, are narrower than 1920 px: never enlarged, so no 1920.
+        ->and(hphListed())->toBe([
+            'barbiere' => HPH_WIDTHS, 'nails' => HPH_WIDTHS, 'treccine' => [640, 1280],
+            'taglio-donna' => HPH_WIDTHS, 'locs' => [640, 1280], 'make-up' => [640, 1280],
+            'ciglia-sopracciglia' => HPH_WIDTHS, 'moda-afro' => HPH_WIDTHS, 'food' => HPH_WIDTHS,
+        ]);
     // No original anywhere among the images of the site.
     foreach (File::allFiles(resource_path('images')) as $file) {
         expect(strtolower($file->getExtension()))->not->toBeIn(['jpg', 'jpeg', 'png', 'heic', 'gif', 'tif', 'tiff'], $file->getPathname());
@@ -118,7 +126,12 @@ test('the size written in home-photos.ts is the size of the largest file', funct
     $source = (string) file_get_contents(resource_path('js/lib/home-photos.ts'));
 
     // The key is the slug of the category, the file keeps the name of its photo (docs/photos.md).
-    $keys = ['barbiere' => "'taglio-uomo'", 'nails' => 'unghie', 'treccine' => 'treccine'];
+    $keys = [
+        'barbiere' => "'taglio-uomo'", 'nails' => 'unghie', 'treccine' => 'treccine',
+        // The photos added later have the name of their category.
+        'taglio-donna' => "'taglio-donna'", 'locs' => 'locs', 'make-up' => "'make-up'",
+        'ciglia-sopracciglia' => "'ciglia-sopracciglia'", 'moda-afro' => "'moda-afro'", 'food' => 'food',
+    ];
 
     foreach (hphListed() as $photo => $widths) {
         $largest = getimagesize(base_path(HPH_DIR."/{$photo}-".max($widths).'.webp'));
@@ -137,7 +150,8 @@ test('the script declares its sizes, limits and the zones made unreadable for ba
         ->toContain('const WIDTHS = [640, 1280, 1920];')
         ->toContain('const LIMITS = [640 => 60 * 1024, 1280 => 150 * 1024, 1920 => 300 * 1024];')
         ->toContain('const QUALITY = 80;')
-        ->toContain('const MIN_QUALITY = 70;')
+        // 64 since the photo of Moda afro: its fabrics are detailed, at 70 its 640 size is over 60 KB.
+        ->toContain('const MIN_QUALITY = 64;')
         ->toContain('const BLOCK = 48;')
         ->toContain('pixelate($source, $x1, $y1, $x2, $y2);')
         // Only GD: nothing downloaded.
@@ -153,6 +167,56 @@ test('the script declares its sizes, limits and the zones made unreadable for ba
             expect((string) file_get_contents(base_path('docs/photos.md')))->toContain("`{$zone}`");
         }
     }
+});
+
+test('the crops: 3:2, written in the documentation, a photo that is not 3:2 stops the script', function () {
+    $script = (string) file_get_contents(base_path('scripts/home-photos.php'));
+    $doc = (string) file_get_contents(base_path('docs/photos.md'));
+
+    expect(preg_match('/const CROPS = \[([\s\S]*?)\n\];/', $script, $block))->toBe(1);
+    preg_match_all("/'([a-z-]+)' => \[(\d+), (\d+), (\d+), (\d+)\],/", $block[1], $crops, PREG_SET_ORDER);
+
+    expect(array_column($crops, 1))->toBe(['taglio-donna', 'treccine', 'locs', 'make-up', 'moda-afro']);
+    foreach ($crops as [, $slug, $x, $y, $width, $height]) {
+        expect((int) $width * 2)->toBe((int) $height * 3, "{$slug} is not 3:2")
+            // Each crop is written in the table of docs/photos.md.
+            ->and($doc)->toContain("`[{$x}, {$y}, {$width}, {$height}]`");
+    }
+    expect($script)
+        ->toContain('if ($w * 2 !== $h * 3 || $x + $w > imagesx($source) || $y + $h > imagesy($source)) {')
+        // A photo that is not 3:2 once cut (or not cut) stops the script, before any file.
+        ->toContain('if (abs($width * 2 - $height * 3) > 3) {')
+        ->toContain('is not 3:2, add it to CROPS');
+});
+
+test('every category of the site has its photo: none shows the empty tile any more', function () {
+    $source = (string) file_get_contents(resource_path('js/lib/home-photos.ts'));
+    preg_match_all("/^    '?([a-z-]+)'?: \{/m", $source, $keys);
+    // The nine categories of the seeder.
+    (new CategorySeeder)->run();
+    $seeded = Category::query()->orderBy('slug')->pluck('slug')->all();
+
+    expect(collect($keys[1])->sort()->values()->all())->toBe($seeded)
+        ->and($seeded)->toHaveCount(9);
+});
+
+test('a category "In arrivo" with a photo shows the photo and stays "In arrivo": offered is computed, never the photo', function () {
+    $script = sys_get_temp_dir().'/griot-photos-'.bin2hex(random_bytes(6)).'.mts';
+    $helper = resource_path('js/lib/home-categories.ts');
+    file_put_contents($script, "import * as h from '{$helper}';
+const photo = { width: 1920, height: 1280, variants: [{ width: 640, url: '/f-640.webp' }] };
+console.log(JSON.stringify(h.categoryCards([{ id: 9, slug: 'food', name: 'Food', offered: false }, { id: 2, slug: 'locs', name: 'Locs', offered: true }], { food: photo, locs: photo })));\n");
+
+    try {
+        $result = Process::run(['node', '--experimental-strip-types', '--no-warnings', $script]);
+    } finally {
+        unlink($script);
+    }
+
+    expect($result->successful())->toBeTrue($result->errorOutput());
+    $cards = json_decode($result->output(), true, flags: JSON_THROW_ON_ERROR);
+    expect(array_column($cards, 'offered'))->toBe([false, true])
+        ->and($cards[0]['image']['src'])->toBe('/f-640.webp');
 });
 
 test('the zones are pixelated in the largest size: every block is one flat colour', function (string $slug, int $originalWidth, int $count) {
@@ -214,7 +278,11 @@ test('docs/photos.md has a complete row for every photo of the site, and none fo
     expect((string) file_get_contents(base_path('docs/photos.md')))
         ->toContain('Prima del lancio ricontrollare la licenza sulla pagina ufficiale di ogni foto.')
         ->toContain('Per Pexels verificare anche se il credito')
-        ->toContain('verificato a occhio da Franks il 2026-11-07, l\'età non è indicata nella pagina di Unsplash');
+        ->not->toContain('3IhcN94zWwk');
+
+    // Treccine since 2026-11-18: the photo of foto bakirkoy, in place of the one of Alex Robinson.
+    $braids = collect($sources)->firstWhere(0, 'treccine');
+    expect($braids)->toBe(['treccine', 'Unsplash', 'foto bakirkoy', 'https://unsplash.com/it/foto/una-donna-con-le-trecce-in-piedi-nel-buio-SYN2I837gmY', 'Unsplash License (gratuita, non Unsplash+)', '2026-11-18']);
 });
 
 // ---------------------------------------------------------------------------------------------
