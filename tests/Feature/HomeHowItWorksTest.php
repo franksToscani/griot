@@ -85,11 +85,38 @@ test('the steps are no links: they appear on scroll, nothing moves under the mou
     $page = hiwSource('components/home/how-it-works.tsx');
     preg_match('/<ol ref=\{steps\}[\s\S]*?<\/ol>/', $page, $list);
 
+    // The light of a card is STEP_GLOW only, never written in the list itself.
     expect($list[0] ?? '')->not->toBe('')
         ->and($list[0])->toContain('className="reveal-item ')
         ->toContain('style={revealDelay(index)}')
-        ->not->toMatch('/CARD_MOTION|hover:|<a\b|<Link\b|group-hover/');
+        ->not->toMatch('/CARD_MOTION|hover:|focus-within:|<a\b|<Link\b|group-hover|tabIndex/');
     expect($page)->toContain('const steps = useReveal<HTMLOListElement>();');
+});
+
+test('the card of a step lights up under the mouse and with the focus inside: a border and a halo, nothing moves', function () {
+    $page = hiwSource('components/home/how-it-works.tsx');
+
+    expect(preg_match("/const STEP_GLOW =\\s*'([^']+)';/", $page, $glow))->toBe(1);
+    $classes = preg_split('/\s+/', $glow[1]);
+
+    // The same light for the mouse and for the focus: an orange border and a halo (box-shadow).
+    $light = ['border-brand', 'shadow-lg', 'ring-4', 'shadow-brand/20', 'ring-brand/30'];
+    expect(array_values(array_filter($classes, fn (string $class) => str_starts_with($class, 'hover:'))))
+        ->toBe(array_map(fn (string $class) => "hover:{$class}", $light))
+        ->and(array_values(array_filter($classes, fn (string $class) => str_starts_with($class, 'focus-within:'))))
+        ->toBe(array_map(fn (string $class) => "focus-within:{$class}", $light));
+    // The light comes in 200 ms without "reduce motion", at once with it; only the colour of the
+    // border and the shadow change: never a move, a size or a scale.
+    expect(array_values(array_filter($classes, fn (string $class) => str_starts_with($class, 'motion-safe:'))))
+        ->toBe(['motion-safe:transition-[border-color,box-shadow]', 'motion-safe:duration-200', 'motion-safe:ease-out'])
+        ->and($classes)->toHaveCount(13)
+        ->and($glow[1])->not->toMatch('/translate|scale|(?<![\w-])(size|w|h|p|m|px|py|mx|my|inset|top|left)-|border-\d|border-[xytrbl]\b/');
+
+    // On the card of each step, which keeps its 1px border and never takes the focus.
+    expect($page)->toMatch("/<div\\s+className=\\{cn\\(\\s*'flex flex-col gap-3 rounded-xl border bg-card p-4 text-card-foreground md:w-full',\\s*STEP_GLOW,?\\s*\\)\\}\\s*>/")
+        ->and(substr_count($page, 'STEP_GLOW'))->toBe(2)
+        ->and($page)->not->toContain('tabIndex={0}')
+        ->not->toMatch('/onPointerMove|onMouseMove|--mouse|clientX/');
 });
 
 // ---------------------------------------------------------------------------------------------
@@ -197,7 +224,9 @@ test('only tokens of the palette, the orange never near an error', function () {
     // primary and primary-foreground: the badge with the number of a step (since the PR of the empty home page).
     // secondary, the orange left edge (border-l-4, border-l-brand) and the usual ring: the light card
     // of the professionals (visual polish).
-    $allowed = ['hero', 'hero-foreground', 'input', 'highlight', 'highlight-foreground', 'brand', 'card', 'card-foreground', 'muted-foreground', 'primary', 'primary-foreground', 'secondary', 'secondary-foreground', 'ring', 'l-4', 'l-brand', 'xl', 'sm', 'lg'];
+    // The light of the steps (STEP_GLOW): the orange (brand) border and halo; "4" is the width of the
+    // halo (ring-4) and "color" the property of its transition (border-color), not colours.
+    $allowed = ['hero', 'hero-foreground', 'input', 'highlight', 'highlight-foreground', 'brand', 'card', 'card-foreground', 'muted-foreground', 'primary', 'primary-foreground', 'secondary', 'secondary-foreground', 'ring', 'l-4', 'l-brand', 'xl', 'sm', 'lg', '4', 'color'];
 
     expect(array_values(array_diff($tokens, $allowed)))->toBe([])
         ->and($sources)->not->toMatch('/#[0-9a-fA-F]{6}\b|rgba?\(|oklch\(/')

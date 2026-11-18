@@ -27,14 +27,15 @@ class HomeController extends Controller
 
         // Every category, so that a new site still shows what it will offer (docs/home.md). The
         // offered ones first (something to book: an active service of a published provider), then
-        // the others, each group sorted on the name shown, which depends on the language. One query.
-        $byName = fn (Category $category) => $category->displayName();
+        // the others, each group in alphabetical order of the name shown, which depends on the
+        // language: Category::sortName(), the same rule as the list and the services. One query.
+        $byName = fn (Category $category) => $category->sortName();
         [$offered, $comingSoon] = Category::query()
             ->withOffered()
             ->get()
             ->partition(fn (Category $category) => (bool) $category->offered);
-        $categories = $offered->sortBy($byName, SORT_NATURAL | SORT_FLAG_CASE)
-            ->concat($comingSoon->sortBy($byName, SORT_NATURAL | SORT_FLAG_CASE))
+        $categories = $offered->sortBy($byName)
+            ->concat($comingSoon->sortBy($byName))
             ->values();
 
         return Inertia::render('home', [

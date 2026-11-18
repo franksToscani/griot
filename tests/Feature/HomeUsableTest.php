@@ -110,7 +110,7 @@ test('a category not offered yet: no link, no focus, nothing that moves, and "In
     $card = huComingSoonCard();
 
     expect($card)
-        ->toMatch('/return \(\s*<div className="flex w-36 flex-col gap-2">\s*<CardImage card=\{card\} \/>/')
+        ->toMatch("/return \\(\\s*<div className=\\{cn\\('flex flex-col gap-2', CATEGORY_CARD\\.width\\)\\}>\\s*<CardImage card=\\{card\\} \\/>/")
         ->toContain("{t('home.categories.coming_soon')}")
         ->not->toMatch('/<Link\b|<a\b|href=|tabIndex|onClick|role=/')
         ->not->toMatch('/CARD_MOTION|hover:|group|focus-visible|touchTarget|cursor-pointer/');
