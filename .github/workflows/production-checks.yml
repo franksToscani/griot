@@ -9,6 +9,10 @@ on:
     branches:
       - main
   pull_request:
+  # Every Monday, so that an advisory published meanwhile, or an exception of the npm audit that
+  # has expired (docs/ci.md), turns the audit red even without a push. Only the audit runs then.
+  schedule:
+    - cron: '17 6 * * 1'
 
 permissions:
   contents: read
@@ -66,10 +70,13 @@ jobs:
       - name: Composer audit (production packages)
         run: composer audit --no-dev
 
+      # npm audit --omit=dev, with the exceptions that expire of docs/ci.md.
       - name: npm audit (production packages)
-        run: npm audit --omit=dev
+        run: node scripts/npm-audit.mjs
 
   production-build:
+    # Not on the weekly run, which checks the advisories only.
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -193,6 +200,8 @@ jobs:
           curl -s -D - -o /dev/null http://127.0.0.1:8000/ | grep -qi '^x-content-type-options: nosniff'
 
   tests-postgres:
+    # Not on the weekly run, which checks the advisories only.
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -273,6 +282,8 @@ jobs:
   # are throwaway: a key made here, a database and a mail host on example.test that are never
   # reached (/up needs neither).
   docker-build:
+    # Not on the weekly run, which checks the advisories only.
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
