@@ -1,5 +1,5 @@
 import { Form, Link } from '@inertiajs/react';
-import { CalendarPlus } from 'lucide-react';
+import { CalendarPlus, Download } from 'lucide-react';
 import { useRef, useState } from 'react';
 import InputError from '@/components/input-error';
 import { NewTabHint } from '@/components/new-tab-hint';
@@ -32,6 +32,7 @@ import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
 // Explicit names: '@/routes/bookings' has the customer's own "cancel".
 import {
+    calendar as calendarFile,
     cancel as cancelBooking,
     confirm as confirmBooking,
     reject as rejectBooking,
@@ -278,12 +279,15 @@ export function BookingCard({
                         </Button>
                     </div>
                 )}
-                {/* "Add to Google Calendar" (GoogleCalendarLink): only for a confirmed booking still to
-                    come. A plain link: Google gets the event only when the provider clicks, never
-                    the Referer (noreferrer), and the event does not follow a later cancellation. */}
+                {/* The booking in the provider's calendar (CalendarEvent): only for a confirmed booking
+                    still to come. "Add to Google Calendar" (GoogleCalendarLink) is a plain link that
+                    Google gets only when the provider clicks, never with the Referer (noreferrer);
+                    the .ics file (IcsFile) is downloaded on the provider's device, no other site
+                    gets it. Both follow the same rule, so google_calendar_url says for both whether
+                    there is an event. Neither follows a later cancellation: the note says so. */}
                 {booking.google_calendar_url !== null && (
                     <div className="grid gap-1">
-                        <div>
+                        <div className="flex flex-wrap gap-2">
                             <Button
                                 variant="outline"
                                 size="sm"
@@ -300,6 +304,20 @@ export function BookingCard({
                                         'provider.bookings.google_calendar_button',
                                     )}
                                     <NewTabHint />
+                                </a>
+                            </Button>
+                            {/* A plain link with "download", never Inertia's Link: it is a file. */}
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                                className={wrappingLabel}
+                            >
+                                <a href={calendarFile(booking.id).url} download>
+                                    <Download aria-hidden="true" />
+                                    {t(
+                                        'provider.bookings.calendar_file_button',
+                                    )}
                                 </a>
                             </Button>
                         </div>

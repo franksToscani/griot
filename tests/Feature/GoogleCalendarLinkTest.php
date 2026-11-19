@@ -195,7 +195,8 @@ test('the button: a link in a new tab without the Referer, the hint for screen r
         ->toContain('<NewTabHint />')
         ->toMatch("/\\{t\\(\\s*'provider\\.bookings\\.google_calendar_note',?\\s*\\)\\}/")
         ->not->toMatch('/aria-label(?!ledby)/');
-    expect($card)->toContain("import { CalendarPlus } from 'lucide-react';");
+    // CalendarPlus from lucide (with Download, the icon of the .ics file since BookingIcsFileTest).
+    expect($card)->toMatch("/import \\{[^}]*\\bCalendarPlus\\b[^}]*\\} from 'lucide-react';/");
 });
 
 test('the texts exist in the three languages, with the French spaces, and the privacy page names Google', function () {

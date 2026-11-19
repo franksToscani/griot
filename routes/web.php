@@ -11,6 +11,7 @@ use App\Http\Controllers\ProviderAvailabilityIndexController;
 use App\Http\Controllers\ProviderAvailabilityStoreController;
 use App\Http\Controllers\ProviderAvailabilityUpdateController;
 use App\Http\Controllers\ProviderAvatarController;
+use App\Http\Controllers\ProviderBookingCalendarController;
 use App\Http\Controllers\ProviderBookingCancelController;
 use App\Http\Controllers\ProviderBookingConfirmController;
 use App\Http\Controllers\ProviderBookingController;
@@ -146,6 +147,12 @@ Route::middleware(['auth', 'verified', ShareProviderNavigation::class])->group(f
         ->whereNumber('booking')
         ->middleware(PrivateProviderPage::class)
         ->name('provider.bookings.show');
+    // The .ics file of the same booking (confirmed and still to come, else 404), with the same
+    // headers as the private pages: never cached, never indexed.
+    Route::get('provider/bookings/{booking}/calendar.ics', ProviderBookingCalendarController::class)
+        ->whereNumber('booking')
+        ->middleware(PrivateProviderPage::class)
+        ->name('provider.bookings.calendar');
     Route::post('provider/bookings', ProviderBookingStoreController::class)
         ->middleware('throttle:provider-bookings')
         ->name('provider.bookings.store');
