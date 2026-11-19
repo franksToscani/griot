@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\ProviderEditResource;
+use App\Support\PublicUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -32,6 +33,9 @@ class ProviderEditController extends Controller
         return Inertia::render('provider/edit', [
             // resolve() gives the provider's fields directly, without a "data" wrapper.
             'provider' => (new ProviderEditResource($provider))->resolve($request),
+            // The public origin of the site, on APP_URL (PublicUrl): the page writes the whole
+            // address of the public page under the address field, while it is being typed.
+            'app_url' => PublicUrl::to(''),
         ]);
     }
 }

@@ -146,7 +146,7 @@ test('the list, the area and the edit page keep their own data', function () {
 
     $this->actingAs($provider->user)
         ->get(route('dashboard'))
-        ->assertInertia(fn (Assert $page) => $page->has('provider', 5));
+        ->assertInertia(fn (Assert $page) => $page->has('provider', 6));
 
     // The edit page: the card's own fields (PR C), not the public ones.
     $this->actingAs($provider->user)

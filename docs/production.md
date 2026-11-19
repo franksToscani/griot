@@ -95,6 +95,16 @@ Finché i testi legali non sono rivisti ([legal.md](legal.md)) il sito è online
     - `Strict-Transport-Security: max-age=31536000` solo in produzione e solo su una richiesta https; senza sottodomini e senza preload finché il dominio non è scelto.
 - **Nessuna Content-Security-Policy** per ora: lo script in linea del tema in `app.blade.php` richiede prima un nonce. È un lavoro a parte.
 
+## « Il tuo link »: indirizzi su `APP_URL`
+
+- **Ogni indirizzo che esce dal sito nasce da `APP_URL`**, mai dall'host della richiesta: `App\Support\PublicUrl::to()`, usata dalle anteprime dei link (`LinkPreview`) e dal link del professionista. `route()` da solo, durante una richiesta, seguirebbe l'host con cui il sito è stato aperto (per esempio l'indirizzo `onrender.com` del servizio).
+- **Il riquadro « Il tuo link »** nella dashboard (`components/provider-link-card.tsx`): l'indirizzo completo della pagina pubblica (`public_url` di `ProviderAreaResource`, `PublicUrl::to(route('providers.show', $slug, absolute: false))`) in un campo di sola lettura su più righe, che va a capo anche a 320 px.
+    - **Pagina pubblicata:** « Copia » (Clipboard API; se non c'è o fallisce, il testo viene selezionato con « Premi Ctrl+C o tieni premuto per copiare »), « Condividi » solo dove esiste `navigator.share` (chiudere la finestra di condivisione non dà messaggi), « Invia su WhatsApp » (`https://wa.me/?text=…` con un testo fisso nella lingua dell'interfaccia, `lib/whatsapp.ts`, in una nuova scheda senza Referer). L'esito di Copia e Condividi in una riga `role="status"`.
+    - **Pagina non pubblicata:** solo l'indirizzo e un avviso (chi apre il link vede « Pagina non trovata »), senza pulsanti: la pagina dà 404 a tutti.
+- **Nel profilo**, sotto « Indirizzo della tua pagina », l'indirizzo completo mentre si scrive (`app_url` della pagina più la rotta di Wayfinder), solo quando lo slug rispetta la regola del server. Il testo d'aiuto ricorda che cambiare lo slug rompe i vecchi link: non c'è un redirect dai vecchi slug.
+- `public_url` e `app_url` esistono solo nella dashboard e nel profilo del professionista, mai nelle pagine pubbliche né nelle props condivise (`ProviderLinkTest`). L'indirizzo è comunque pubblico: nessun dato nuovo, l'informativa non cambia.
+- **Cambio di dominio:** basta aggiornare `APP_URL`. I link già diffusi con il vecchio indirizzo non cambiano ([deploy.md](deploy.md), sezione 13).
+
 ## App installabile (manifest, nessun service worker)
 
 Griot si può aggiungere alla schermata Home di un iPhone, di un telefono Android o di un computer e si apre in una finestra sua, senza la barra del browser. Serve solo a questo: **niente uso offline e niente notifiche**.
