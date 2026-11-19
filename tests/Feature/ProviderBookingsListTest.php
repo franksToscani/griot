@@ -170,6 +170,13 @@ test('each booking has exactly the expected keys, and the private token is only 
             'Ciao Awa Diop, Salone Awa ha confermato la tua prenotazione di Box braids per mercoledì 21 ottobre 2026, 09:00–10:15.'
             ."\n\nDettagli: ".route('bookings.show', ['booking' => $booking->public_token])
         ),
+        // Confirmed and still to come: "Add to Google Calendar", without the private code (the
+        // booking in the provider's area, by its id).
+        'google_calendar_url' => 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+            .'&text='.rawurlencode('Box braids – Awa Diop')
+            .'&dates='.rawurlencode('20261021T070000Z/20261021T081500Z')
+            .'&ctz='.rawurlencode('Europe/Rome')
+            .'&details='.rawurlencode('Prenotazione su Griot: '.route('provider.bookings.show', ['booking' => $booking->id])."\nOpzioni: Perline"),
         // Sent by a customer from the public page.
         'created_by_provider' => false,
         // The customer's data are still there (retention, DataRetentionTest).

@@ -67,9 +67,10 @@ test('every link that opens a new tab says so to screen readers, and has no open
     // booking's page (#140); the WhatsApp answer in the bookings list; the kit's footer links
     // (none configured yet); the site's WhatsApp in the footer of the public pages (#144), in
     // the band for the professionals on the home page, in the help panel of the home page and in
-    // the invitation of the empty list (the PR of the empty home page).
+    // the invitation of the empty list (the PR of the empty home page); "Add to Google Calendar" in
+    // the bookings list, next to the WhatsApp answer.
     sort($found);
-    expect($found)->toBe(['booking-sheet.tsx', 'floating-actions.tsx', 'nav-footer.tsx', 'privacy-link.tsx', 'professionals-band.tsx', 'professionals-invite.tsx', 'provider-booking-card.tsx', 'public-layout.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx']);
+    expect($found)->toBe(['booking-sheet.tsx', 'floating-actions.tsx', 'nav-footer.tsx', 'privacy-link.tsx', 'professionals-band.tsx', 'professionals-invite.tsx', 'provider-booking-card.tsx', 'provider-booking-card.tsx', 'public-layout.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx', 'show.tsx']);
 });
 
 test('the new-tab notice is one translated text, hidden on screen', function () {

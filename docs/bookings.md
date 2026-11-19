@@ -214,6 +214,21 @@ La pagina privata del cliente aggiunge `<meta name="referrer" content="no-referr
 - La richiesta degli orari (`use-free-slots.ts`) manda `X-Requested-With: XMLHttpRequest`, come le visite Inertia, così Laravel non la salva come « URL precedente ».
 - Sulla pagina privata, `return_to` contiene il codice segreto. Viaggia nel corpo di un `POST` verso lo stesso sito, mai in un indirizzo, quindi non finisce nei log di accesso; Griot non lo scrive nei log. Il codice è già nella sessione come « URL precedente » quando la pagina viene aperta dal link.
 
+## Aggiungi a Google Calendar
+
+Nella scheda di una prenotazione del professionista (`components/provider-booking-card.tsx`, nella lista e nella pagina della prenotazione), accanto a « Avvisa su WhatsApp »: un link che apre Google Calendar con l'evento già scritto, e il professionista lo salva. Nessuna API, nessuna chiave, nessun account collegato: un indirizzo costruito sul server (`App\Booking\GoogleCalendarLink`, campo `google_calendar_url` di `ProviderBookingResource`).
+
+- **Quando c'è:** solo per una prenotazione **confermata**, non resa anonima e che non è ancora cominciata (confronto con l'ora del server). Anche per quelle scritte dal professionista, che nascono confermate. Mai per una richiesta in attesa, rifiutata o annullata, né per una passata.
+- **Che cosa c'è nell'evento:**
+    - titolo « servizio – nome del cliente » (il nome come è salvato; senza nome, solo il servizio);
+    - inizio e fine come istanti UTC con la Z (`20261119T130000Z`), quindi il cambio dell'ora legale non richiede niente; `ctz` è il fuso delle prenotazioni (`booking.timezone`, `Europe/Rome`);
+    - nei dettagli « Prenotazione su Griot: » con l'indirizzo della prenotazione nell'area del professionista (solo l'id, dietro accesso) e i nomi delle opzioni scelte, nella lingua della pagina del professionista.
+- **Che cosa non c'è mai:** il prezzo, le note, il telefono, l'email, il motivo di un annullamento, il luogo e il link privato del cliente. `GoogleCalendarLink` non legge mai il codice segreto (un test lo controlla, anche sul testo decodificato).
+- **Il link:** si apre in una nuova scheda (`target="_blank" rel="noopener noreferrer"`, con il testo nascosto « si apre in una nuova scheda »), quindi Google non riceve nemmeno l'indirizzo della pagina da cui arriva. Il testo è codificato (RFC 3986): accenti, `&`, `#` e apostrofi arrivano interi. Pulsante del kit con l'icona `CalendarPlus` decorativa (`aria-hidden`), 44 px sui telefoni.
+- **Avviso sotto il pulsante:** « Se la prenotazione viene annullata, l'evento resta nel tuo calendario. » Il sito non ha nessun collegamento con Google: un annullamento o un cambio dopo il salvataggio non arrivano all'evento.
+- **Che cosa riceve Google:** solo quando il professionista clicca, e solo quello che è nel link, più quello che il browser manda sempre (indirizzo IP, e i cookie di Google se il professionista ha l'accesso a Google). L'informativa lo dice (`privacy.recipients.google_calendar`, [legal.md](legal.md)).
+- **Rischio:** il formato del link (`calendar.google.com/calendar/render?action=TEMPLATE&text=…&dates=…&ctz=…&details=…`) **non è documentato ufficialmente da Google**: è quello che i pulsanti « aggiungi al calendario » usano da anni, descritto solo da fonti di terzi. Se Google lo cambiasse, il pulsante aprirebbe un evento vuoto o la pagina del calendario; il sito non ha errori.
+
 ## Test
 
 - `tests/Feature/BookingSavedPriceTest.php`:

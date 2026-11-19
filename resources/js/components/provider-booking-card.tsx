@@ -1,4 +1,5 @@
 import { Form, Link } from '@inertiajs/react';
+import { CalendarPlus } from 'lucide-react';
 import { useRef, useState } from 'react';
 import InputError from '@/components/input-error';
 import { NewTabHint } from '@/components/new-tab-hint';
@@ -275,6 +276,36 @@ export function BookingCard({
                                 <NewTabHint />
                             </a>
                         </Button>
+                    </div>
+                )}
+                {/* "Add to Google Calendar" (GoogleCalendarLink): only for a confirmed booking still to
+                    come. A plain link: Google gets the event only when the provider clicks, never
+                    the Referer (noreferrer), and the event does not follow a later cancellation. */}
+                {booking.google_calendar_url !== null && (
+                    <div className="grid gap-1">
+                        <div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                                className={wrappingLabel}
+                            >
+                                <a
+                                    href={booking.google_calendar_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    <CalendarPlus aria-hidden="true" />
+                                    {t(
+                                        'provider.bookings.google_calendar_button',
+                                    )}
+                                    <NewTabHint />
+                                </a>
+                            </Button>
+                        </div>
+                        <p className="text-muted-foreground">
+                            {t('provider.bookings.google_calendar_note')}
+                        </p>
                     </div>
                 )}
                 {booking.outcome !== null &&
