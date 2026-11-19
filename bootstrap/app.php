@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\RobotsController;
+use App\Http\Controllers\WebAppManifestController;
 use App\Http\LocaleFromRequest;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -29,6 +30,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // global middleware still runs (NoIndexSite, SecurityHeaders).
         then: function () {
             Route::get('robots.txt', RobotsController::class)->name('robots');
+            // The web app manifest, for the installation on a home screen: outside "web" as well,
+            // the browser downloads it without cookies anyway (docs/production.md).
+            Route::get('manifest.webmanifest', WebAppManifestController::class)->name('manifest');
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {

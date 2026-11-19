@@ -170,7 +170,7 @@ test('the error views are Griot\'s: a layout, the links, one view per code and t
 // Accessibility: structure, colours, contrast
 // ---------------------------------------------------------------------------------------------
 
-test('every page has one h1, a main landmark, its lang and the favicons of the site', function (int $code) {
+test('every page has one h1, a main landmark, its lang, the favicons of the site and the manifest', function (int $code) {
     $html = (string) errRender(errExceptions()[$code](), 'fr')->getContent();
 
     expect(substr_count($html, '<h1'))->toBe(1)
@@ -182,7 +182,12 @@ test('every page has one h1, a main landmark, its lang and the favicons of the s
         ->not->toContain('favicon.svg')
         // The small mark: the pin of the logo, a file of public/ (no Vite here), decorative.
         ->toContain('<span class="mark" aria-hidden="true"><img src="/brand/pin.png" width="22" height="24" alt=""></span>')
-        ->toContain('<meta name="robots" content="noindex">');
+        ->toContain('<meta name="robots" content="noindex">')
+        // Installing the site works from an error page too (WebAppManifestTest), the brown of the
+        // icon in both themes.
+        ->toContain('<link rel="manifest" href="/manifest.webmanifest">')
+        ->toContain('<meta name="theme-color" media="(prefers-color-scheme: light)" content="#3C1304">')
+        ->toContain('<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#421808">');
 })->with([403, 404, 419, 429, 500, 503]);
 
 test('the CSS keeps targets, focus and borders: 44px below 768px, an outline, forced colours, no motion', function () {

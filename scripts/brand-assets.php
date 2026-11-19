@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\BrandColours;
+
 /*
  * The provisional logo of Griot (docs/brand.md): from the original PNG, which stays outside the
  * repository, to every file the site uses.
@@ -14,16 +16,21 @@
  *   resources/images/brand/wordmark-{light,dark}-{1,2,3}x.webp   the header, 36/72/108 px high
  *   resources/images/brand/pin-{1,2,3}x.webp                      the small mark, 24/48/72 px high
  *   public/brand/pin.png                                          the mark of the error pages
- *   public/brand/icon-{16,32,48,180,512}.png                      the square icon
+ *   public/brand/icon-{16,32,48,180,192,512}.png                  the square icon
+ *   public/brand/icon-maskable-{192,512}.png                      the web app icon for masks
  *   public/favicon.ico (16, 32, 48), public/apple-touch-icon.png (180, square, opaque)
  *   public/og-default.png                                         the link previews, 1200x630
  *
  * The white is turned into transparency once, at full size ("colour to alpha": each pixel loses
  * the white it contains, so no halo on a dark background); the pin, found as the orange region
  * around a point inside it, stays opaque with its white centre. Then every size is a resize of
- * that image (GD weighs the colours by their alpha). The colours are those of
- * resources/css/app.css (BrandAssetsTest compares them). Only GD, already used by the app.
+ * that image (GD weighs the colours by their alpha). The colours come from
+ * app/Support/BrandColours.php, the tokens of resources/css/app.css (BrandAssetsTest compares
+ * them), which the web app manifest reads too. Only GD, already used by the app.
  */
+
+// Plain PHP, without Composer: the one file of the app the script needs.
+require_once dirname(__DIR__).'/app/Support/BrandColours.php';
 
 const LOGO = 'Logo GRIOT_ Talenti e Comunità.png';
 
@@ -39,17 +46,28 @@ const WORDMARK_HEIGHTS = [1 => 36, 2 => 72, 3 => 108];
 
 const PIN_HEIGHTS = [1 => 24, 2 => 48, 3 => 72];
 
-const ICON_SIZES = [16, 32, 48, 180, 512];
+const ICON_SIZES = [16, 32, 48, 180, 192, 512];
 
-// The tokens of app.css, light theme: --hero (the brown of the icon), --hero-foreground (the cream
-// of the dark wordmark), --background (the cream of the preview) and --decor (its orange line).
-const BROWN = [0x3C, 0x13, 0x04];
+// The height of the pin in the square icon, as a share of its side.
+const ICON_PIN = 0.64;
 
-const CREAM = [0xFE, 0xFA, 0xF1];
+// The web app icons a phone may cut to a circle, a squircle or a drop (the manifest's "maskable"):
+// only the circle in the middle, 40% of the side as its radius, is sure to stay. The pin is smaller
+// there (it reaches 28% of the side from the centre) and the brown fills every corner.
+const MASKABLE_SIZES = [192, 512];
 
-const BACKGROUND = [0xFB, 0xFA, 0xF7];
+const MASKABLE_PIN = 0.56;
 
-const DECOR = [0xE7, 0x60, 0x00];
+// The tokens of app.css, light theme (App\Support\BrandColours): --hero (the brown of the icon),
+// --hero-foreground (the cream of the dark wordmark), --background (the cream of the preview) and
+// --decor (its orange line).
+const BROWN = BrandColours::BROWN;
+
+const CREAM = BrandColours::CREAM;
+
+const BACKGROUND = BrandColours::BACKGROUND;
+
+const DECOR = BrandColours::DECOR;
 
 const WEBP_QUALITY = 90;
 
@@ -107,6 +125,12 @@ foreach (ICON_SIZES as $size) {
 }
 
 save(icon($pin, 180, false), "{$root}/public/apple-touch-icon.png");
+
+// The maskable ones: square, opaque, the pin inside the safe circle.
+foreach (MASKABLE_SIZES as $size) {
+    save(maskable($pin, $size), "{$root}/public/brand/icon-maskable-{$size}.png");
+}
+
 writeIco([$icons[16], $icons[32], $icons[48]], "{$root}/public/favicon.ico");
 report("{$root}/public/favicon.ico");
 
@@ -399,14 +423,14 @@ function recolourDark(GdImage $image, array $colour): GdImage
 }
 
 /**
- * The pin on a brown square, the pin 64% of its height. With round corners (their edge smoothed
- * pixel by pixel), or square and opaque.
+ * The pin on a brown square, the pin a share of its height (ICON_PIN, 64%). With round corners
+ * (their edge smoothed pixel by pixel), or square and opaque.
  */
-function icon(GdImage $pin, int $size, bool $rounded): GdImage
+function icon(GdImage $pin, int $size, bool $rounded, float $share = ICON_PIN): GdImage
 {
     $icon = imagecreatetruecolor($size, $size);
     imagefill($icon, 0, 0, colour($icon, BROWN));
-    $mark = scaleToHeight($pin, max(8, (int) round($size * 0.64)));
+    $mark = scaleToHeight($pin, max(8, (int) round($size * $share)));
     imagealphablending($icon, true);
     imagecopy($icon, $mark, intdiv($size - imagesx($mark), 2), intdiv($size - imagesy($mark), 2), 0, 0, imagesx($mark), imagesy($mark));
 
@@ -429,6 +453,16 @@ function icon(GdImage $pin, int $size, bool $rounded): GdImage
     }
 
     return $out;
+}
+
+/**
+ * The maskable icon of the web app manifest: the brown square, opaque, no round corners (the phone
+ * cuts its own shape), the pin at MASKABLE_PIN of the side, well inside the circle of 40% radius
+ * that every mask keeps.
+ */
+function maskable(GdImage $pin, int $size): GdImage
+{
+    return icon($pin, $size, false, MASKABLE_PIN);
 }
 
 /**
