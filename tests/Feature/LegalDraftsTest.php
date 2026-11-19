@@ -264,3 +264,34 @@ test('the docs keep the issue open and list what is a draft', function () {
         ->toContain('(#131, **ancora aperta**')
         ->toContain('[legal.md](legal.md)');
 });
+
+test('the decisions on issue #186 are written, one for each point, and the logs of Render have their source', function () {
+    $legal = (string) file_get_contents(base_path('docs/legal.md'));
+    preg_match('/\n## Decisioni sulla #186 \(2026-11-19\)\n([\s\S]*?)\n## /', $legal, $section);
+    $decisions = $section[1] ?? '';
+
+    preg_match_all('/^\d+\. \*\*([^*]+)\*\*/m', $decisions, $points);
+    expect($points[1])->toBe([
+        'Errori del database e della posta nel log:',
+        '`failed_jobs`: 14 giorni',
+        'Copie nella posta inviata di Gmail:',
+        'Link privato nel testo WhatsApp e nell\'email del cliente:',
+        'Log delle richieste di Render:',
+        'Cronologia del browser:',
+        'Nessun limite di richieste sulla pagina privata in GET:',
+    ]);
+    expect($decisions)
+        ->toContain('PR #222')
+        ->toContain('--hours=336')
+        ->toContain('(#62)')
+        ->toContain('**Prima di passare al workspace Pro si rivede questo punto.**')
+        ->toContain('https://render.com/docs/logging, consultata il 2026-11-19');
+
+    // The result on the logs of Render, with its source and the day it was read; no more "to check".
+    $runbook = (string) file_get_contents(base_path('docs/deploy.md'));
+    preg_match('/^- \*\*Log delle richieste\*\*.*$/m', $runbook, $line);
+    expect($line[0] ?? '')
+        ->toContain('https://render.com/docs/logging, consultata il 19/11/2026')
+        ->toContain('« If you have a Pro workspace or higher, Render generates a log entry for each HTTP request »')
+        ->not->toContain('da verificare');
+});
