@@ -33,15 +33,47 @@ export function formatPrice(locale: string, price: string): string {
     }).format(Number(price));
 }
 
-// "da 30 a 40 min", or only "30 min" when the duration is fixed.
+// Minutes as people say them: 45 is "45 min", 180 "3 h", 210 "3 h 30", 5 "5 min", 720 "12 h"; the
+// minutes after the hours always with two digits ("1 h 05"). The same in it, fr and en, with
+// non-breaking spaces inside, so "3 h 30" never splits across two lines.
+export function formatMinutes(t: TranslateFn, minutes: number): string {
+    const hours = Math.floor(minutes / 60);
+    const rest = minutes % 60;
+
+    if (hours === 0) {
+        return t('duration.minutes', { minutes: rest });
+    }
+
+    return rest === 0
+        ? t('duration.hours', { hours })
+        : t('duration.hours_minutes', {
+              hours,
+              minutes: String(rest).padStart(2, '0'),
+          });
+}
+
+// "di solito da 2 h a 3 h", or one duration only, "45 min", when the shortest and the longest are
+// the same (an empty shortest duration is saved equal to the longest one).
 export function formatDuration(
     t: TranslateFn,
     min: number,
     max: number,
 ): string {
     return min === max
-        ? t('providers.show.duration_fixed', { minutes: min })
-        : t('providers.show.duration_range', { from: min, to: max });
+        ? formatMinutes(t, max)
+        : t('providers.show.duration_range', {
+              from: formatMinutes(t, min),
+              to: formatMinutes(t, max),
+          });
+}
+
+// A time of a day written from its minutes after midnight: 540 is "09:00", 1260 "21:00". Only for
+// the example of the service form, a time on its own, with no day and no time zone: the times of
+// the bookings come from the server.
+export function clockTime(minutes: number): string {
+    const hours = Math.floor(minutes / 60) % 24;
+
+    return `${String(hours).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 }
 
 // "90.00" becomes 9000. Prices are added in whole cents: adding decimals as floating
@@ -62,7 +94,8 @@ export function formatCents(locale: string, cents: number): string {
     return formatPrice(locale, centsToPrice(cents));
 }
 
-// The extras of an option that actually add something, for example ["+ 10,00 €", "+ 15 min"].
+// The extras of an option that actually add something, for example ["+ 10,00 €", "+ 15 min"] or
+// ["+ 1 h 30"].
 export function formatOptionExtras(
     t: TranslateFn,
     locale: string,
@@ -81,7 +114,7 @@ export function formatOptionExtras(
     if (option.extra_duration !== 0) {
         extras.push(
             t('providers.show.option_extra_duration', {
-                minutes: option.extra_duration,
+                duration: formatMinutes(t, option.extra_duration),
             }),
         );
     }

@@ -1,5 +1,6 @@
 import { Form, Head, Link } from '@inertiajs/react';
 import InputError from '@/components/input-error';
+import { ServiceDurationFields } from '@/components/service-duration-fields';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -207,50 +208,7 @@ function AddServiceForm({ categories }: { categories: Category[] }) {
                                 <InputError message={errors.price} />
                             </div>
 
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="service-duration-min">
-                                        {t(
-                                            'provider.services.form.duration_min',
-                                        )}
-                                    </Label>
-                                    <Input
-                                        id="service-duration-min"
-                                        name="duration_min"
-                                        type="number"
-                                        min={5}
-                                        max={720}
-                                        step={5}
-                                        required
-                                        aria-describedby="service-duration-help"
-                                    />
-                                    <InputError message={errors.duration_min} />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="service-duration-max">
-                                        {t(
-                                            'provider.services.form.duration_max',
-                                        )}
-                                    </Label>
-                                    <Input
-                                        id="service-duration-max"
-                                        name="duration_max"
-                                        type="number"
-                                        min={5}
-                                        max={720}
-                                        step={5}
-                                        required
-                                        aria-describedby="service-duration-help"
-                                    />
-                                    <InputError message={errors.duration_max} />
-                                </div>
-                            </div>
-                            <p
-                                id="service-duration-help"
-                                className="-mt-4 text-sm text-muted-foreground"
-                            >
-                                {t('provider.services.form.duration_help')}
-                            </p>
+                            <ServiceDurationFields errors={errors} />
 
                             {/* The request limit, for example. */}
                             <InputError message={errors.services} />

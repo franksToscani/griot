@@ -237,12 +237,12 @@ test('invalid durations are refused on their own field', function (mixed $value)
     expect(Service::query()->count())->toBe(0);
 })->with([0, 4, 7, 725, 1000, 'abc', '1.5', '-5']);
 
-test('missing durations ask to write them', function () {
+test('the time kept free is required; the shortest duration is not (#53)', function () {
     psvPost(psvProvider()->user, psvForm(['duration_min' => null, 'duration_max' => null]))
-        ->assertSessionHasErrors([
-            'duration_min' => 'Scrivi la durata minima.',
-            'duration_max' => 'Scrivi la durata massima.',
-        ]);
+        ->assertSessionHasErrors(['duration_max' => 'Scrivi la durata massima.'])
+        ->assertSessionDoesntHaveErrors('duration_min');
+
+    expect(Service::query()->count())->toBe(0);
 });
 
 test('a longest duration shorter than the shortest one is refused', function () {
@@ -394,9 +394,11 @@ test('the Italian texts are exactly the expected ones', function () {
     expect(__('provider.services.form.category_placeholder'))->toBe('Scegli una categoria');
     expect(__('provider.services.form.price'))->toBe('Prezzo in euro');
     expect(__('provider.services.form.price_help'))->toBe('Per esempio 25 oppure 25,50.');
-    expect(__('provider.services.form.duration_min'))->toBe('Durata minima (minuti)');
-    expect(__('provider.services.form.duration_max'))->toBe('Durata massima (minuti)');
-    expect(__('provider.services.form.duration_help'))->toBe('Il calendario blocca il tempo della durata massima.');
+    // #53: the time kept free first, the shortest duration optional (ServiceDurationTest).
+    expect(__('provider.services.form.duration_max'))->toBe('Tempo da tenere libero (minuti)');
+    expect(__('provider.services.form.duration_max_help'))->toBe('È il tempo che Griot ti riserva per questo servizio: in quel periodo nessun altro cliente può prenotare.');
+    expect(__('provider.services.form.duration_min'))->toBe('Può finire prima? Durata minima (facoltativa, minuti)');
+    expect(__('provider.services.form.duration_min_help'))->toBe('La vede solo il cliente, per sapere più o meno quanto dura. Non cambia il tempo che ti viene riservato.');
     expect(__('provider.services.form.submit'))->toBe('Aggiungi il servizio');
     expect(__('provider.area.services'))->toBe('I tuoi servizi');
 });

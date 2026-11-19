@@ -98,7 +98,8 @@ type SummaryProps = {
     optionIds: number[];
 };
 
-// Indicative price and duration of the service with the chosen options.
+// Indicative price and duration of the service with the chosen options: "di solito da 2 h 30 a
+// 3 h 30", or one duration when the service has one.
 export function BookingSummary({ service, optionIds }: SummaryProps) {
     const { t, locale } = useTranslation();
 
@@ -174,6 +175,9 @@ export function BookingDayAndTimes({
     useEffect(() => {
         dayRef.current?.setCustomValidity(startsAt === '' ? noTime : '');
     }, [startsAt, noTime]);
+
+    // The chosen time, to show until when it may last.
+    const chosen = slots.find((slot) => slot.start === startsAt);
 
     // The server's error first; the browser's only while no time is chosen.
     const timeError =
@@ -280,6 +284,16 @@ export function BookingDayAndTimes({
                                 </div>
                             </div>
                         ))}
+                        {/* Until when the chosen time may last (#53): the end the server gives
+                            with the time, the same as the confirmation and the emails. Always
+                            there, empty before a choice, so a choice is read out once. */}
+                        <p role="status" className="text-sm">
+                            {chosen &&
+                                t('booking.form.chosen_time', {
+                                    start: chosen.time,
+                                    end: chosen.end_time,
+                                })}
+                        </p>
                     </div>
                 )}
             </div>

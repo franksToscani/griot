@@ -1,6 +1,7 @@
 import { Form, Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
+import { ServiceDurationFields } from '@/components/service-duration-fields';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -218,48 +219,17 @@ function EditForm({
                         <InputError message={errors.price} />
                     </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label htmlFor="service-duration-min">
-                                {t('provider.services.form.duration_min')}
-                            </Label>
-                            <Input
-                                id="service-duration-min"
-                                name="duration_min"
-                                type="number"
-                                min={5}
-                                max={720}
-                                step={5}
-                                required
-                                aria-describedby="service-duration-help"
-                                defaultValue={service.duration_min}
-                            />
-                            <InputError message={errors.duration_min} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="service-duration-max">
-                                {t('provider.services.form.duration_max')}
-                            </Label>
-                            <Input
-                                id="service-duration-max"
-                                name="duration_max"
-                                type="number"
-                                min={5}
-                                max={720}
-                                step={5}
-                                required
-                                aria-describedby="service-duration-help"
-                                defaultValue={service.duration_max}
-                            />
-                            <InputError message={errors.duration_max} />
-                        </div>
-                    </div>
-                    <p
-                        id="service-duration-help"
-                        className="-mt-4 text-sm text-muted-foreground"
-                    >
-                        {t('provider.services.form.duration_help')}
-                    </p>
+                    {/* An empty shortest duration means "the same as the longest": shown empty
+                        when they are equal, so changing only the longest one asks nothing more. */}
+                    <ServiceDurationFields
+                        defaultMax={service.duration_max}
+                        defaultMin={
+                            service.duration_min === service.duration_max
+                                ? undefined
+                                : service.duration_min
+                        }
+                        errors={errors}
+                    />
 
                     <Button
                         type="submit"

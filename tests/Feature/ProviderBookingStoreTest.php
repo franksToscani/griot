@@ -427,13 +427,13 @@ test('the provider slots have the public shape, without the minimum notice', fun
         'date' => '2026-10-19',
         'timezone' => 'Europe/Rome',
         'slots' => [
-            ['start' => '2026-10-19T07:00:00Z', 'time' => '09:00'],
-            ['start' => '2026-10-19T07:30:00Z', 'time' => '09:30'],
-            ['start' => '2026-10-19T08:00:00Z', 'time' => '10:00'],
-            ['start' => '2026-10-19T08:30:00Z', 'time' => '10:30'],
-            ['start' => '2026-10-19T09:00:00Z', 'time' => '11:00'],
-            ['start' => '2026-10-19T09:30:00Z', 'time' => '11:30'],
-            ['start' => '2026-10-19T10:00:00Z', 'time' => '12:00'],
+            ['start' => '2026-10-19T07:00:00Z', 'time' => '09:00', 'end_time' => '10:00'],
+            ['start' => '2026-10-19T07:30:00Z', 'time' => '09:30', 'end_time' => '10:30'],
+            ['start' => '2026-10-19T08:00:00Z', 'time' => '10:00', 'end_time' => '11:00'],
+            ['start' => '2026-10-19T08:30:00Z', 'time' => '10:30', 'end_time' => '11:30'],
+            ['start' => '2026-10-19T09:00:00Z', 'time' => '11:00', 'end_time' => '12:00'],
+            ['start' => '2026-10-19T09:30:00Z', 'time' => '11:30', 'end_time' => '12:30'],
+            ['start' => '2026-10-19T10:00:00Z', 'time' => '12:00', 'end_time' => '13:00'],
         ],
     ]);
     // The customers see the same day from 11:00 local, two hours from now.

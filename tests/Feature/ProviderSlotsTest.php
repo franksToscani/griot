@@ -83,13 +83,13 @@ test('a normal day returns exactly the documented shape', function () {
         'date' => '2026-10-19',
         'timezone' => 'Europe/Rome',
         'slots' => [
-            ['start' => '2026-10-19T07:00:00Z', 'time' => '09:00'],
-            ['start' => '2026-10-19T07:30:00Z', 'time' => '09:30'],
-            ['start' => '2026-10-19T08:00:00Z', 'time' => '10:00'],
-            ['start' => '2026-10-19T08:30:00Z', 'time' => '10:30'],
-            ['start' => '2026-10-19T09:00:00Z', 'time' => '11:00'],
-            ['start' => '2026-10-19T09:30:00Z', 'time' => '11:30'],
-            ['start' => '2026-10-19T10:00:00Z', 'time' => '12:00'],
+            ['start' => '2026-10-19T07:00:00Z', 'time' => '09:00', 'end_time' => '10:00'],
+            ['start' => '2026-10-19T07:30:00Z', 'time' => '09:30', 'end_time' => '10:30'],
+            ['start' => '2026-10-19T08:00:00Z', 'time' => '10:00', 'end_time' => '11:00'],
+            ['start' => '2026-10-19T08:30:00Z', 'time' => '10:30', 'end_time' => '11:30'],
+            ['start' => '2026-10-19T09:00:00Z', 'time' => '11:00', 'end_time' => '12:00'],
+            ['start' => '2026-10-19T09:30:00Z', 'time' => '11:30', 'end_time' => '12:30'],
+            ['start' => '2026-10-19T10:00:00Z', 'time' => '12:00', 'end_time' => '13:00'],
         ],
     ]);
     expect($response->json())->not->toHaveKey('data');
@@ -103,7 +103,7 @@ test('in winter the start is one hour later in UTC for the same local time', fun
     // Winter time is UTC+1: 09:00 local on Monday 12 January is 08:00 UTC.
     $this->getJson(slotsApiUrl($provider, ['service' => $service->id, 'date' => '2026-01-12']))
         ->assertOk()
-        ->assertJsonPath('slots.0', ['start' => '2026-01-12T08:00:00Z', 'time' => '09:00']);
+        ->assertJsonPath('slots.0', ['start' => '2026-01-12T08:00:00Z', 'time' => '09:00', 'end_time' => '10:00']);
 });
 
 test('an option with extra minutes makes the booking longer and removes the last slots', function () {
