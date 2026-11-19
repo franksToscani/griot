@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Booking\BookingOutcome;
 use App\Booking\BookingTransitions;
+use App\Booking\GoogleCalendarLink;
 use App\Booking\LocalTime;
 use App\Booking\PhoneNumber;
 use App\Models\Booking;
@@ -81,6 +82,9 @@ class ProviderBookingResource extends JsonResource
             // itself stays on the server.
             'outcome' => $outcome?->value,
             'whatsapp_url' => $this->whatsappUrl($outcome, $start, $end),
+            // "Add to Google Calendar": a confirmed booking still to come, not anonymous. Never the
+            // secret code: GoogleCalendarLink does not read it.
+            'google_calendar_url' => GoogleCalendarLink::for($this->resource),
             // Written by the provider in the own agenda: no customer sent it and no email left.
             'created_by_provider' => $this->created_by_provider,
             // The customer's data were removed (retention, issue #56): name and phone are null.

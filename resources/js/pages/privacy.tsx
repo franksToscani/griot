@@ -193,6 +193,7 @@ export default function Privacy({
                     <ul className="flex list-disc flex-col gap-2 pl-5">
                         <li>{t('privacy.recipients.provider')}</li>
                         <li>{t('privacy.recipients.whatsapp')}</li>
+                        <li>{t('privacy.recipients.google_calendar')}</li>
                         <li>{t('privacy.recipients.hosting')}</li>
                         <li>{t('privacy.recipients.photos')}</li>
                         <li>{t('privacy.recipients.email')}</li>
