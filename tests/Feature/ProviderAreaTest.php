@@ -38,7 +38,7 @@ test('a user with an unverified email is sent to the verification page', functio
     $this->actingAs($user)->get(route('dashboard'))->assertRedirect(route('verification.notice'));
 });
 
-test('a user with a provider sees the dashboard with exactly the five fields', function () {
+test('a user with a provider sees the dashboard with exactly the six fields', function () {
     $provider = paProvider(['is_published' => true]);
 
     $this->actingAs($provider->user)
@@ -53,6 +53,8 @@ test('a user with a provider sees the dashboard with exactly the five fields', f
                 'slug' => 'salone-awa',
                 'is_published' => true,
                 'avatar_url' => null,
+                // "Il tuo link", on APP_URL (ProviderLinkTest).
+                'public_url' => rtrim((string) config('app.url'), '/').'/providers/salone-awa',
             ]));
 });
 

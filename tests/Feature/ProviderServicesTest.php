@@ -361,11 +361,11 @@ test('the addresses have no parameters and other methods are refused', function 
     expect(Service::query()->count())->toBe(0);
 });
 
-test('the dashboard still gets five provider keys and two publishing keys', function () {
+test('the dashboard still gets six provider keys and two publishing keys', function () {
     $this->actingAs(psvProvider()->user)
         ->get(route('dashboard'))
         ->assertInertia(fn (Assert $page) => $page
-            ->has('provider', 5)
+            ->has('provider', 6)
             ->has('publishing', 2));
 });
 

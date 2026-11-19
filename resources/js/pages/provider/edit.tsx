@@ -17,18 +17,26 @@ import { Spinner } from '@/components/ui/spinner';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
 import { edit, update } from '@/routes/provider';
+import { show } from '@/routes/providers';
 // The photo's own "store", not the profile one of '@/routes/provider'.
 import { store as storeAvatar } from '@/routes/provider/avatar';
 import type { ProviderEdit } from '@/types';
 
 type Props = {
     provider: ProviderEdit;
+    // The public origin of the site, on APP_URL: "https://griot.example.test".
+    app_url: string;
 };
+
+// The rule of UpdateProviderRequest for the address: lowercase letters, digits and single dashes.
+const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 // The logged-in provider edits its profile: the shared fields, plus the address of the page, then
 // its photo and the photos of its work.
-export default function ProviderEditPage({ provider }: Props) {
+export default function ProviderEditPage({ provider, app_url }: Props) {
     const { t } = useTranslation();
+    // The address as it is being typed, for the whole link under the field.
+    const [slug, setSlug] = useState(provider.slug);
 
     return (
         <>
@@ -66,14 +74,34 @@ export default function ProviderEditPage({ provider }: Props) {
                                             required
                                             maxLength={120}
                                             autoComplete="off"
-                                            aria-describedby="slug-help"
+                                            aria-describedby="slug-help slug-address"
                                             defaultValue={provider.slug}
+                                            onInput={(event) =>
+                                                setSlug(
+                                                    event.currentTarget.value,
+                                                )
+                                            }
                                         />
                                         <p
                                             id="slug-help"
                                             className="text-sm text-muted-foreground"
                                         >
                                             {t('provider.edit.slug_help')}
+                                        </p>
+                                        {/* The whole link, built like the dashboard's (APP_URL and
+                                            the route): read with the field, not announced at
+                                            every key. Empty while the address breaks the rule. */}
+                                        <p
+                                            id="slug-address"
+                                            className="text-sm break-all"
+                                        >
+                                            {SLUG.test(slug.trim()) &&
+                                                t(
+                                                    'provider.edit.slug_address',
+                                                    {
+                                                        url: `${app_url}${show(slug.trim()).url}`,
+                                                    },
+                                                )}
                                         </p>
                                         <InputError message={errors.slug} />
                                     </div>

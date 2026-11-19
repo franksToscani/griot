@@ -15,7 +15,8 @@ use App\Models\Service;
  * then it gets "noindex, nofollow" and no preview at all, so a new page cannot leak a name or a
  * photo by being forgotten. The public pages call publicPage() or forProvider().
  *
- * Every address is absolute and built on APP_URL, never on the Host header of the request.
+ * Every address is absolute and built on APP_URL, never on the Host header of the request
+ * (PublicUrl).
  */
 final class LinkPreview
 {
@@ -133,7 +134,7 @@ final class LinkPreview
         $site = (string) config('app.name', 'Griot');
         $title = $this->title ?? $site;
         $description = $this->description ?? __('link_preview.site.description');
-        $url = self::absolute(request()->path());
+        $url = PublicUrl::to(request()->path());
         $own = $this->image === null;
 
         $tags = [
@@ -145,7 +146,7 @@ final class LinkPreview
             'og:description' => $description,
             'og:url' => $url,
             'og:locale' => self::OG_LOCALES[app()->getLocale()] ?? 'it_IT',
-            'og:image' => $own ? self::absolute(self::DEFAULT_IMAGE) : (string) $this->image,
+            'og:image' => $own ? PublicUrl::to(self::DEFAULT_IMAGE) : (string) $this->image,
             'og:image:alt' => $own ? __('link_preview.image_alt') : (string) $this->imageAlt,
         ];
 
@@ -187,15 +188,5 @@ final class LinkPreview
         }
 
         return rtrim($cut, " \t,.;:-–—").'…';
-    }
-
-    /**
-     * An absolute address on APP_URL.
-     */
-    private static function absolute(string $path): string
-    {
-        $path = trim($path, '/');
-
-        return rtrim((string) config('app.url'), '/').($path === '' ? '' : '/'.$path);
     }
 }

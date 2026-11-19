@@ -169,8 +169,8 @@ test('the dashboard tells what is missing, and still gets five provider fields',
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('publishing', ['can_publish' => $canPublish, 'missing' => $missing])
-            ->has('provider', 5)
-            ->has('provider', fn (Assert $fields) => $fields->hasAll(['name', 'city', 'slug', 'is_published', 'avatar_url'])));
+            ->has('provider', 6)
+            ->has('provider', fn (Assert $fields) => $fields->hasAll(['name', 'city', 'slug', 'is_published', 'avatar_url', 'public_url'])));
 })->with([
     'incomplete' => [false, false, ['service', 'availability']],
     'complete' => [true, true, []],

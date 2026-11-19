@@ -5,6 +5,8 @@ export type ProviderArea = {
     slug: string;
     is_published: boolean;
     avatar_url: string | null;
+    // The whole address of the public page, on APP_URL ("Il tuo link").
+    public_url: string;
 };
 
 // The five profile fields a provider writes, as the forms send them.

@@ -5,3 +5,11 @@
 export function whatsappLink(numberUrl: string, text: string): string {
     return `${numberUrl}?text=${encodeURIComponent(text)}`;
 }
+
+// A text to send to anyone ("Il tuo link"): WhatsApp opens with the text written and lets the user
+// choose the chat. The same address without a number, https://wa.me/?text=…
+export const WHATSAPP_ANY_CHAT = 'https://wa.me/';
+
+export function whatsappShareLink(text: string): string {
+    return whatsappLink(WHATSAPP_ANY_CHAT, text);
+}

@@ -405,9 +405,9 @@ test('the sidebar links to the edit page and the dashboard still gets five provi
         ->get(route('dashboard'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            // Five keys, and exactly these: has() with a count, then each one.
-            ->has('provider', 5)
-            ->has('provider', fn (Assert $fields) => $fields->hasAll(['name', 'city', 'slug', 'is_published', 'avatar_url'])));
+            // Six keys, and exactly these: has() with a count, then each one.
+            ->has('provider', 6)
+            ->has('provider', fn (Assert $fields) => $fields->hasAll(['name', 'city', 'slug', 'is_published', 'avatar_url', 'public_url'])));
 });
 
 test('the seeder still runs twice and keeps the example providers', function () {

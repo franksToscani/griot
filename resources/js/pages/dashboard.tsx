@@ -2,6 +2,7 @@ import { Form, Head, Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { ProviderAvatar } from '@/components/provider-avatar';
+import { ProviderLinkCard } from '@/components/provider-link-card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -108,6 +109,11 @@ export default function Dashboard({ provider, publishing }: Props) {
                         )}
                     </CardContent>
                 </Card>
+
+                <ProviderLinkCard
+                    url={provider.public_url}
+                    published={provider.is_published}
+                />
             </div>
         </>
     );
