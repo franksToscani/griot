@@ -229,6 +229,18 @@ Nella scheda di una prenotazione del professionista (`components/provider-bookin
 - **Che cosa riceve Google:** solo quando il professionista clicca, e solo quello che è nel link, più quello che il browser manda sempre (indirizzo IP, e i cookie di Google se il professionista ha l'accesso a Google). L'informativa lo dice (`privacy.recipients.google_calendar`, [legal.md](legal.md)).
 - **Rischio:** il formato del link (`calendar.google.com/calendar/render?action=TEMPLATE&text=…&dates=…&ctz=…&details=…`) **non è documentato ufficialmente da Google**: è quello che i pulsanti « aggiungi al calendario » usano da anni, descritto solo da fonti di terzi. Se Google lo cambiasse, il pulsante aprirebbe un evento vuoto o la pagina del calendario; il sito non ha errori.
 
+### Il file .ics (Apple Calendar, Outlook)
+
+Accanto a « Aggiungi a Google Calendar », il pulsante « Aggiungi al calendario (Apple, Outlook, altri) » scarica lo stesso evento come file, per i calendari che non sono Google (Apple Calendar, Outlook e ogni calendario che apre un `.ics`).
+
+- **Stessa regola, scritta una volta:** quando c'è l'evento e che cosa contiene li decide `App\Booking\CalendarEvent`, usato sia da `GoogleCalendarLink` sia da `App\Booking\IcsFile`. Il pulsante compare con quello di Google; per una prenotazione senza evento il file risponde 404.
+- **Rotta:** `GET provider/bookings/{booking}/calendar.ics` (`provider.bookings.calendar`, `ProviderBookingCalendarController`), nello stesso gruppo delle altre pagine delle prenotazioni: accesso obbligatorio, la prenotazione cercata solo fra quelle del professionista (un id di un altro dà lo stesso 404) e la policy `manage`. Intestazioni delle pagine private (`PrivateProviderPage`: `Cache-Control: no-store, private`, `X-Robots-Tag: noindex, nofollow`), `Content-Type: text/calendar; charset=utf-8` e `Content-Disposition: attachment; filename="prenotazione-{id}.ics"`: nel nome del file solo l'id.
+- **Formato (RFC 5545):** `VCALENDAR` con `VERSION:2.0`, `PRODID:-//Griot//Prenotazioni//IT`, `CALSCALE:GREGORIAN`, `METHOD:PUBLISH` e un `VEVENT` con `UID`, `DTSTAMP`, `DTSTART` e `DTEND` in UTC con la Z, `SUMMARY` e `DESCRIPTION`.
+    - **UID stabile:** `booking-{id}@{host di APP_URL}`. Scaricare e aprire di nuovo il file della stessa prenotazione aggiorna l'evento invece di raddoppiarlo (nei calendari che seguono lo standard).
+    - Ogni riga finisce con CRLF; virgole, punti e virgola, backslash e a capo sono preceduti da `\`; una riga oltre 75 byte va a capo con uno spazio all'inizio della riga dopo, senza mai spezzare un carattere (accenti, emoji: `mb_strcut`).
+- **Privacy:** gli stessi dati dell'evento di Google, mai telefono, email, note, prezzo, motivo dell'annullamento né il link privato del cliente. Il file si scarica sul dispositivo del professionista: **nessun terzo riceve niente** dal sito. Come per Google, un evento salvato non segue un annullamento: la riga d'avviso sotto i due pulsanti vale per entrambi.
+- Link normale con `download` (mai il `Link` di Inertia, perché è un file), senza `NewTabHint` perché non apre una scheda; icona `Download` decorativa (`aria-hidden`); 44 px sui telefoni, come i pulsanti del kit.
+
 ## Test
 
 - `tests/Feature/BookingSavedPriceTest.php`:

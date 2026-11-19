@@ -355,6 +355,7 @@
     "provider.bookings.whatsapp_link": "Détails : :url",
     "provider.bookings.whatsapp_button": "Prévenir sur WhatsApp",
     "provider.bookings.google_calendar_button": "Ajouter à Google Agenda",
+    "provider.bookings.calendar_file_button": "Ajouter à l'agenda (Apple, Outlook, autres)",
     "provider.bookings.google_calendar_note": "Si la réservation est annulée, l'événement reste dans votre agenda.",
     "provider.bookings.calendar_details": "Réservation sur Griot : :url",
     "provider.bookings.calendar_options": "Options : :options",

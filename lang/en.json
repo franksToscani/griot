@@ -355,6 +355,7 @@
     "provider.bookings.whatsapp_link": "Details: :url",
     "provider.bookings.whatsapp_button": "Message on WhatsApp",
     "provider.bookings.google_calendar_button": "Add to Google Calendar",
+    "provider.bookings.calendar_file_button": "Add to calendar (Apple, Outlook, other)",
     "provider.bookings.google_calendar_note": "If the booking is cancelled, the event stays in your calendar.",
     "provider.bookings.calendar_details": "Booking on Griot: :url",
     "provider.bookings.calendar_options": "Options: :options",
