@@ -85,6 +85,7 @@ I test e `composer ci:check` vanno lanciati con `composer dev` spento. Su GitHub
 | [media-storage.md](docs/media-storage.md)   | dove stanno le immagini                                           |
 | [photos.md](docs/photos.md)                 | le foto del sito, le fonti e lo script che le prepara             |
 | [production.md](docs/production.md)         | la checklist di produzione                                        |
+| [provider-link.md](docs/provider-link.md)   | guida per i professionisti: il link e il QR code                  |
 | [providers-list.md](docs/providers-list.md) | la lista e la pagina dei professionisti                           |
 | [roadmap.md](docs/roadmap.md)               | sprint, cose fatte e da fare                                      |
 | [search.md](docs/search.md)                 | la ricerca nella lista                                            |
