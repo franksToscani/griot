@@ -1,4 +1,4 @@
-import { Copy, MessageCircle, Share2 } from 'lucide-react';
+import { Copy, Download, MessageCircle, Share2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { NewTabHint } from '@/components/new-tab-hint';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from '@/hooks/use-translation';
 import { whatsappShareLink } from '@/lib/whatsapp';
+import { png as qrPng, svg as qrSvg } from '@/routes/provider/qr';
 
 type Props = {
     // The whole address of the public page, built by the server on APP_URL (public_url).
@@ -126,6 +127,7 @@ export function ProviderLinkCard({ url, published }: Props) {
                         <p role="status" className="text-sm">
                             {status}
                         </p>
+                        <QrCode />
                     </>
                 ) : (
                     <p
@@ -137,5 +139,50 @@ export function ProviderLinkCard({ url, published }: Props) {
                 )}
             </CardContent>
         </Card>
+    );
+}
+
+// The QR code of the public page (published only), made by our server from the same address on
+// APP_URL (App\Support\ProviderQrCode): shown as an image, with its own text, and downloadable as
+// SVG (for printing, any size) or PNG (1024 px, for social media). The routes need no id: always
+// the provider of the session.
+function QrCode() {
+    const { t } = useTranslation();
+
+    return (
+        <section
+            aria-labelledby="provider-qr-title"
+            className="flex flex-col gap-3 border-t pt-4"
+        >
+            <h3 id="provider-qr-title" className="font-semibold">
+                {t('provider.link.qr_title')}
+            </h3>
+            {/* Black on white with its own white margin: at least 160 px, never wider than the
+                card on a 320 px screen. */}
+            <img
+                src={qrSvg().url}
+                alt={t('provider.link.qr_alt')}
+                width={192}
+                height={192}
+                className="h-auto w-48 max-w-full min-w-40 rounded-md border bg-white"
+            />
+            <div className="flex flex-wrap gap-2">
+                <Button variant="outline" asChild>
+                    <a href={qrSvg().url} download>
+                        <Download aria-hidden="true" />
+                        {t('provider.link.qr_svg')}
+                    </a>
+                </Button>
+                <Button variant="outline" asChild>
+                    <a href={qrPng().url} download>
+                        <Download aria-hidden="true" />
+                        {t('provider.link.qr_png')}
+                    </a>
+                </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+                {t('provider.link.qr_warning')}
+            </p>
+        </section>
     );
 }

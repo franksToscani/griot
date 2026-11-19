@@ -33,6 +33,7 @@ use App\Http\Controllers\ProviderPhotoDestroyController;
 use App\Http\Controllers\ProviderPhotoStoreController;
 use App\Http\Controllers\ProviderPreviewController;
 use App\Http\Controllers\ProviderPublishController;
+use App\Http\Controllers\ProviderQrCodeController;
 use App\Http\Controllers\ProviderServiceActivateController;
 use App\Http\Controllers\ProviderServiceDeactivateController;
 use App\Http\Controllers\ProviderServiceDestroyController;
@@ -171,6 +172,14 @@ Route::middleware(['auth', 'verified', ShareProviderNavigation::class])->group(f
         ->middleware('throttle:provider-services-manage')
         ->name('provider.bookings.cancel');
     // The provider's own public page, published or not: no slug, always the user's provider.
+    // The QR code of the own public page ("Il tuo link"), SVG and PNG: no id, no slug, the provider
+    // of the session only; 404 while the page is not published. Never stored, never indexed.
+    Route::get('provider/qr.svg', [ProviderQrCodeController::class, 'svg'])
+        ->middleware(PrivateProviderPage::class)
+        ->name('provider.qr.svg');
+    Route::get('provider/qr.png', [ProviderQrCodeController::class, 'png'])
+        ->middleware(PrivateProviderPage::class)
+        ->name('provider.qr.png');
     Route::get('provider/preview', ProviderPreviewController::class)
         ->middleware(PrivateProviderPage::class)
         ->name('provider.preview');

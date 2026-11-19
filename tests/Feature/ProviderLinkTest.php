@@ -245,7 +245,8 @@ test('no hand-written aria-label, icons hidden, the kit\'s buttons (44 px on pho
     $card = plSource('js/components/provider-link-card.tsx');
 
     expect($card)->not->toMatch('/aria-label(?!ledby)/')
-        ->and(substr_count($card, 'aria-hidden="true"'))->toBe(3)
+        // Copy, Share, WhatsApp and the two downloads of the QR code (ProviderQrCodeTest).
+        ->and(substr_count($card, 'aria-hidden="true"'))->toBe(5)
         ->and($card)->not->toMatch('/animate-|transition|motion-/')
         ->not->toContain('<button');
     expect(plSource('js/pages/provider/edit.tsx'))->not->toMatch('/aria-label(?!ledby)/');
