@@ -405,3 +405,23 @@ test('the privacy page names the region of the photo storage: Milan, never Paris
     'français' => ['fr', 'Milan'],
     'english' => ['en', 'Milan'],
 ]);
+
+test('the page says that a failed email is kept as a technical copy, with its error, at most as long as the schedule keeps it', function (string $locale, string $copy, string $error, string $days) {
+    // The days come from the schedule (queue:prune-failed --hours=…, routes/console.php): the text
+    // writes the number, a test keeps the two together (issue #186).
+    preg_match('/queue:prune-failed --hours=(\d+)/', (string) file_get_contents(base_path('routes/console.php')), $hours);
+    expect((int) $hours[1] % 24)->toBe(0);
+    $scheduled = intdiv((int) $hours[1], 24);
+
+    $text = __('privacy.retention.technical', ['minutes' => 120], $locale);
+
+    expect($text)->toContain('120')
+        ->toContain($copy)
+        ->toContain($error)
+        ->toContain("{$scheduled} {$days}");
+    expect($scheduled)->toBe(14);
+})->with([
+    'italiano' => ['it', 'copia tecnica', "messaggio d'errore", 'giorni'],
+    'français' => ['fr', 'copie technique', "message d'erreur", 'jours'],
+    'english' => ['en', 'technical copy', 'error message', 'days'],
+]);

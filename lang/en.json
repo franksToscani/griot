@@ -584,7 +584,7 @@
     "privacy.retention.bookings": "The name, phone, email and notes of the people who book, together with the reason for a cancellation, are made anonymous :months months after the end of the appointment, even if the request never got an answer. From then on the private link no longer works. Only the data that do not identify you remain: professional, service, options, date, status and price.",
     "privacy.retention.copies": "Making the data anonymous concerns the site's database. It does not touch the copies that exist elsewhere: the emails already sent, the WhatsApp messages, the technical logs and any backups.",
     "privacy.retention.providers": "The account and showcase data are kept as long as the account exists.",
-    "privacy.retention.technical": "The session expires after :minutes minutes without activity and is then deleted.",
+    "privacy.retention.technical": "The session expires after :minutes minutes without activity and is then deleted. If an email cannot be sent, the site keeps a technical copy of the failed task, with the recipient's address and the error message, for at most 14 days.",
     "privacy.recipients.heading": "Who receives the data",
     "privacy.recipients.planned": "The providers for putting the site online are planned and may still change.",
     "privacy.recipients.provider": "To the professional you choose, to manage the booking.",

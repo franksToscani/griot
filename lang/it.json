@@ -584,7 +584,7 @@
     "privacy.retention.bookings": "Nome, telefono, email e note di chi prenota, insieme al motivo di un eventuale annullamento, vengono resi anonimi :months mesi dopo la fine dell'appuntamento, anche se la richiesta non ha mai avuto risposta. Da quel momento il link privato non funziona più. Restano solo i dati che non ti identificano: professionista, servizio, opzioni, data, stato e prezzo.",
     "privacy.retention.copies": "Il passaggio all'anonimato riguarda il database del sito. Non tocca le copie che esistono altrove: le email già inviate, i messaggi WhatsApp, i registri tecnici (log) e le eventuali copie di sicurezza.",
     "privacy.retention.providers": "I dati dell'account e della vetrina restano finché l'account esiste.",
-    "privacy.retention.technical": "La sessione scade dopo :minutes minuti senza attività e poi viene cancellata.",
+    "privacy.retention.technical": "La sessione scade dopo :minutes minuti senza attività e poi viene cancellata. Se l'invio di un'email non riesce, il sito conserva una copia tecnica del lavoro non riuscito, con l'indirizzo del destinatario e il messaggio d'errore, per al massimo 14 giorni.",
     "privacy.recipients.heading": "A chi vanno i dati",
     "privacy.recipients.planned": "I fornitori per la messa online del sito sono previsti e possono ancora cambiare.",
     "privacy.recipients.provider": "Al professionista che scegli, per gestire la prenotazione.",
