@@ -95,6 +95,24 @@ Finché i testi legali non sono rivisti ([legal.md](legal.md)) il sito è online
     - `Strict-Transport-Security: max-age=31536000` solo in produzione e solo su una richiesta https; senza sottodomini e senza preload finché il dominio non è scelto.
 - **Nessuna Content-Security-Policy** per ora: lo script in linea del tema in `app.blade.php` richiede prima un nonce. È un lavoro a parte.
 
+## App installabile (manifest, nessun service worker)
+
+Griot si può aggiungere alla schermata Home di un iPhone, di un telefono Android o di un computer e si apre in una finestra sua, senza la barra del browser. Serve solo a questo: **niente uso offline e niente notifiche**.
+
+- **Il manifest** è `/manifest.webmanifest` (rotta `manifest`, `App\Http\Controllers\WebAppManifestController`), con `Content-Type: application/manifest+json`. È una rotta, come `robots.txt`, fuori dal gruppo `web`: niente sessione, niente cookie. Nessun file `manifest.*` in `public/`, che vincerebbe sulla rotta (`WebAppManifestTest`).
+- **Contenuto**: `id`, `start_url` e `scope` `/`, `display: standalone`, `name` e `short_name` « Griot », i colori del logo (`theme_color` il marrone `--hero`, `background_color` il fondo `--background`, da `App\Support\BrandColours`, la stessa fonte delle icone), quattro icone (192 e 512, `any` con gli angoli arrotondati e `maskable` piene, [brand.md](brand.md)). Niente `description`, niente `orientation` (l'app gira con il telefono, WCAG 1.3.4), niente `shortcuts`.
+- **L'app si apre sulla home per tutti.** Può installarla chiunque, cliente o professionista, e il browser scarica il manifest **senza cookie**: non può sapere chi lo installa, né la sua lingua. Per questo un solo manifest, la home come pagina d'avvio e nessun testo da tradurre. Il professionista entra nella sua area dal link della testata, come nel browser.
+- **Nelle pagine** (`resources/views/partials/web-app.blade.php`, incluso da `app.blade.php` e dalle pagine d'errore): `<link rel="manifest">` e due `<meta name="theme-color">`, il marrone del tema chiaro e quello del tema scuro (`--hero` di `.dark`), con `media="(prefers-color-scheme: …)"`.
+- **Nessun service worker, ed è una scelta.** Non serve per installare: Chrome lo chiede ancora solo per la proposta automatica di installazione, mentre dal menu del browser l'app si installa senza (da Chrome 108 su Android e 112 su computer); su iPhone l'installazione è sempre a mano, da Condividi → « Aggiungi alla schermata Home ». Senza service worker l'app installata usa la rete e la cache del browser come il sito: la pagina privata del cliente e quelle del professionista restano `no-store`, `noindex` e (la prima) `no-referrer`, e nessuna pagina resta salvata sul telefono. `WebAppManifestTest` controlla che non ci siano un file `sw.js` / `service-worker.js` in `public/`, una `serviceWorker` nel codice delle pagine o un plugin che ne crei uno. Se un giorno servisse (per esempio per le notifiche): senza gestore `fetch` e senza Cache API, con un test che lo controlli.
+- **Limiti noti**:
+    - su iPhone l'app installata ha cookie separati da Safari: il professionista accede di nuovo dentro l'app (con « Ricordami » resta connesso);
+    - i link delle email (verifica dell'indirizzo, nuova password) si aprono nel browser, non nell'app;
+    - in modalità app iOS non ha il pulsante Indietro: ogni pagina interna deve avere il suo link per tornare;
+    - il file `.ics` scaricato dall'app su iPhone va provato a mano;
+    - iOS e Safari a volte ignorano `theme-color`;
+    - Firefox per computer non installa le app web;
+    - le icone seguono il logo provvisorio: chi ha già installato l'app vede quelle nuove quando il browser rilegge il manifest (su iPhone può servire reinstallarla).
+
 ## Sessione scaduta e CSRF (#130)
 
 - `SESSION_LIFETIME` resta **120 minuti**.

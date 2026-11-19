@@ -17,6 +17,7 @@
         <title>@yield('title') - {{ $appName }}</title>
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        @include('partials.web-app')
         <style>
             :root {
                 color-scheme: light dark;

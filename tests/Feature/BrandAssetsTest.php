@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\BrandColours;
 use Illuminate\Support\Facades\Process;
 
 // The files of the provisional logo (docs/brand.md): what scripts/brand-assets.php writes, how the
@@ -60,7 +61,10 @@ const BA_IMAGES = [
     'public/brand/icon-32.png' => [32, 32],
     'public/brand/icon-48.png' => [48, 48],
     'public/brand/icon-180.png' => [180, 180],
+    'public/brand/icon-192.png' => [192, 192],
     'public/brand/icon-512.png' => [512, 512],
+    'public/brand/icon-maskable-192.png' => [192, 192],
+    'public/brand/icon-maskable-512.png' => [512, 512],
     'public/apple-touch-icon.png' => [180, 180],
     'public/og-default.png' => [1200, 630],
 ];
@@ -68,7 +72,8 @@ const BA_IMAGES = [
 // The heaviest each file may be, in KB (docs/brand.md).
 const BA_LIMITS = [
     'wordmark' => 30, 'pin-' => 10, 'pin.png' => 10, 'icon-16' => 10, 'icon-32' => 10, 'icon-48' => 10,
-    'icon-180' => 30, 'apple-touch' => 30, 'icon-512' => 120, 'favicon.ico' => 10, 'og-default' => 200,
+    'icon-180' => 30, 'icon-192' => 30, 'apple-touch' => 30, 'icon-512' => 120, 'icon-maskable-192' => 30,
+    'icon-maskable-512' => 120, 'favicon.ico' => 10, 'og-default' => 200,
 ];
 
 // ---------------------------------------------------------------------------------------------
@@ -116,7 +121,7 @@ test('every file is light: under its limit', function () {
     }
 });
 
-test('the favicon holds 16, 32 and 48 px, the apple-touch icon is 180 px, both linked by every page', function () {
+test('the favicon holds 16, 32 and 48 px, the apple-touch icon is 180 px, both linked by every page with the manifest', function () {
     $ico = baFile('public/favicon.ico');
     expect(unpack('vreserved/vtype/vcount', substr($ico, 0, 6)))->toBe(['reserved' => 0, 'type' => 1, 'count' => 3]);
     $sizes = [];
@@ -133,8 +138,19 @@ test('the favicon holds 16, 32 and 48 px, the apple-touch icon is 180 px, both l
     foreach (['resources/views/app.blade.php', 'resources/views/errors/layout.blade.php'] as $page) {
         expect(baFile($page))
             ->toContain('<link rel="icon" href="/favicon.ico" sizes="any">')
-            ->toContain('<link rel="apple-touch-icon" href="/apple-touch-icon.png">');
+            ->toContain('<link rel="apple-touch-icon" href="/apple-touch-icon.png">')
+            // The manifest and the theme colours of the web app (WebAppManifestTest).
+            ->toContain("<link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\">\n        @include('partials.web-app')");
     }
+});
+
+test('only the files the script makes are in public/brand: no icon left from another logo', function () {
+    $files = array_map('basename', glob(public_path('brand/*')) ?: []);
+    sort($files);
+    $expected = array_map('basename', array_filter(array_keys(BA_IMAGES), fn (string $path) => str_starts_with($path, 'public/brand/')));
+    sort($expected);
+
+    expect($files)->toBe($expected);
 });
 
 test('the originals never enter the repository: no big PNG, no file with their names', function () {
@@ -226,16 +242,22 @@ test('no colour written by hand in the logo; the colours of the script are the t
         ->not->toMatch('/#[0-9a-fA-F]{6}\b|rgba?\(|oklch\(/')
         ->not->toMatch('/\b(?:bg|text|border|fill|stroke)-(?:red|green|orange|amber|yellow|neutral|gray|white|black)\b/');
 
+    // One place for the colours: App\Support\BrandColours, which the script requires and the web
+    // app manifest reads. The script writes none by hand.
     $script = baFile('scripts/brand-assets.php');
-    $constant = function (string $name) use ($script): string {
-        expect(preg_match("/const {$name} = \\[0x([0-9A-F]{2}), 0x([0-9A-F]{2}), 0x([0-9A-F]{2})\\];/", $script, $match))->toBe(1, $name);
+    expect($script)
+        ->toContain('use App\\Support\\BrandColours;')
+        ->toContain("require_once dirname(__DIR__).'/app/Support/BrandColours.php';")
+        ->not->toMatch('/\[0x[0-9A-Fa-f]{2}, 0x[0-9A-Fa-f]{2}, 0x[0-9A-Fa-f]{2}\]/');
+    foreach (['BROWN', 'CREAM', 'BACKGROUND', 'DECOR'] as $name) {
+        expect($script)->toContain("const {$name} = BrandColours::{$name};");
+    }
 
-        return "#{$match[1]}{$match[2]}{$match[3]}";
-    };
-    expect($constant('BROWN'))->toBe(baToken('hero'))
-        ->and($constant('CREAM'))->toBe(baToken('hero-foreground'))
-        ->and($constant('BACKGROUND'))->toBe(baToken('background'))
-        ->and($constant('DECOR'))->toBe(baToken('decor'));
+    expect(BrandColours::hex(BrandColours::BROWN))->toBe(baToken('hero'))
+        ->and(BrandColours::hex(BrandColours::BROWN_DARK))->toBe(baToken('hero', 'dark'))
+        ->and(BrandColours::hex(BrandColours::CREAM))->toBe(baToken('hero-foreground'))
+        ->and(BrandColours::hex(BrandColours::BACKGROUND))->toBe(baToken('background'))
+        ->and(BrandColours::hex(BrandColours::DECOR))->toBe(baToken('decor'));
 });
 
 test('the orange of the pin stands out on the brown of its square, in both themes', function () {
@@ -317,6 +339,18 @@ test('the script cuts the word, removes the arcs, makes the white transparent wi
         // The other files are there.
         foreach (['public/favicon.ico', 'public/apple-touch-icon.png', 'public/og-default.png', 'public/brand/pin.png', 'resources/images/brand/pin-1x.webp'] as $file) {
             expect(file_exists("{$folder}/out/{$file}"))->toBeTrue($file);
+        }
+        // The icons of the web app: 192 with round corners, the maskable ones square and opaque.
+        $round = imagecreatefrompng("{$folder}/out/public/brand/icon-192.png");
+        expect($round)->not->toBeFalse()
+            ->and(baSize("{$folder}/out/public/brand/icon-192.png"))->toBe([192, 192])
+            ->and(baPixel($round, 0, 0)[3])->toBe(127);
+        foreach ([192, 512] as $size) {
+            $maskable = imagecreatefrompng("{$folder}/out/public/brand/icon-maskable-{$size}.png");
+            expect($maskable)->not->toBeFalse()
+                ->and(baSize("{$folder}/out/public/brand/icon-maskable-{$size}.png"))->toBe([$size, $size])
+                ->and(baPixel($maskable, 0, 0))->toBe([...BrandColours::BROWN, 0])
+                ->and(baPixel($maskable, $size - 1, $size - 1))->toBe([...BrandColours::BROWN, 0]);
         }
         expect(baSize("{$folder}/out/public/og-default.png"))->toBe([1200, 630]);
     } finally {
