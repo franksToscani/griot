@@ -78,13 +78,13 @@ Dati un provider, un servizio, le opzioni scelte e un giorno, il sistema restitu
 
 **Regole da fissare all'inizio**
 
-| Decisione                            | Proposta                                                                                                                                            |
-| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Quale durata blocca lo slot          | `duration_max` più gli extra delle opzioni scelte: evita le sovrapposizioni, ma riduce gli slot offerti. Da confermare con i provider intervistati. |
-| Ogni quanto parte uno slot           | Ogni 30 minuti, dentro le fasce di disponibilità.                                                                                                   |
-| Quali prenotazioni occupano il tempo | Quelle `pending` e `confirmed`; le `cancelled` liberano lo slot.                                                                                    |
-| Anticipo minimo                      | Nessuno slot nel passato, più un margine configurabile (per esempio 2 ore).                                                                         |
-| Finestra massima                     | Si prenota fino a 60 giorni avanti.                                                                                                                 |
+| Decisione                            | Proposta                                                                                                                                                    |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Quale durata blocca lo slot          | `duration_max` più gli extra delle opzioni scelte: evita le sovrapposizioni, ma riduce gli slot offerti. **Confermata dopo le prove (#53)**, vedi Sprint 7. |
+| Ogni quanto parte uno slot           | Ogni 30 minuti, dentro le fasce di disponibilità.                                                                                                           |
+| Quali prenotazioni occupano il tempo | Quelle `pending` e `confirmed`; le `cancelled` liberano lo slot.                                                                                            |
+| Anticipo minimo                      | Nessuno slot nel passato, più un margine configurabile (per esempio 2 ore).                                                                                 |
+| Finestra massima                     | Si prenota fino a 60 giorni avanti.                                                                                                                         |
 
 **Fasce di disponibilità di un giorno** _Come sistema voglio sapere in quali fasce un provider lavora in un dato giorno, per partire dagli orari giusti._
 
@@ -413,6 +413,7 @@ Si parte con la A per i primi due o tre provider; la C diventa utile per una pro
 
 - I problemi che hanno fermato almeno due provider sono corretti o hanno una decisione scritta di rimando.
 - Ogni correzione passa da una PR con `composer ci:check` verde.
+- **Decisione sulla durata (#53):** confermata la regola: una prenotazione occupa la durata massima del servizio più i minuti delle opzioni. Corretta la presentazione: un solo campo obbligatorio « tempo da tenere libero » con un esempio dal vivo; la durata minima diventa facoltativa e solo informativa per il cliente; il cliente vede l'ora di fine massima prima di confermare ([bookings.md](bookings.md), « Quanto tempo occupa una prenotazione »). Da fare dopo una nuova prova, se serve: gli orari non disponibili mostrati disattivati invece che nascosti.
 
 **Traduzioni** _Come utente voglio usare il sito nella mia lingua._
 
@@ -698,7 +699,7 @@ In ordine di lavoro, non di numero: lo Sprint 11 viene prima del lancio, e il la
 
 **Punti aperti**
 
-- Confermare con i provider intervistati che la durata massima come blocco dello slot sia la scelta giusta.
+- **Deciso (#53):** la durata massima resta il blocco dello slot; corretta solo la presentazione (Sprint 7).
 - Il prezzo della prenotazione è salvato dallo Sprint 9 (#97, [bookings.md](bookings.md)); nessun pagamento online.
 - Wireframe a bassa fedeltà di elenco provider, scheda e form di prenotazione: rimandati, da fare prima dello Sprint 1 se servono.
 - Lingua dell'interfaccia: decidere il sistema di traduzioni prima di scrivere le pagine dello Sprint 1.

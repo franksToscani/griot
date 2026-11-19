@@ -44,10 +44,13 @@ trait ServiceRules
             'category_id' => ['bail', 'required', 'integer', Rule::exists('categories', 'id')],
             // No "numeric": it would accept "1e3". Four digits, up to two decimals, above zero.
             'price' => ['bail', 'required', 'string', 'regex:/^\d{1,4}(\.\d{1,2})?$/', $this->positivePrice(...)],
-            'duration_min' => ['bail', 'required', 'integer', $this->validDuration(...)],
-            // The order is checked only once duration_max itself is valid (bail), and only if
-            // duration_min is valid too: an invalid minimum gets its own error, not an "order" one.
+            // The time kept free in the agenda (docs/bookings.md, #53): the only duration that
+            // counts for the slots, required.
             'duration_max' => ['bail', 'required', 'integer', $this->validDuration(...), $this->notShorterThanMinimum(...)],
+            // Optional, shown to the customer only ("usually from... to..."): empty, it is saved
+            // equal to duration_max (serviceFields). The order is checked on duration_max, only
+            // once both are valid: an invalid minimum gets its own error, not an "order" one.
+            'duration_min' => ['bail', 'nullable', 'integer', $this->validDuration(...)],
         ];
     }
 
@@ -66,10 +69,9 @@ trait ServiceRules
             'price.required' => __('provider.services.validation.price_required'),
             'price.string' => __('provider.services.validation.price_invalid'),
             'price.regex' => __('provider.services.validation.price_invalid'),
-            'duration_min.required' => __('provider.services.validation.duration_min_required'),
-            'duration_min.integer' => __('provider.services.validation.duration_invalid'),
             'duration_max.required' => __('provider.services.validation.duration_max_required'),
             'duration_max.integer' => __('provider.services.validation.duration_invalid'),
+            'duration_min.integer' => __('provider.services.validation.duration_invalid'),
         ];
     }
 
@@ -88,7 +90,9 @@ trait ServiceRules
             'name' => $this->string('name')->toString(),
             'description' => is_string($description) ? $description : null,
             'price' => $this->normalizedPrice($this->string('price')->toString()),
-            'duration_min' => $this->integer('duration_min'),
+            // An empty minimum is the maximum: the column stays required, the customer then reads
+            // one duration only.
+            'duration_min' => $this->filled('duration_min') ? $this->integer('duration_min') : $this->integer('duration_max'),
             'duration_max' => $this->integer('duration_max'),
         ];
     }

@@ -2,6 +2,27 @@
 
 Come una prenotazione tiene il suo prezzo (issue #97), la pagina di una prenotazione nell'area del professionista, con il link dell'email « nuova prenotazione », e l'email « richiesta inviata » al cliente. Griot non gestisce pagamenti: il prezzo è un'informazione per il cliente e per il professionista, in euro.
 
+## Quanto tempo occupa una prenotazione (#53)
+
+**La regola, confermata dopo le prove con i professionisti:** una prenotazione occupa la **durata massima** del servizio più i **minuti delle opzioni** scelte. La durata minima non entra in nessun calcolo: la vede solo il cliente, per farsi un'idea. Così due clienti non si trovano mai nello stesso momento, anche quando il lavoro dura quanto il massimo; in cambio qualche orario in meno.
+
+Nel modulo del servizio la regola si legge così:
+
+- **« Tempo da tenere libero »**, il primo campo, obbligatorio (colonna `duration_max`): il tempo che Griot riserva per ogni prenotazione. Sotto, un esempio che segue quello che si scrive: « Una prenotazione alle 09:00 ti occupa fino alle 12:00 (3 h). » L'esempio parte sempre dalle 09:00: con il massimo consentito, 12 ore, finisce ancora lo stesso giorno, alle 21:00. È testo normale, letto con il campo (`aria-describedby`), non annunciato a ogni tasto.
+- **« Può finire prima? Durata minima (facoltativa) »**, il secondo campo (`duration_min`): se resta vuoto si salva uguale al tempo da tenere libero, quindi la colonna non cambia e non serve nessuna migrazione. Una minima più lunga della massima resta rifiutata, con il messaggio di prima. Nella pagina di modifica, una minima uguale alla massima si mostra vuota: cambiare solo la massima non chiede altro.
+- **Minuti extra di un'opzione:** « si aggiungono al tempo che ti viene riservato ».
+- Nessun testo parla di « calendario »: l'area del professionista non ne ha uno.
+
+Il cliente vede « di solito da 2 h 30 a 3 h 30 » quando minima e massima sono diverse, una durata sola quando sono uguali, e, una volta scelto l'orario, « Dalle 14:00 fino alle 17:30 al massimo ». Quella fine arriva dal server con l'orario (`end_time` di `SlotResource`): è la fine calcolata da `FreeSlots` con `BookingDuration`, la stessa che `CreateBooking` salva in `ends_at` e che la conferma e le email mostrano. Le durate si scrivono in ore e minuti (« 45 min », « 3 h », « 3 h 30 », con spazi non separabili) in `lib/format.ts` (`formatMinutes`), uguali in italiano, francese e inglese.
+
+Tre esempi, con una giornata di lavoro dalle 9 alle 19 e un orario d'inizio ogni 30 minuti:
+
+- **Barba, 30 minuti.** Una prenotazione alle 10:00 occupa 10:00–10:30. Il cliente vede « 30 min » e gli orari 9:00, 9:30 … 18:30. Due barbe una dopo l'altra, alle 10:00 e alle 10:30, vanno bene.
+- **Manicure, 45 minuti, con « Nail art » (+30) e « Rimozione » (+15).** Senza opzioni occupa 45 minuti; con tutte e due 1 h 30: alle 9:00 occupa 9:00–10:30. Gli orari cambiano quando il cliente sceglie un'opzione. Dopo una manicure semplice 9:00–9:45, il primo orario libero è 10:00: i 15 minuti in mezzo si perdono per la griglia da 30 minuti, non per la durata.
+- **Treccine, di solito da 2 a 3 ore, con « Perline » (+30).** Il professionista scrive 180 come tempo da tenere libero e 120 come minima. Il cliente legge « di solito da 2 h 30 a 3 h 30 »; scelte le 14:00, legge « Dalle 14:00 fino alle 17:30 al massimo », e la prenotazione occupa 14:00–17:30 anche se il lavoro finisce alle 16:30. Con quella prenotazione, un altro cliente trova la mattina 9:00, 9:30, 10:00 e 10:30 (che finisce alle 14:00 esatte); dalle 11:00 non c'è più posto, e nel pomeriggio nemmeno.
+
+`BookingDuration`, `FreeSlots` e `CreateBooking` non sono cambiati: lo controlla `ServiceDurationTest` (le treccine: 180 + 30 dalle 14:00 finiscono alle 17:30).
+
 ## Che cosa si salva
 
 | Colonna                                    | Che cosa contiene                                                         |
@@ -242,6 +263,13 @@ Accanto a « Aggiungi a Google Calendar », il pulsante « Aggiungi al calendari
 - Link normale con `download` (mai il `Link` di Inertia, perché è un file), senza `NewTabHint` perché non apre una scheda; icona `Download` decorativa (`aria-hidden`); 44 px sui telefoni, come i pulsanti del kit.
 
 ## Test
+
+- `tests/Feature/ServiceDurationTest.php` (#53):
+    - la minima vuota salvata uguale alla massima, all'aggiunta e alla modifica; una minima scritta salvata com'è; minima più lunga della massima rifiutata; massima obbligatoria;
+    - la regola invariata (treccine 180 + 30 alle 14:00: orari, `end_time` e `ends_at` alle 17:30) e la minima che non cambia né gli orari né la fine;
+    - la fine mostrata prima di prenotare uguale a quella della conferma e delle email;
+    - i form (il tempo da tenere libero per primo e obbligatorio, l'esempio delle 09:00, il componente comune), la riga « fino alle … al massimo », nessun `aria-label` scritto a mano;
+    - i testi in tre lingue con gli spazi del francese, mai « calendario » negli aiuti; le durate in ore e minuti in `format.ts` (solo minuti, solo ore, 5 minuti, 12 ore).
 
 - `tests/Feature/BookingSavedPriceTest.php`:
     - `Money`;

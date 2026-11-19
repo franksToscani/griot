@@ -555,7 +555,7 @@ test('the Italian texts are exactly the expected ones', function () {
         'provider.options.form.price' => 'Prezzo extra in euro',
         'provider.options.form.price_help' => 'Per esempio 5 oppure 7,50. Scrivi 0 se non costa niente.',
         'provider.options.form.duration' => 'Minuti extra',
-        'provider.options.form.duration_help' => 'Quanto allunga il servizio. Il calendario blocca anche questi minuti.',
+        'provider.options.form.duration_help' => 'Quanto allunga il servizio. Questi minuti si aggiungono al tempo che ti viene riservato.',
         'provider.options.form.submit' => "Aggiungi l'opzione",
         'provider.options.form.save' => 'Salva le modifiche',
         'provider.options.edit_button' => 'Modifica',
