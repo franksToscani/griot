@@ -131,7 +131,7 @@ test('after queue:prune-failed the old rows are gone and only a new failure is r
     fjrFailedJob(failedAt: '2026-10-01 08:00:00');
     expect(fjrRun()['count'])->toBe(1);
 
-    $this->artisan('queue:prune-failed', ['--hours' => 720])->assertSuccessful();
+    $this->artisan('queue:prune-failed', ['--hours' => 336])->assertSuccessful();
     expect(DB::table('failed_jobs')->count())->toBe(0);
 
     // The table is empty: nothing to say.

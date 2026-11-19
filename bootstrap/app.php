@@ -8,12 +8,15 @@ use App\Http\Middleware\NoIndexPrivatePages;
 use App\Http\Middleware\NoIndexSite;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
+use App\Support\PrivateExceptionLog;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -46,6 +49,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Never the message of a database or mail transport error in the log: it can hold the
+        // customers' data and the secret code of a private link (issue #186). One line with the
+        // class, the code and the place instead, and stop(): Laravel does not write its own.
+        $exceptions->report(fn (QueryException $exception) => PrivateExceptionLog::query($exception))->stop();
+        $exceptions->report(fn (TransportExceptionInterface $exception) => PrivateExceptionLog::mail($exception))->stop();
+
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
