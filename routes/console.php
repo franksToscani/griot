@@ -17,9 +17,9 @@ Schedule::command('bookings:anonymize-old --force')
     ->withoutOverlapping();
 
 // Retention of the technical data (issue #56). The failed jobs keep their payload, the customer's
-// email included: 30 days to look at a failure, then gone. The password reset tokens expire after
+// email included: 14 days to look at a failure, then gone (issue #186, it was 30). The password reset tokens expire after
 // 60 minutes (config/auth.php) but their rows stay until cleared.
-Schedule::command('queue:prune-failed --hours=720')
+Schedule::command('queue:prune-failed --hours=336')
     ->daily()
     ->withoutOverlapping();
 

@@ -439,7 +439,7 @@ Si parte con la A per i primi due o tre provider; la C diventa utile per una pro
 - La riga resta per lo storico del provider: servizio, opzioni, data, stato, chi ha annullato, lingua. Il provider la vede come « Cliente anonimo » e non può più cambiarla.
 - Il comando è `bookings:anonymize-old`: `--dry-run` conta senza modificare, `--force` salta la conferma. Lo scheduler lo lancia ogni giorno con `--force`.
 - La regola sta solo nello scope `Booking::dueForAnonymization()`; la pagina `/privacy` legge lo stesso numero di mesi dal config.
-- Dati tecnici: lo scheduler lancia ogni giorno `queue:prune-failed --hours=720` (i job falliti, che contengono anche l'email del cliente, restano 30 giorni) e `auth:clear-resets` (i token di reset della password scaduti). Le sessioni le cancella già Laravel.
+- Dati tecnici: lo scheduler lancia ogni giorno `queue:prune-failed --hours=336` (i job falliti, che contengono anche l'email del cliente, restano 14 giorni; erano 30 fino alla #186) e `auth:clear-resets` (i token di reset della password scaduti). Le sessioni le cancella già Laravel.
 - In produzione, con `MAIL_MAILER=log` o `array`, si fermano le pagine web, il lavoratore delle code (`queue:work`, `queue:listen`) e lo scheduler (`schedule:run`, `schedule:work`): sono i punti da cui partono le email (`App\Support\ProductionMailer`). Con `log` le email intere, link privati compresi, finirebbero nel registro. Gli altri comandi non si fermano: `composer install` senza `.env` (clone nuovo, CI), `migrate`, la build. Per i log `.env.example` indica `LOG_CHANNEL=stderr` oppure `daily` con `LOG_DAILY_DAYS=14`.
 
 **Attività tecniche**

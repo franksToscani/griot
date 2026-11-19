@@ -141,13 +141,13 @@ test('the tests run on the database of the tests, never the real one', function 
 // Schedule
 // ---------------------------------------------------------------------------------------------
 
-test('the failed jobs older than 30 days are pruned every day, without overlapping', function () {
+test('the failed jobs older than 14 days are pruned every day, without overlapping', function () {
     $events = trtEvents('queue:prune-failed');
 
     expect($events)->toHaveCount(1);
     expect($events[0]->expression)->toBe('0 0 * * *')
         ->and($events[0]->withoutOverlapping)->toBeTrue()
-        ->and((string) $events[0]->command)->toEndWith("'artisan' queue:prune-failed --hours=720");
+        ->and((string) $events[0]->command)->toEndWith("'artisan' queue:prune-failed --hours=336");
 });
 
 test('the expired password reset tokens are cleared every day, without overlapping', function () {
@@ -163,12 +163,12 @@ test('the expired password reset tokens are cleared every day, without overlappi
 // The commands, really run
 // ---------------------------------------------------------------------------------------------
 
-test('a failed job older than 30 days is deleted, a more recent one stays', function () {
-    $old = trtFailedJob(CarbonImmutable::now()->subHours(720)->subSecond());
-    $recent = trtFailedJob(CarbonImmutable::now()->subHours(720)->addSecond());
+test('a failed job older than 14 days is deleted, a more recent one stays', function () {
+    $old = trtFailedJob(CarbonImmutable::now()->subHours(336)->subSecond());
+    $recent = trtFailedJob(CarbonImmutable::now()->subHours(336)->addSecond());
     $today = trtFailedJob(CarbonImmutable::now()->subHour());
 
-    $this->artisan('queue:prune-failed', ['--hours' => 720])->assertSuccessful();
+    $this->artisan('queue:prune-failed', ['--hours' => 336])->assertSuccessful();
 
     expect(DB::table('failed_jobs')->orderBy('id')->pluck('uuid')->all())->toBe([$recent, $today])
         ->and($old)->not->toBeIn(DB::table('failed_jobs')->pluck('uuid')->all());
