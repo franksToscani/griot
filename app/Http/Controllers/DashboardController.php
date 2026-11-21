@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\ProviderAreaResource;
-use App\Profile\PublishingRequirements;
+use App\Profile\SetupSteps;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,7 +19,7 @@ class DashboardController extends Controller
      * from the address or the request. A user without a provider goes to provider.setup, which
      * in turn sends a user with a provider here: the two routes exclude each other, no loop.
      */
-    public function __invoke(Request $request, PublishingRequirements $requirements): Response|RedirectResponse
+    public function __invoke(Request $request, SetupSteps $steps): Response|RedirectResponse
     {
         $provider = $request->user()?->provider;
 
@@ -27,8 +27,9 @@ class DashboardController extends Controller
             return to_route('provider.setup');
         }
 
-        // Computed at every load, so it always reflects the current services and availabilities.
-        $missing = $requirements->missing($provider);
+        // Computed at every load, so it always reflects the current services and availabilities. Through
+        // SetupSteps: once per request, the guide to the first steps reads the same answer.
+        $missing = $steps->missing($request, $provider);
 
         // Unpublished too: the page shows the status.
         return Inertia::render('dashboard', [

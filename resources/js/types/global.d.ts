@@ -1,4 +1,5 @@
 import type { Auth } from '@/types/auth';
+import type { SetupStepsData } from '@/types/provider-area';
 
 declare module 'react' {
     interface InputHTMLAttributes<T> {
@@ -29,6 +30,9 @@ declare module '@inertiajs/core' {
                 pending_requests: number;
                 public_slug: string | null;
             } | null;
+            // The guide to the first steps (App\Profile\SetupSteps): on the four pages of the steps,
+            // only while the provider is not published; null or missing otherwise.
+            setup_steps?: SetupStepsData | null;
             [key: string]: unknown;
         };
     }

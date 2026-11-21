@@ -27,6 +27,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import {
+    PAGE_TITLE_FOCUS,
+    PAGE_TITLE_ID,
+    SetupStepsFooter,
+    SetupStepsNav,
+} from '@/components/setup-steps';
 import { useFlashFocus } from '@/hooks/use-flash-focus';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
@@ -69,8 +75,14 @@ export default function ProviderAvailabilityIndex({
         <>
             <Head title={t('provider.availability.title')} />
             <div className="flex flex-col gap-6 p-4">
+                {/* The guide to the first steps, only while not published. */}
+                <SetupStepsNav page="availability" />
                 <header className={`flex flex-col gap-1 ${PAGE_HEADER_WIDTH}`}>
-                    <h1 className="text-2xl font-semibold">
+                    <h1
+                        id={PAGE_TITLE_ID}
+                        tabIndex={-1}
+                        className={`text-2xl font-semibold ${PAGE_TITLE_FOCUS}`}
+                    >
                         {t('provider.availability.title')}
                     </h1>
                     <p className="text-muted-foreground">
@@ -148,6 +160,7 @@ export default function ProviderAvailabilityIndex({
                         )}
                     </AddPanel>
                 </div>
+                <SetupStepsFooter page="availability" />
             </div>
         </>
     );

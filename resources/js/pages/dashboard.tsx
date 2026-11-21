@@ -25,11 +25,17 @@ import {
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
+import {
+    PAGE_TITLE_FOCUS,
+    PAGE_TITLE_ID,
+    SetupStepsFooter,
+    SetupStepsNav,
+} from '@/components/setup-steps';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
 import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
-import { publish, unpublish } from '@/routes/provider';
+import { preview, publish, unpublish } from '@/routes/provider';
 import { index as bookingsIndex } from '@/routes/provider/bookings';
 import type { ProviderArea, PublishingStatus } from '@/types';
 import { wrappingLabel } from '@/lib/form-classes';
@@ -57,6 +63,8 @@ export default function Dashboard({ provider, publishing }: Props) {
         <>
             <Head title={t('provider.area.title')} />
             <div className="flex flex-col gap-6 p-4">
+                {/* The guide to the first steps, only while not published. */}
+                <SetupStepsNav page="publish" />
                 <header className="flex items-center gap-4">
                     <ProviderAvatar
                         name={provider.name}
@@ -64,7 +72,11 @@ export default function Dashboard({ provider, publishing }: Props) {
                         className="size-16 text-lg"
                     />
                     <div className="min-w-0">
-                        <h1 className="text-2xl font-semibold">
+                        <h1
+                            id={PAGE_TITLE_ID}
+                            tabIndex={-1}
+                            className={`text-2xl font-semibold ${PAGE_TITLE_FOCUS}`}
+                        >
                             {t('provider.area.welcome', {
                                 name: provider.name,
                             })}
@@ -114,6 +126,7 @@ export default function Dashboard({ provider, publishing }: Props) {
                     url={provider.public_url}
                     published={provider.is_published}
                 />
+                <SetupStepsFooter page="publish" />
             </div>
         </>
     );
@@ -151,27 +164,16 @@ function PendingSummary() {
 // load: after a refused publish the page is reloaded with the current list.
 function PublishSection({ publishing }: { publishing: PublishingStatus }) {
     const { t } = useTranslation();
-    const missing = publishing.missing.filter(isMissingCode);
 
     return (
         <>
-            {publishing.can_publish ? (
-                <p className="text-sm">{t('provider.publish.ready')}</p>
-            ) : missing.length > 0 ? (
-                <div className="text-sm">
-                    <p>{t('provider.publish.missing_title')}</p>
-                    <ul className="list-disc pl-5">
-                        {missing.map((code) => (
-                            <li key={code}>
-                                {t(`provider.publish.missing_${code}`)}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            ) : (
-                // Only unknown codes: still not publishable, with the general message.
-                <p className="text-sm">{t('provider.publish.blocked')}</p>
-            )}
+            {/* What is missing, and where to do it, is said by the guide at the top of the page
+                (SetupStepsNav): here one short sentence, never the list again. */}
+            <p className="text-sm">
+                {publishing.can_publish
+                    ? t('provider.publish.ready')
+                    : t('provider.publish.complete_steps')}
+            </p>
             <Form
                 {...publish.form()}
                 options={{ preserveScroll: true }}
@@ -180,14 +182,27 @@ function PublishSection({ publishing }: { publishing: PublishingStatus }) {
                 {({ processing, errors }) => (
                     <>
                         <InputError message={errors.publish} />
-                        <Button
-                            type="submit"
-                            className={`self-start ${wrappingLabel}`}
-                            disabled={!publishing.can_publish || processing}
-                        >
-                            {processing && <Spinner />}
-                            {t('provider.publish.submit')}
-                        </Button>
+                        <div className="flex flex-wrap gap-2">
+                            {/* Step 4 of the guide: look at the page before publishing it. */}
+                            <Button
+                                asChild
+                                variant="outline"
+                                className={wrappingLabel}
+                            >
+                                <Link href={preview()}>
+                                    {t('provider.area.preview')}
+                                </Link>
+                            </Button>
+                            {/* Off while something is missing; the server checks again anyway. */}
+                            <Button
+                                type="submit"
+                                className={wrappingLabel}
+                                disabled={!publishing.can_publish || processing}
+                            >
+                                {processing && <Spinner />}
+                                {t('provider.publish.submit')}
+                            </Button>
+                        </div>
                     </>
                 )}
             </Form>

@@ -14,6 +14,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import {
+    PAGE_TITLE_FOCUS,
+    PAGE_TITLE_ID,
+    SetupStepsFooter,
+    SetupStepsNav,
+} from '@/components/setup-steps';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
 import { edit, update } from '@/routes/provider';
@@ -42,9 +48,15 @@ export default function ProviderEditPage({ provider, app_url }: Props) {
         <>
             <Head title={t('provider.edit.title')} />
             <div className="flex flex-col gap-6 p-4">
+                {/* The guide to the first steps, only while not published. */}
+                <SetupStepsNav page="business" />
                 <Card className="max-w-2xl">
                     <CardHeader>
-                        <h1 className="text-2xl leading-none font-semibold">
+                        <h1
+                            id={PAGE_TITLE_ID}
+                            tabIndex={-1}
+                            className={`text-2xl leading-none font-semibold ${PAGE_TITLE_FOCUS}`}
+                        >
                             {t('provider.edit.title')}
                         </h1>
                         <CardDescription>
@@ -135,6 +147,7 @@ export default function ProviderEditPage({ provider, app_url }: Props) {
                     photos={provider.photos}
                     limits={provider.gallery}
                 />
+                <SetupStepsFooter page="business" />
             </div>
         </>
     );

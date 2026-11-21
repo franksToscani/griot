@@ -25,6 +25,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    PAGE_TITLE_FOCUS,
+    PAGE_TITLE_ID,
+    SetupStepsFooter,
+    SetupStepsNav,
+} from '@/components/setup-steps';
 import { useFlashFocus } from '@/hooks/use-flash-focus';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatDuration, formatPrice } from '@/lib/format';
@@ -53,8 +59,14 @@ export default function ProviderServicesIndex({ services, categories }: Props) {
         <>
             <Head title={t('provider.services.title')} />
             <div className="flex flex-col gap-6 p-4">
+                {/* The guide to the first steps, only while not published. */}
+                <SetupStepsNav page="services" />
                 <header className={PAGE_HEADER_WIDTH}>
-                    <h1 className="text-2xl font-semibold">
+                    <h1
+                        id={PAGE_TITLE_ID}
+                        tabIndex={-1}
+                        className={`text-2xl font-semibold ${PAGE_TITLE_FOCUS}`}
+                    >
                         {t('provider.services.title')}
                     </h1>
                     <p className="text-muted-foreground">
@@ -111,6 +123,7 @@ export default function ProviderServicesIndex({ services, categories }: Props) {
                         )}
                     </AddPanel>
                 </div>
+                <SetupStepsFooter page="services" />
             </div>
         </>
     );

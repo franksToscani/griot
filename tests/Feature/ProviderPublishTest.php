@@ -216,7 +216,9 @@ test('the Italian texts are exactly the expected ones', function () {
     expect(__('provider.publish.unpublished'))->toBe('Il tuo profilo non è più visibile ai clienti.');
     expect(__('provider.publish.blocked'))->toBe('Non puoi ancora pubblicare il profilo: mancano alcune cose.');
     expect(__('provider.publish.title'))->toBe('Pubblicazione');
-    expect(__('provider.publish.missing_title'))->toBe('Per pubblicare ti manca ancora:');
+    // The list of what is missing is gone from the publishing card: the guide to the first steps says
+    // it (SetupStepsTest), the card has one short sentence.
+    expect(__('provider.publish.complete_steps'))->toBe('Completa i passi da fare qui sopra per pubblicare.');
     expect(__('provider.publish.missing_name'))->toBe('Il nome della tua attività');
     expect(__('provider.publish.missing_city'))->toBe('La tua città');
     expect(__('provider.publish.missing_service'))->toBe('Almeno un servizio attivo');

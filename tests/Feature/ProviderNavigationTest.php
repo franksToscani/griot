@@ -291,10 +291,25 @@ test('the number is seen, and read by screen readers with its plural; hidden at 
 
 test('the dashboard has no section buttons any more, and a summary that leads to the pending requests', function () {
     $dashboard = pnSource('pages/dashboard.tsx');
+    // The one exception, written in docs/bookings.md (« Barra dell'area del professionista »): for a
+    // provider not published, step 4 of the guide to the first steps (#53, SetupStepsTest) has the
+    // preview, inside PublishSection only. The guide's own links live in components/setup-steps.tsx.
+    // No section buttons anywhere else: the sidebar has them.
+    $publish = (int) strpos($dashboard, 'function PublishSection(');
+    $after = (int) strpos($dashboard, "\n}\n", $publish);
+    expect($publish)->toBeGreaterThan(0)->and($after)->toBeGreaterThan($publish);
+    $section = substr($dashboard, $publish, $after - $publish);
+    $outside = (string) preg_replace('/^import [\s\S]*?;\n/m', '', substr($dashboard, 0, $publish).substr($dashboard, $after));
 
     foreach (['edit()', 'servicesIndex', 'availabilityIndex', 'preview()', 'show(provider.slug)', "t('provider.area.edit_profile')", "t('provider.area.services')", "t('provider.area.availability')", "t('provider.area.bookings')", "t('provider.area.preview')", "t('provider.area.public_page')"] as $gone) {
-        expect($dashboard)->not->toContain($gone);
+        expect($outside)->not->toContain($gone);
     }
+    expect($section)->toContain('<Link href={preview()}>')
+        ->not->toContain('servicesIndex')
+        ->not->toContain('availabilityIndex')
+        ->not->toContain('edit()')
+        ->not->toContain('show(provider.slug)')
+        ->not->toContain("t('provider.area.public_page')");
 
     expect($dashboard)->toContain("href={bookingsIndex({ query: { status: 'pending' } })}")
         ->toContain("t('provider.area.pending_none')")
