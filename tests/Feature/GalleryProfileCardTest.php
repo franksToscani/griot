@@ -123,7 +123,8 @@ test('the card sits right under the photo of the profile, with the photos and th
     $page = gpcSource('js/pages/provider/edit.tsx');
 
     expect($page)->toContain("import { GalleryForm } from '@/components/gallery-form';")
-        ->toMatch('/<AvatarForm\s+name=\{provider\.name\}\s+avatarUrl=\{provider\.avatar_url\}\s*\/>\s*<GalleryForm\s+photos=\{provider\.photos\}\s+limits=\{provider\.gallery\}\s*\/>\s*<\/div>/');
+        // Last on the page, before the footer of the guide to the first steps (SetupStepsTest).
+        ->toMatch('/<AvatarForm\s+name=\{provider\.name\}\s+avatarUrl=\{provider\.avatar_url\}\s*\/>\s*<GalleryForm\s+photos=\{provider\.photos\}\s+limits=\{provider\.gallery\}\s*\/>\s*<SetupStepsFooter page="business" \/>\s*<\/div>/');
 });
 
 test('the card has one h2, as the photo of the profile above it, and the title takes the focus', function () {

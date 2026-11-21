@@ -71,6 +71,15 @@ Risultati del lavoro sull'issue #55: cosa è stato cambiato, come è protetto da
     - **nessun movimento**: niente `transition` né `animate-`, compare e sparisce di colpo;
     - **sparisce al primo segno di avanzamento**: il focus che esce dalla scheda, oppure il primo `pointerdown` o `keydown` fuori dalla scheda. Nessun timer. Un solo segnale (`AbortController`) toglie insieme i tre ascoltatori; anche il cambio di pagina li toglie;
     - **test**: `ProviderAddPanelTest`.
+- **Guida ai primi passi** (#53): per chi non è pubblicato, le pagine che esistono già sono i passi (La tua attività, I tuoi servizi, I tuoi orari, Controlla e pubblica); in cima un indicatore, in fondo « Indietro / Avanti » (`components/setup-steps.tsx`, i passi in `App\Profile\SetupSteps`, ricavati dai dati):
+    - **indicatore**: un `<nav aria-labelledby>` con un titolo visibile che non è un heading (l'`h1` della pagina resta il primo titolo), un `<ol>` di link; il passo della pagina aperta ha `aria-current="step"` (e il nome sottolineato, non solo un colore). Nessun `aria-label`;
+    - **da 768 px** i quattro passi su una riga sola (griglia di 4 colonne, mai a capo): un cerchio, sotto il nome e sotto lo **stato scritto, sempre** (« fatto », « da fare », « fatto, facoltativo » per il primo passo). Il cerchio è pieno con la spunta per i passi fatti, nel colore principale (`primary`) per il passo da fare adesso, neutro (`border`, `muted-foreground`) per gli altri; il cerchio e la linea che lo unisce al precedente sono decorativi (`aria-hidden`): **mai solo il colore**, ci sono la spunta o il numero e il testo;
+    - **sotto 768 px** una riga compatta (« Passo 2 di 4: I tuoi servizi ») in un `<summary>`, con i passi piegati nel `<details>` nativo (uno per riga, il cerchio a sinistra), e una barra di 4 segmenti solo decorativa (`aria-hidden`); niente scorrimento orizzontale a 320 px;
+    - **pulsanti del kit, non link sottolineati**: sotto i passi un solo pulsante « Vai a: <passo> » verso il passo da fare adesso, solo se non è la pagina aperta (principale; `outline` nella dashboard, dove il principale è « Pubblica il profilo »); in fondo « Indietro: <passo> » (`outline`) e « Avanti: <passo> » (principale). I passi stessi sono link con bersagli da 44 px sotto 768 px (`touchTarget`) e l'anello del focus del kit;
+    - **focus**: dopo un link o un pulsante della guida (una visita GET, senza flash) il focus va all'`h1` della pagina (`id="page-title"`, `tabIndex={-1}`, `outline-none focus-visible:outline-hidden`, senza anello perché non si raggiunge con Tab). Dopo un salvataggio vince il flash (`useFlashFocus`);
+    - ordine del documento, nessun `tabIndex` positivo, niente `sticky` né animazioni; colori solo dai token già misurati nei due temi;
+    - mai un redirect né un blocco: ogni pagina funziona da sola, e chi è pubblicato non vede la guida. Nella dashboard la card « Pubblicazione » non ripete più l'elenco di cosa manca: una frase breve, « Vedi l'anteprima » e « Pubblica il profilo », spento finché manca qualcosa (il server controlla comunque);
+    - **test**: `SetupStepsTest`.
 - **Link dentro una frase**: esclusi dai bersagli di tocco (lo standard li esenta). La costante `touchTarget` si usa solo per i link da soli.
 - **Movimento ridotto**: una regola globale in `resources/css/app.css` porta animazioni e transizioni a 0.01 ms e toglie lo scroll morbido.
     - 0.01 ms e non `none`: Radix aspetta la fine dell'animazione per chiudere un pannello.
@@ -265,6 +274,7 @@ Data: novembre 2026, sul codice delle PR #128, #129 e #134. Strumenti: Playwrigh
 - [ ] Controlli di almeno 44×44 px sotto 768 px; i link isolati usano `touchTarget`.
 - [ ] Focus visibile: ogni `outline-none` ha `focus-visible:outline-hidden`; niente `tabIndex` positivi.
 - [ ] Un solo h1 per pagina, poi h2 e h3 senza salti.
+- [ ] Una pagina che diventa un passo della guida ai primi passi: indicatore e piede di `setup-steps.tsx`, `h1` con `id="page-title"` e `tabIndex={-1}`, nessun redirect.
 - [ ] Niente `sticky` o `fixed`; le uniche eccezioni sono i pulsanti in basso a destra della home (« Elementi che restano fermi ») e la scheda « Aggiungi » dei servizi e delle disponibilità da `xl` (« La scheda « Aggiungi » che resta in vista »): un elemento nuovo che resta fermo deve seguire le stesse regole.
 - [ ] Nessuna animazione nuova senza passare dalla regola di `prefers-reduced-motion` in `app.css`, e solo come `motion-safe:` o dentro `no-preference` (vedi « Movimento »).
 - [ ] Colori dai token di `app.css` o dalla palette; i nuovi abbinamenti aggiunti al test di contrasto.

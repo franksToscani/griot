@@ -205,7 +205,7 @@ Il polling si ferma o si sospende anche:
 
 ## Barra dell'area del professionista
 
-Le sezioni dell'area stanno nella barra a sinistra (`components/app-sidebar.tsx`, `components/nav-main.tsx`); ognuna resta una pagina con il suo indirizzo, quindi Indietro e l'aggiornamento automatico funzionano come prima. La dashboard tiene solo il saluto, la riga delle richieste in attesa e la pubblicazione.
+Le sezioni dell'area stanno nella barra a sinistra (`components/app-sidebar.tsx`, `components/nav-main.tsx`); ognuna resta una pagina con il suo indirizzo, quindi Indietro e l'aggiornamento automatico funzionano come prima. La dashboard tiene solo il saluto, la riga delle richieste in attesa, la pubblicazione e « Il tuo link »: nessun pulsante di sezione, perché le sezioni stanno nella barra (#204). Unica eccezione, solo per chi non è pubblicato: in cima la guida ai primi passi, con i link ai quattro passi e un pulsante verso il prossimo, e nella card « Pubblicazione » il pulsante « Vedi l'anteprima » (il passo 4). Spariscono con la pubblicazione e non diventano mai pulsanti di sezione fissi ([accessibility.md](accessibility.md), « Guida ai primi passi »; `ProviderNavigationTest`).
 
 | Gruppo         | Voci                                                                          |
 | -------------- | ----------------------------------------------------------------------------- |

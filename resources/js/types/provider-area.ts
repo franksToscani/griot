@@ -143,3 +143,21 @@ export type ProviderBookingFilters = {
     from: string | null;
     to: string | null;
 };
+
+// The guide to the first steps (App\Profile\SetupSteps), in the order of the steps.
+export type SetupStepKey = 'business' | 'services' | 'availability' | 'publish';
+
+export type SetupStep = {
+    key: SetupStepKey;
+    state: 'done' | 'todo';
+    // Not needed to publish: the first step.
+    optional: boolean;
+    // The page of the step, a path of this site.
+    url: string;
+};
+
+export type SetupStepsData = {
+    // The step to do next: the first one not done among services, availability and publish.
+    current: SetupStepKey;
+    steps: SetupStep[];
+};

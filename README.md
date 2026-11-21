@@ -71,25 +71,26 @@ I test e `composer ci:check` vanno lanciati con `composer dev` spento. Su GitHub
 
 ## Documentazione
 
-| File                                        | Di cosa parla                                                     |
-| ------------------------------------------- | ----------------------------------------------------------------- |
-| [accessibility.md](docs/accessibility.md)   | regole di accessibilità e movimento                               |
-| [bookings.md](docs/bookings.md)             | prenotazioni: stati, orari liberi, email, area del professionista |
-| [brand.md](docs/brand.md)                   | logo provvisorio e colori                                         |
-| [ci.md](docs/ci.md)                         | i controlli automatici su GitHub                                  |
-| [deploy.md](docs/deploy.md)                 | deploy su Render, passo per passo, con backup e ripristino        |
-| [gallery.md](docs/gallery.md)               | la galleria delle foto del lavoro                                 |
-| [home.md](docs/home.md)                     | la home page                                                      |
-| [legal.md](docs/legal.md)                   | bozze di informativa e termini d'uso                              |
-| [link-previews.md](docs/link-previews.md)   | l'anteprima dei link condivisi                                    |
-| [media-storage.md](docs/media-storage.md)   | dove stanno le immagini                                           |
-| [photos.md](docs/photos.md)                 | le foto del sito, le fonti e lo script che le prepara             |
-| [production.md](docs/production.md)         | la checklist di produzione                                        |
-| [provider-link.md](docs/provider-link.md)   | guida per i professionisti: il link e il QR code                  |
-| [providers-list.md](docs/providers-list.md) | la lista e la pagina dei professionisti                           |
-| [roadmap.md](docs/roadmap.md)               | sprint, cose fatte e da fare                                      |
-| [search.md](docs/search.md)                 | la ricerca nella lista                                            |
-| [translations.md](docs/translations.md)     | testi e lingue                                                    |
+| File                                                    | Di cosa parla                                                     |
+| ------------------------------------------------------- | ----------------------------------------------------------------- |
+| [accessibility.md](docs/accessibility.md)               | regole di accessibilità e movimento                               |
+| [bookings.md](docs/bookings.md)                         | prenotazioni: stati, orari liberi, email, area del professionista |
+| [brand.md](docs/brand.md)                               | logo provvisorio e colori                                         |
+| [ci.md](docs/ci.md)                                     | i controlli automatici su GitHub                                  |
+| [deploy.md](docs/deploy.md)                             | deploy su Render, passo per passo, con backup e ripristino        |
+| [gallery.md](docs/gallery.md)                           | la galleria delle foto del lavoro                                 |
+| [home.md](docs/home.md)                                 | la home page                                                      |
+| [legal.md](docs/legal.md)                               | bozze di informativa e termini d'uso                              |
+| [link-previews.md](docs/link-previews.md)               | l'anteprima dei link condivisi                                    |
+| [media-storage.md](docs/media-storage.md)               | dove stanno le immagini                                           |
+| [photos.md](docs/photos.md)                             | le foto del sito, le fonti e lo script che le prepara             |
+| [production.md](docs/production.md)                     | la checklist di produzione                                        |
+| [provider-first-steps.md](docs/provider-first-steps.md) | guida per i professionisti: i primi passi prima di pubblicare     |
+| [provider-link.md](docs/provider-link.md)               | guida per i professionisti: il link e il QR code                  |
+| [providers-list.md](docs/providers-list.md)             | la lista e la pagina dei professionisti                           |
+| [roadmap.md](docs/roadmap.md)                           | sprint, cose fatte e da fare                                      |
+| [search.md](docs/search.md)                             | la ricerca nella lista                                            |
+| [translations.md](docs/translations.md)                 | testi e lingue                                                    |
 
 Lo schema del database è in `docs/griot-schema.png` (con i sorgenti `.sql` e `.mwb`).
 
