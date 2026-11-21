@@ -20,6 +20,14 @@ import {
     CardDescription,
     CardHeader,
 } from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
@@ -295,12 +303,7 @@ function AvatarForm({
             <CardContent>
                 <form onSubmit={submit} className="flex flex-col gap-4">
                     {/* Alone above the upload field: the photo has its own alternative text. */}
-                    <ProviderAvatar
-                        name={name}
-                        avatarUrl={avatarUrl}
-                        className="size-24 text-2xl"
-                        decorative={false}
-                    />
+                    <AvatarPreview name={name} avatarUrl={avatarUrl} />
                     <div className="grid gap-2">
                         <Label htmlFor="avatar">
                             {t('provider.avatar.label')}
@@ -338,6 +341,64 @@ function AvatarForm({
                 </form>
             </CardContent>
         </Card>
+    );
+}
+
+// The photo of the profile, larger (#53): only when there is one. The preview is a real button
+// (its name: the photo's alternative text and the visible "Vedi la foto più grande") that opens the
+// kit's Dialog with the saved photo (512 px). Esc and the X close it, and Radix gives the focus
+// back to the button. The zoom of the gallery (photo-lightbox.tsx) is made for a list of photos of
+// the work, with their positions and sizes: not for this one photo.
+function AvatarPreview({
+    name,
+    avatarUrl,
+}: {
+    name: string;
+    avatarUrl: string | null;
+}) {
+    const { t } = useTranslation();
+    const preview = (
+        <ProviderAvatar
+            name={name}
+            avatarUrl={avatarUrl}
+            className="size-24 text-2xl"
+            decorative={false}
+        />
+    );
+
+    if (avatarUrl === null) {
+        return preview;
+    }
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <button
+                    type="button"
+                    className="flex flex-col items-start gap-2 self-start rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-hidden forced-colors:border"
+                >
+                    {preview}
+                    <span className="text-sm underline underline-offset-4">
+                        {t('provider.avatar.zoom')}
+                    </span>
+                </button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>
+                        {t('provider.avatar.alt', { name })}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {t('provider.avatar.zoom_description')}
+                    </DialogDescription>
+                </DialogHeader>
+                <img
+                    src={avatarUrl}
+                    alt={t('provider.avatar.alt', { name })}
+                    className="mx-auto h-auto w-auto max-w-full rounded-md"
+                />
+            </DialogContent>
+        </Dialog>
     );
 }
 

@@ -166,7 +166,8 @@ test('the terms say what is true in the code: no payment, the saved price, the p
         ->and(__('terms.price.body'))->toContain('viene salvato con la prenotazione')
         ->and(__('terms.content.body'))->toContain('dichiara di avere il loro consenso');
     // The same declaration the provider ticks when uploading a photo.
-    expect(__('provider.photos.consent'))->toBe('Le persone riconoscibili in questa foto hanno accettato che venga pubblicata.');
+    // For the group of photos sent together since #53.
+    expect(__('provider.photos.consent'))->toBe('Le persone riconoscibili in queste foto hanno accettato che vengano pubblicate.');
 });
 
 // ---------------------------------------------------------------------------------------------

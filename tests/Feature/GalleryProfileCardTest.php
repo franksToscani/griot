@@ -199,38 +199,39 @@ test('a removal is confirmed in the kit\'s Dialog, then the focus goes to the ti
     expect(substr_count($source, 'destroyPhoto.form('))->toBe(1);
 });
 
-test('the upload form: the right types, a described text field, the consent box, the button needs only a file', function () {
+test('the upload form: the right types, the help of the files and of the descriptions, the consent box, the button needs a file waiting', function () {
     $source = gpcSource();
 
+    // Several files at once since #53 (GalleryUploadQueueTest): each its own description.
     expect($source)
         ->toContain('id="gallery-form"')
         ->toContain('accept="image/jpeg,image/png,image/webp"')
-        ->toMatch("/\\{\\.\\.\\.fieldA11y\\(\\s*'gallery-photo',\\s*form\\.errors\\.photo,\\s*'gallery-photo-help',?\\s*\\)\\}/")
-        ->toMatch("/\\{\\.\\.\\.fieldA11y\\(\\s*'gallery-alt',\\s*form\\.errors\\.alt_text,\\s*'gallery-alt-help',?\\s*\\)\\}/")
-        ->toMatch("/\\{\\.\\.\\.fieldA11y\\('gallery-consent', form\\.errors\\.consent\\)\\}/")
+        // The refusal of the files over the limit is the file field's own error.
+        ->toMatch("/\\{\\.\\.\\.fieldA11y\\(\\s*'gallery-photo',\\s*refused \\?\\? undefined,\\s*'gallery-photo-help',?\\s*\\)\\}/")
+        ->toContain('aria-describedby="gallery-alt-help"')
+        ->toMatch("/\\{\\.\\.\\.fieldA11y\\(\\s*'gallery-consent',\\s*consentError \\?\\? undefined,?\\s*\\)\\}/")
         ->toMatch("/<Label htmlFor=\"gallery-consent\"[^>]*>\\s*\\{t\\('provider\\.photos\\.consent'\\)\\}/")
-        ->toContain('disabled={form.data.photo === null || busy}')
-        ->toContain("onError: () => focusFirstInvalid('gallery-form')");
+        ->toContain('disabled={!waiting || running}');
 
-    // Emptied after a success: the data, and the file input, which React does not control.
-    expect($source)->toMatch("/onSuccess: \\(\\) => \\{[\\s\\S]*?form\\.reset\\(\\);[\\s\\S]*?fileInput\\.current\\.value = '';/");
+    // Emptied after a choice: the list holds the files, and the same file can be chosen again.
+    expect($source)->toContain("event.target.value = '';");
 });
 
-test('the photo is made smaller in the browser only when sent, and the wait is announced', function () {
+test('each photo is made smaller in the browser only when it is its turn, and the wait is announced', function () {
     $source = gpcSource();
 
-    // In the submit handler, never while rendering: no window, and document only in focusTitle.
+    // In the sending of one photo, never while rendering: no window, and document only in
+    // focusTitle (the consent left unticked goes through focusFirstInvalid).
     expect($source)
-        ->toMatch('/const submit = async \(event: FormEvent<HTMLFormElement>\) => \{[\s\S]*?setPreparing\(true\);\s*const photo = await resizeImage\(original\);\s*form\.transform\(\(data\) => \(\{ \.\.\.data, photo \}\)\);/')
+        ->toMatch('/function sendPhoto\([\s\S]*?return resizeImage\(item\.file\)\.then\(/')
         ->not->toContain('window.');
     expect(substr_count($source, 'document.'))->toBe(1);
 
     expect($source)
-        ->toContain('const busy = preparing || form.processing;')
-        ->toContain('onFinish: () => setPreparing(false)')
-        ->toMatch("/<p role=\"status\" className=\"text-sm text-muted-foreground\">\\s*\\{busy \\? t\\('provider\\.gallery\\.uploading'\\) : ''\\}\\s*<\\/p>/")
+        ->toMatch("/setRunning\\(true\\);\\s*setStatus\\(t\\('provider\\.gallery\\.uploading'\\)\\);/")
+        ->toMatch('/<p role="status" className="text-sm text-muted-foreground">\\s*\\{status\\}\\s*<\\/p>/')
         // The spinner's own status would say it a second time.
-        ->toContain('{busy && <Spinner aria-hidden="true" />}');
+        ->toContain('{running && <Spinner aria-hidden="true" />}');
 });
 
 test('with no photos an invitation and no list; with the most photos a message and no form', function () {
@@ -238,7 +239,9 @@ test('with no photos an invitation and no list; with the most photos a message a
 
     expect($source)
         ->toMatch("/\\{state === 'empty' \\? \\(\\s*<p className=\"text-sm text-muted-foreground\">\\s*\\{t\\('provider\\.gallery\\.empty'\\)\\}\\s*<\\/p>\\s*\\) : \\(/")
-        ->toMatch("/\\{state === 'full' \\? \\(\\s*<p className=\"text-sm text-muted-foreground\">\\s*\\{t\\('provider\\.gallery\\.full', \\{\\s*max: limits\\.max_photos,?\\s*\\}\\)\\}\\s*<\\/p>\\s*\\) : \\(\\s*<UploadForm minSide=\\{limits\\.min_side\\} \\/>\\s*\\)\\}/")
+        // Full: the message instead of the form, unless a queue is still ending there (#53).
+        ->toMatch('/<UploadForm\s+minSide=\{limits\.min_side\}\s+max=\{limits\.max_photos\}\s+existing=\{total\}\s*\/>/')
+        ->toMatch("/if \\(free === 0 && items\\.length === 0 && !running\\) \\{\\s*return \\(\\s*<div className=\"flex flex-col gap-2\">\\s*<p className=\"text-sm text-muted-foreground\">\\s*\\{t\\('provider\\.gallery\\.full', \\{ max \\}\\)\\}/")
         ->toMatch("/t\\('provider\\.gallery\\.count', \\{\\s*count: total,\\s*max: limits\\.max_photos,?\\s*\\}\\)/");
 });
 
@@ -312,7 +315,10 @@ test('the texts of the card exist in Italian, French and English, with the same 
     // Only the card's own (provider.*): gallery.ts also holds the public page's (providers.*).
     $keys = array_values(array_unique(array_filter($used[1], fn (string $key) => str_starts_with($key, 'provider.'))));
     expect($keys)->toContain('provider.photos.consent', 'provider.gallery.fallback_alt')
-        ->and(count($keys))->toBe(19);
+        // 19 until #53; the queue took one away (the single description) and added seven: the
+        // description of each file, the consent left unticked, remove, retry, the error of a file,
+        // the photos' own toast left out meanwhile and the reason when the server gives none.
+        ->and(count($keys))->toBe(25);
 
     foreach ($keys as $key) {
         expect($json('it'))->toHaveKey($key);
@@ -328,8 +334,8 @@ test('the texts of the card exist in Italian, French and English, with the same 
     expect(__('provider.gallery.count', ['count' => 2, 'max' => 15], 'it'))->toBe('2 di 15 foto')
         ->and(__('provider.gallery.full', ['max' => 15], 'it'))->toBe("Hai raggiunto il massimo di 15 foto. Togline una per aggiungerne un'altra.")
         ->and(__('provider.gallery.fallback_alt', ['number' => 2, 'total' => 6], 'it'))->toBe('Foto 2 di 6')
-        ->and(__('provider.gallery.alt_label', [], 'it'))->toBe('Descrizione della foto (facoltativa)')
-        ->and(__('provider.gallery.submit', [], 'it'))->toBe('Aggiungi la foto')
+        ->and(__('provider.gallery.queue.alt_label', ['name' => 'treccine.jpg'], 'it'))->toBe('Descrizione di treccine.jpg (facoltativa)')
+        ->and(__('provider.gallery.submit', [], 'it'))->toBe('Aggiungi le foto')
         ->and(__('provider.gallery.uploading', [], 'it'))->toBe('Caricamento in corso…')
         ->and(__('provider.gallery.remove_title', ['number' => 2, 'total' => 6], 'fr'))->toBe("Retirer la photo 2 sur 6\u{00A0}?")
         ->and(__('provider.gallery.description', ['max' => 15], 'fr'))->toStartWith("Montrez votre travail\u{00A0}: ajoutez de 3 à 15 photos.");

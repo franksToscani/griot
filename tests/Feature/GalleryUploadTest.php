@@ -409,8 +409,9 @@ test('the texts of the gallery exist in Italian, French and English, with the sa
         }
     }
 
-    expect(__('provider.photos.consent', [], 'it'))->toBe('Le persone riconoscibili in questa foto hanno accettato che venga pubblicata.')
-        ->and(__('provider.photos.consent', [], 'fr'))->toBe("Les personnes reconnaissables sur cette photo ont accepté qu'elle soit publiée.")
-        ->and(__('provider.photos.consent', [], 'en'))->toBe('The people who can be recognised in this photo have agreed to its publication.')
+    // One box for the group of photos sent together (#53).
+    expect(__('provider.photos.consent', [], 'it'))->toBe('Le persone riconoscibili in queste foto hanno accettato che vengano pubblicate.')
+        ->and(__('provider.photos.consent', [], 'fr'))->toBe("Les personnes reconnaissables sur ces photos ont accepté qu'elles soient publiées.")
+        ->and(__('provider.photos.consent', [], 'en'))->toBe('The people who can be recognised in these photos have agreed to their publication.')
         ->and(__('provider.validation.gallery_full', ['max' => 15], 'fr'))->toBe("Vous avez déjà 15 photos\u{00A0}: supprimez-en une pour en ajouter une autre.");
 });
