@@ -11,6 +11,10 @@ type Props = {
     errors: Partial<Record<keyof ProviderProfileValues, string>>;
 };
 
+// Two fields side by side from sm (640 px), one under the other below: the order of the document,
+// and of Tab, stays the order of the fields, row by row (#53).
+export const FIELD_PAIR = 'grid gap-6 sm:grid-cols-2';
+
 // The five profile fields of a provider, shared by the creation and the edit page. They are not
 // controlled: after a validation error the values written by the provider stay in the fields.
 export function ProviderProfileFields({ defaults, errors }: Props) {
@@ -18,30 +22,37 @@ export function ProviderProfileFields({ defaults, errors }: Props) {
 
     return (
         <>
-            <div className="grid gap-2">
-                <Label htmlFor="name">{t('provider.setup.form.name')}</Label>
-                <Input
-                    id="name"
-                    name="name"
-                    required
-                    maxLength={150}
-                    autoComplete="organization"
-                    defaultValue={defaults?.name}
-                />
-                <InputError message={errors.name} />
-            </div>
+            {/* Name and city on one row. */}
+            <div className={FIELD_PAIR}>
+                <div className="grid content-start gap-2">
+                    <Label htmlFor="name">
+                        {t('provider.setup.form.name')}
+                    </Label>
+                    <Input
+                        id="name"
+                        name="name"
+                        required
+                        maxLength={150}
+                        autoComplete="organization"
+                        defaultValue={defaults?.name}
+                    />
+                    <InputError message={errors.name} />
+                </div>
 
-            <div className="grid gap-2">
-                <Label htmlFor="city">{t('provider.setup.form.city')}</Label>
-                <Input
-                    id="city"
-                    name="city"
-                    required
-                    maxLength={100}
-                    autoComplete="address-level2"
-                    defaultValue={defaults?.city}
-                />
-                <InputError message={errors.city} />
+                <div className="grid content-start gap-2">
+                    <Label htmlFor="city">
+                        {t('provider.setup.form.city')}
+                    </Label>
+                    <Input
+                        id="city"
+                        name="city"
+                        required
+                        maxLength={100}
+                        autoComplete="address-level2"
+                        defaultValue={defaults?.city}
+                    />
+                    <InputError message={errors.city} />
+                </div>
             </div>
 
             <div className="grid gap-2">
@@ -56,45 +67,51 @@ export function ProviderProfileFields({ defaults, errors }: Props) {
                 <InputError message={errors.bio} />
             </div>
 
-            <div className="grid gap-2">
-                <Label htmlFor="whatsapp">
-                    {t('provider.setup.form.whatsapp')}
-                </Label>
-                <Input
-                    id="whatsapp"
-                    name="whatsapp"
-                    type="tel"
-                    maxLength={30}
-                    autoComplete="tel"
-                    aria-describedby="whatsapp-help"
-                    defaultValue={defaults?.whatsapp ?? undefined}
-                />
-                <p id="whatsapp-help" className="text-sm text-muted-foreground">
-                    {t('provider.setup.form.whatsapp_help')}
-                </p>
-                <InputError message={errors.whatsapp} />
-            </div>
+            {/* WhatsApp and Instagram on one row. */}
+            <div className={FIELD_PAIR}>
+                <div className="grid content-start gap-2">
+                    <Label htmlFor="whatsapp">
+                        {t('provider.setup.form.whatsapp')}
+                    </Label>
+                    <Input
+                        id="whatsapp"
+                        name="whatsapp"
+                        type="tel"
+                        maxLength={30}
+                        autoComplete="tel"
+                        aria-describedby="whatsapp-help"
+                        defaultValue={defaults?.whatsapp ?? undefined}
+                    />
+                    <p
+                        id="whatsapp-help"
+                        className="text-sm text-muted-foreground"
+                    >
+                        {t('provider.setup.form.whatsapp_help')}
+                    </p>
+                    <InputError message={errors.whatsapp} />
+                </div>
 
-            <div className="grid gap-2">
-                <Label htmlFor="instagram">
-                    {t('provider.setup.form.instagram')}
-                </Label>
-                {/* 31: one more than the limit, for the "@" that the server removes. */}
-                <Input
-                    id="instagram"
-                    name="instagram"
-                    maxLength={31}
-                    autoComplete="off"
-                    aria-describedby="instagram-help"
-                    defaultValue={defaults?.instagram ?? undefined}
-                />
-                <p
-                    id="instagram-help"
-                    className="text-sm text-muted-foreground"
-                >
-                    {t('provider.setup.form.instagram_help')}
-                </p>
-                <InputError message={errors.instagram} />
+                <div className="grid content-start gap-2">
+                    <Label htmlFor="instagram">
+                        {t('provider.setup.form.instagram')}
+                    </Label>
+                    {/* 31: one more than the limit, for the "@" that the server removes. */}
+                    <Input
+                        id="instagram"
+                        name="instagram"
+                        maxLength={31}
+                        autoComplete="off"
+                        aria-describedby="instagram-help"
+                        defaultValue={defaults?.instagram ?? undefined}
+                    />
+                    <p
+                        id="instagram-help"
+                        className="text-sm text-muted-foreground"
+                    >
+                        {t('provider.setup.form.instagram_help')}
+                    </p>
+                    <InputError message={errors.instagram} />
+                </div>
             </div>
         </>
     );

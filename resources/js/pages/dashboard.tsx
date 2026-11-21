@@ -26,6 +26,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import {
+    focusPageTitle,
     PAGE_TITLE_FOCUS,
     PAGE_TITLE_ID,
     SetupStepsFooter,
@@ -35,8 +36,10 @@ import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
 import { touchTarget } from '@/lib/touch-target';
 import { cn } from '@/lib/utils';
-import { preview, publish, unpublish } from '@/routes/provider';
+import { edit, preview, publish, unpublish } from '@/routes/provider';
+import { index as availabilityIndex } from '@/routes/provider/availability';
 import { index as bookingsIndex } from '@/routes/provider/bookings';
+import { index as servicesIndex } from '@/routes/provider/services';
 import type { ProviderArea, PublishingStatus } from '@/types';
 import { wrappingLabel } from '@/lib/form-classes';
 
@@ -52,6 +55,15 @@ type MissingCode = (typeof MISSING_CODES)[number];
 
 const isMissingCode = (code: string): code is MissingCode =>
     (MISSING_CODES as readonly string[]).includes(code);
+
+// Where each missing requirement is done, for the warning of a published profile that lost it
+// (IncompleteWarning, docs/bookings.md: the second exception to "no section buttons").
+const MISSING_PAGES: Record<MissingCode, () => { url: string }> = {
+    name: edit,
+    city: edit,
+    service: servicesIndex,
+    availability: availabilityIndex,
+};
 
 // The provider's private area: a greeting, the requests waiting for an answer and the status of the
 // public profile. The sections (profile, services, availability, bookings, preview, public page)
@@ -240,7 +252,15 @@ function IncompleteWarning({ publishing }: { publishing: PublishingStatus }) {
                     <ul className="list-disc pl-5">
                         {missing.map((code) => (
                             <li key={code}>
-                                {t(`provider.publish.missing_${code}`)}
+                                {/* To the page where it is done, its title focused like the
+                                    guide's links. */}
+                                <Link
+                                    href={MISSING_PAGES[code]().url}
+                                    onSuccess={focusPageTitle}
+                                    className={`underline underline-offset-4 ${touchTarget}`}
+                                >
+                                    {t(`provider.publish.missing_${code}`)}
+                                </Link>
                             </li>
                         ))}
                     </ul>

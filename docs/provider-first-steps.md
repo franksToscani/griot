@@ -4,6 +4,8 @@ Una pagina breve da leggere, o da mandare, a un professionista appena creato con
 
 ## Cosa vedi al primo accesso
 
+Sulla dashboard, finché non hai ancora né un servizio né un orario, la guida ti accoglie con « Benvenuto: quattro passi e la tua pagina è online. »; la frase sparisce da sola appena aggiungi il primo servizio o il primo orario.
+
 Finché la tua pagina non è pubblicata, in cima alla dashboard, al profilo, ai servizi e agli orari trovi **« Prepara la tua pagina »**: quattro cerchi in fila, uno per passo, con sotto il nome e lo stato (« fatto », « da fare »). Un cerchio con la spunta è un passo fatto; il passo da fare adesso è nel colore principale, e il pulsante **« Vai a: … »** ti ci porta. In fondo alla pagina, i pulsanti « Indietro » e « Avanti » ti portano al passo prima e a quello dopo. Sul telefono vedi una riga sola, per esempio « Passo 2 di 4: I tuoi servizi », con una barretta di avanzamento: toccala per vedere tutti i passi.
 
 1. **La tua attività** (facoltativo): nome e città ci sono già. Puoi aggiungere una descrizione, WhatsApp e Instagram, e l'indirizzo della tua pagina.

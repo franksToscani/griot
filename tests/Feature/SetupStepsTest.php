@@ -305,7 +305,8 @@ test('the dashboard of an unpublished provider: no list of what is missing, one 
         ->not->toContain('provider.publish.missing_')
         ->not->toContain('<ul')
         ->not->toContain('MISSING_PAGES');
-    expect($dashboard)->not->toContain('MISSING_PAGES');
+    // The mapping of the missing codes serves the warning of a published profile only (PR 2).
+    expect(substr_count($dashboard, 'href={MISSING_PAGES[code]().url}'))->toBe(1);
 
     // The data behind the button: off with something missing, on with everything.
     $new = ssProvider();
@@ -325,7 +326,7 @@ test('the texts in the three languages, with the French spaces', function () {
         'fr' => ['setup.title' => 'Préparez votre page', 'setup.step.services' => 'Vos prestations', 'setup.state.done' => 'fait', 'setup.state.todo' => 'à faire', 'setup.optional' => 'facultatif', 'setup.compact' => "Étape :number sur :total{$nb}: :step", 'setup.forward' => "Suivant{$nb}: :step", 'setup.back' => "Précédent{$nb}: :step"],
         'en' => ['setup.title' => 'Get your page ready', 'setup.step.services' => 'Your services', 'setup.state.done' => 'done', 'setup.state.todo' => 'to do', 'setup.optional' => 'optional', 'setup.compact' => 'Step :number of :total: :step', 'setup.forward' => 'Next: :step', 'setup.back' => 'Back: :step'],
     ];
-    $keys = ['setup.title', 'setup.step.business', 'setup.step.services', 'setup.step.availability', 'setup.step.publish', 'setup.state.done', 'setup.state.todo', 'setup.optional', 'setup.compact', 'setup.go_to', 'setup.back', 'setup.forward', 'provider.publish.complete_steps'];
+    $keys = ['setup.title', 'setup.welcome', 'setup.step.business', 'setup.step.services', 'setup.step.availability', 'setup.step.publish', 'setup.state.done', 'setup.state.todo', 'setup.optional', 'setup.compact', 'setup.go_to', 'setup.back', 'setup.forward', 'provider.publish.complete_steps', 'provider.edit.address_title', 'provider.edit.index'];
 
     foreach ($expected as $locale => $texts) {
         $json = json_decode(ssSource("lang/{$locale}.json"), true, flags: JSON_THROW_ON_ERROR);
@@ -342,6 +343,9 @@ test('the texts in the three languages, with the French spaces', function () {
         expect($json)->not->toHaveKey('setup.next_todo');
         expect($json)->not->toHaveKey('provider.publish.missing_title');
     }
+    expect(ssSource('lang/it.json'))->toContain('"setup.welcome": "Benvenuto: quattro passi e la tua pagina è online."')
+        ->and(ssSource('lang/fr.json'))->toContain("\"setup.welcome\": \"Bienvenue\u{00A0}: quatre étapes et votre page est en ligne.\"")
+        ->and(ssSource('lang/en.json'))->toContain('"setup.welcome": "Welcome: four steps and your page is online."');
     expect(ssSource('lang/it.json'))->toContain('"setup.go_to": "Vai a: :step"')
         ->and(ssSource('lang/fr.json'))->toContain("\"setup.go_to\": \"Aller à\u{00A0}: :step\"");
 });
@@ -358,4 +362,38 @@ test('docs: the paragraph of the guide, its checklist line, the guide for the pr
     expect(ssSource('docs/bookings.md'))->toContain('Unica eccezione, solo per chi non è pubblicato: in cima la guida ai primi passi');
     expect(ssSource('README.md'))->toContain('[provider-first-steps.md](docs/provider-first-steps.md)');
     expect(file_exists(base_path('docs/provider-first-steps.md')))->toBeTrue();
+});
+
+// ---------------------------------------------------------------------------------------------
+// PR 2: the welcome and the warning of a published profile
+// ---------------------------------------------------------------------------------------------
+
+test('the welcome: on the dashboard only, while services and hours are both to do, from the data', function () {
+    $component = ssSource(SS_COMPONENT);
+
+    expect($component)
+        ->toMatch("/\\{page === 'publish' && isFirstVisit\\(data\\) && \\(\\s*<p className=\"text-sm text-muted-foreground\">\\s*\\{t\\('setup\\.welcome'\\)\\}/")
+        ->toMatch("/function isFirstVisit\\(data: SetupStepsData\\): boolean \\{\\s*return data\\.steps\\.every\\(\\s*\\(step\\) =>\\s*\\(step\\.key !== 'services' && step\\.key !== 'availability'\\) \\|\\|\\s*step\\.state === 'todo',/")
+        ->and(substr_count($component, "t('setup.welcome')"))->toBe(1);
+
+    // The data it reads: both to do for a new provider; a service or a window ends it.
+    $states = fn (Provider $provider) => collect($this->actingAs($provider->user)->get(route('dashboard'))->viewData('page')['props']['setup_steps']['steps'])
+        ->pluck('state', 'key')->only(['services', 'availability'])->all();
+    expect($states(ssProvider()))->toBe(['services' => 'todo', 'availability' => 'todo'])
+        ->and($states(ssProvider(service: true)))->toBe(['services' => 'done', 'availability' => 'todo'])
+        ->and($states(ssProvider(availability: true)))->toBe(['services' => 'todo', 'availability' => 'done']);
+});
+
+test('a published profile that lost a requirement: no guide, each missing item leads to its page', function () {
+    $provider = ssProvider(published: true, inactiveService: true, availability: true);
+
+    $this->actingAs($provider->user)->get(route('dashboard'))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('setup_steps', null)
+            ->where('publishing.missing', ['service']));
+
+    preg_match('/function IncompleteWarning\(.*?\n}\n/s', ssSource(SS_PAGES['publish'][1]), $match);
+    expect($match[0] ?? '')
+        ->toMatch('/<Link\\s+href=\\{MISSING_PAGES\\[code\\]\\(\\)\\.url\\}\\s+onSuccess=\\{focusPageTitle\\}\\s+className=\\{`underline underline-offset-4 \\$\\{touchTarget\\}`\\}\\s*>\\s*\\{t\\(`provider\\.publish\\.missing_\\$\\{code\\}`\\)\\}\\s*<\\/Link>/')
+        ->not->toContain('SetupSteps');
 });
