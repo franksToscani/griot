@@ -291,15 +291,22 @@ test('the number is seen, and read by screen readers with its plural; hidden at 
 
 test('the dashboard has no section buttons any more, and a summary that leads to the pending requests', function () {
     $dashboard = pnSource('pages/dashboard.tsx');
-    // The one exception, written in docs/bookings.md (« Barra dell'area del professionista »): for a
+    // Two exceptions, written in docs/bookings.md (« Barra dell'area del professionista »): for a
     // provider not published, step 4 of the guide to the first steps (#53, SetupStepsTest) has the
-    // preview, inside PublishSection only. The guide's own links live in components/setup-steps.tsx.
-    // No section buttons anywhere else: the sidebar has them.
-    $publish = (int) strpos($dashboard, 'function PublishSection(');
-    $after = (int) strpos($dashboard, "\n}\n", $publish);
-    expect($publish)->toBeGreaterThan(0)->and($after)->toBeGreaterThan($publish);
-    $section = substr($dashboard, $publish, $after - $publish);
-    $outside = (string) preg_replace('/^import [\s\S]*?;\n/m', '', substr($dashboard, 0, $publish).substr($dashboard, $after));
+    // preview, inside PublishSection only; for a published provider that lost a requirement, each
+    // missing item of IncompleteWarning leads to its page, through MISSING_PAGES only. The guide's
+    // own links live in components/setup-steps.tsx. No section buttons anywhere else.
+    $cut = function (string $source, string $start): array {
+        $from = (int) strpos($source, $start);
+        $to = (int) strpos($source, "\n}\n", $from);
+        expect($from)->toBeGreaterThan(0)->and($to)->toBeGreaterThan($from);
+
+        return [substr($source, $from, $to - $from), substr($source, 0, $from).substr($source, $to)];
+    };
+    [$section, $rest] = $cut($dashboard, 'function PublishSection(');
+    [$warning, $rest] = $cut($rest, 'function IncompleteWarning(');
+    // Outside the two: no imports and no mapping of the missing codes are looked at.
+    $outside = (string) preg_replace(['/^import [\s\S]*?;\n/m', '/const MISSING_PAGES: [\s\S]*?\n\};\n/'], '', $rest);
 
     foreach (['edit()', 'servicesIndex', 'availabilityIndex', 'preview()', 'show(provider.slug)', "t('provider.area.edit_profile')", "t('provider.area.services')", "t('provider.area.availability')", "t('provider.area.bookings')", "t('provider.area.preview')", "t('provider.area.public_page')"] as $gone) {
         expect($outside)->not->toContain($gone);
@@ -310,6 +317,14 @@ test('the dashboard has no section buttons any more, and a summary that leads to
         ->not->toContain('edit()')
         ->not->toContain('show(provider.slug)')
         ->not->toContain("t('provider.area.public_page')");
+    // In the warning, only the pages of the missing requirements, from the mapping.
+    expect($warning)->toContain('href={MISSING_PAGES[code]().url}')
+        ->and(substr_count($warning, 'href='))->toBe(1)
+        ->and($warning)->not->toContain('preview()')
+        ->not->toContain('show(provider.slug)');
+    expect($dashboard)->toMatch('/const MISSING_PAGES: Record<MissingCode, \(\) => \{ url: string \}> = \{\s*name: edit,\s*city: edit,\s*service: servicesIndex,\s*availability: availabilityIndex,\s*\};/');
+    expect((string) file_get_contents(base_path('docs/bookings.md')))
+        ->toContain("Seconda eccezione, solo per chi è pubblicato ma ha perso un requisito: nell'avviso « pubblicato ma incompleto » ogni voce che manca porta alla sua pagina; l'avviso e i suoi link spariscono appena il requisito torna.");
 
     expect($dashboard)->toContain("href={bookingsIndex({ query: { status: 'pending' } })}")
         ->toContain("t('provider.area.pending_none')")

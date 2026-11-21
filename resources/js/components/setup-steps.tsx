@@ -49,6 +49,15 @@ function useSetupSteps(): SetupStepsData | null {
     return usePage().props.setup_steps ?? null;
 }
 
+// Nothing done yet: no service and no time window.
+function isFirstVisit(data: SetupStepsData): boolean {
+    return data.steps.every(
+        (step) =>
+            (step.key !== 'services' && step.key !== 'availability') ||
+            step.state === 'todo',
+    );
+}
+
 type Look = 'done' | 'next' | 'later';
 
 function lookOf(step: SetupStep, data: SetupStepsData): Look {
@@ -210,6 +219,13 @@ export function SetupStepsNav({ page }: { page: SetupStepKey }) {
             <p id="setup-steps-title" className="font-semibold">
                 {t('setup.title')}
             </p>
+            {/* A welcome on the dashboard only, while nothing is done yet: from the data, it goes by
+                itself with the first service or the first time window. */}
+            {page === 'publish' && isFirstVisit(data) && (
+                <p className="text-sm text-muted-foreground">
+                    {t('setup.welcome')}
+                </p>
+            )}
 
             <details className="md:hidden">
                 <summary

@@ -109,7 +109,7 @@ test('the profile page gets the origin, and its whole link is the dashboard\'s',
         ->toContain('aria-describedby="slug-help slug-address"')
         ->toMatch('/<p\s+id="slug-address"\s+className="text-sm break-all"\s*>/')
         // The warning about the old links stays.
-        ->toContain("{t('provider.edit.slug_help')}");
+        ->toMatch("/\\{t\\(\\s*'provider\\.edit\\.slug_help',?\\s*\\)\\}/");
     // The same rule as the server.
     expect((string) file_get_contents(app_path('Http/Requests/UpdateProviderRequest.php')))->toContain("'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',");
 });

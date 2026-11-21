@@ -36,7 +36,7 @@ import type { GalleryLimits, ProviderPhotoEdit } from '@/types';
 
 // The title of the card takes the focus after a removal (tabIndex={-1}): the button the focus was
 // on is gone with its photo. The result itself is the toast, read by Sonner's live region.
-const TITLE_ID = 'gallery-title';
+export const TITLE_ID = 'gallery-title';
 
 function focusTitle(): void {
     requestAnimationFrame(() => {
@@ -86,8 +86,9 @@ export function GalleryForm({
                         {t('provider.gallery.empty')}
                     </p>
                 ) : (
-                    // One column on phones; key = id, so that each row keeps its own dialog.
-                    <ul className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    // One column on phones, three from md; two from xl, where the card is the 24rem
+                    // column of the profile page. key = id, so that each row keeps its own dialog.
+                    <ul className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-2">
                         {photos.map((photo, index) => (
                             <li key={photo.id} className="flex flex-col gap-2">
                                 <PhotoItem
