@@ -1,5 +1,16 @@
 import { Form, Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import {
+    AddPanel,
+    AddPanelLink,
+    CARD_TITLE_FOCUS,
+    JUST_SAVED,
+    LIST_COLUMN,
+    PAGE_HEADER_WIDTH,
+    TWO_COLUMNS,
+    useSubmitFocus,
+} from '@/components/add-panel';
+import type { OnSaved } from '@/components/add-panel';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +27,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { useFlashFocus } from '@/hooks/use-flash-focus';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
 // Explicit names: "store", "update" and "destroy" also exist for the profile and the services.
@@ -27,6 +39,7 @@ import {
 } from '@/routes/provider/availability';
 import type { AvailabilityWeekday, ProviderAvailability } from '@/types';
 import { selectClass, wrappingLabel } from '@/lib/form-classes';
+import { touchTarget } from '@/lib/touch-target';
 
 type Props = {
     availabilities: ProviderAvailability[];
@@ -37,55 +50,104 @@ type FieldErrors = Partial<
     Record<'weekday' | 'start_time' | 'end_time' | 'services', string>
 >;
 
-// The provider's weekly hours: one Card per day, from Monday, each with its slots, and the form to
-// add one. The slots come ordered by day and start from the server.
+// The id of the add form: "add-availability-title" is its title.
+const ADD_AVAILABILITY = 'add-availability';
+
+// The provider's weekly hours: from Monday, a Card per working day with its slots, one line per
+// closed day, and the form to add a slot (components/add-panel.tsx): a column that stays in view
+// from xl, a dialog below. The slots come ordered by day and start from the server.
 export default function ProviderAvailabilityIndex({
     availabilities,
     weekdays,
 }: Props) {
     const { t } = useTranslation();
     const { errors } = usePage().props;
+    // After adding a slot: its day in view, the focus on the day's title.
+    useFlashFocus();
 
     return (
         <>
             <Head title={t('provider.availability.title')} />
             <div className="flex flex-col gap-6 p-4">
-                <header className="flex max-w-2xl flex-col gap-1">
+                <header className={`flex flex-col gap-1 ${PAGE_HEADER_WIDTH}`}>
                     <h1 className="text-2xl font-semibold">
                         {t('provider.availability.title')}
                     </h1>
                     <p className="text-muted-foreground">
                         {t('provider.availability.description')}
                     </p>
-                    <ul className="list-disc pl-5 text-sm text-muted-foreground">
-                        <li>{t('provider.availability.help_touch')}</li>
-                        <li>{t('provider.availability.help_midnight')}</li>
-                        <li>{t('provider.availability.help_timezone')}</li>
-                    </ul>
+                    {/* Folded: three lines less on every visit. A native <details>: Enter or Space
+                        on its summary opens it, no script, no animation. */}
+                    <details className="text-sm text-muted-foreground">
+                        <summary
+                            className={`w-fit cursor-pointer rounded-sm font-medium text-foreground outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-hidden ${touchTarget}`}
+                        >
+                            {t('provider.availability.help_title')}
+                        </summary>
+                        <ul className="mt-1 list-disc pl-5">
+                            <li>{t('provider.availability.help_touch')}</li>
+                            <li>{t('provider.availability.help_midnight')}</li>
+                            <li>{t('provider.availability.help_timezone')}</li>
+                        </ul>
+                    </details>
                 </header>
 
                 {/* Read from the page, outside the forms: the request limit. */}
-                <div className="max-w-2xl">
+                <div className={PAGE_HEADER_WIDTH}>
                     <InputError message={errors.services} />
                 </div>
 
-                <ul className="flex max-w-2xl flex-col gap-4">
-                    {weekdays.map((weekday) => (
-                        <li key={weekday.weekday}>
-                            <DayCard
-                                weekday={weekday}
-                                weekdays={weekdays}
-                                availabilities={availabilities.filter(
-                                    (availability) =>
-                                        availability.weekday ===
-                                        weekday.weekday,
-                                )}
-                            />
-                        </li>
-                    ))}
-                </ul>
+                <AddPanel
+                    mode="dialog"
+                    id={ADD_AVAILABILITY}
+                    title={t('provider.availability.add_title')}
+                    openLabel={t('provider.availability.add_open')}
+                >
+                    {(onSaved) => (
+                        <AddAvailabilityForm
+                            weekdays={weekdays}
+                            onSaved={onSaved}
+                        />
+                    )}
+                </AddPanel>
 
-                <AddAvailabilityForm weekdays={weekdays} />
+                <div className={TWO_COLUMNS}>
+                    <div className={LIST_COLUMN}>
+                        <AddPanelLink
+                            id={ADD_AVAILABILITY}
+                            label={t('provider.availability.add_open')}
+                        />
+                        <ul className="flex flex-col gap-4">
+                            {weekdays.map((weekday) => (
+                                <li key={weekday.weekday}>
+                                    <DayCard
+                                        weekday={weekday}
+                                        weekdays={weekdays}
+                                        availabilities={availabilities.filter(
+                                            (availability) =>
+                                                availability.weekday ===
+                                                weekday.weekday,
+                                        )}
+                                    />
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <AddPanel
+                        mode="card"
+                        id={ADD_AVAILABILITY}
+                        title={t('provider.availability.add_title')}
+                        openLabel={t('provider.availability.add_open')}
+                    >
+                        {(onSaved) => (
+                            <AddAvailabilityForm
+                                weekdays={weekdays}
+                                onSaved={onSaved}
+                            />
+                        )}
+                    </AddPanel>
+                </div>
             </div>
         </>
     );
@@ -101,30 +163,47 @@ function DayCard({
     availabilities: ProviderAvailability[];
 }) {
     const { t } = useTranslation();
+    const day = t(`common.weekdays.${weekday.day}`);
+    // The target of a save: the day's title (#availability-day-<1..7>), reached by script only.
+    const titleId = `availability-day-${weekday.weekday}`;
+
+    // A closed day: one line, no card.
+    if (availabilities.length === 0) {
+        return (
+            <p
+                id={titleId}
+                tabIndex={-1}
+                className={`px-1 text-muted-foreground ${CARD_TITLE_FOCUS} ${JUST_SAVED}`}
+            >
+                {t('provider.availability.closed_day', { day })}
+            </p>
+        );
+    }
 
     return (
-        <Card>
+        // Outlined after a save until the person goes on (useFlashFocus), never by a click.
+        <Card className={JUST_SAVED}>
             <CardHeader>
-                <CardTitle>{t(`common.weekdays.${weekday.day}`)}</CardTitle>
+                <CardTitle
+                    id={titleId}
+                    tabIndex={-1}
+                    className={CARD_TITLE_FOCUS}
+                >
+                    {day}
+                </CardTitle>
             </CardHeader>
             <CardContent>
-                {availabilities.length === 0 ? (
-                    <p className="text-muted-foreground">
-                        {t('provider.availability.closed')}
-                    </p>
-                ) : (
-                    <ul className="flex flex-col gap-3">
-                        {/* key = id: each row keeps its own dialogs and values, never another slot's. */}
-                        {availabilities.map((availability) => (
-                            <li key={availability.id}>
-                                <AvailabilityRow
-                                    availability={availability}
-                                    weekdays={weekdays}
-                                />
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                <ul className="flex flex-col gap-3">
+                    {/* key = id: each row keeps its own dialogs and values, never another slot's. */}
+                    {availabilities.map((availability) => (
+                        <li key={availability.id}>
+                            <AvailabilityRow
+                                availability={availability}
+                                weekdays={weekdays}
+                            />
+                        </li>
+                    ))}
+                </ul>
             </CardContent>
         </Card>
     );
@@ -358,48 +437,46 @@ function DeleteAvailabilityDialog({
 
 // Not controlled: after a validation error what was written stays; after a success
 // resetOnSuccess empties the fields, the select back to its empty first option. The request
-// limit is shown at the top of the page.
+// limit is shown at the top of the page. In a column or a dialog (AddPanel).
 function AddAvailabilityForm({
     weekdays,
+    onSaved,
 }: {
     weekdays: AvailabilityWeekday[];
+    onSaved: OnSaved;
 }) {
     const { t } = useTranslation();
+    const submit = useSubmitFocus();
 
     return (
-        <Card className="max-w-2xl">
-            <CardHeader>
-                <h2 className="text-xl leading-none font-semibold">
-                    {t('provider.availability.add_title')}
-                </h2>
-            </CardHeader>
-            <CardContent>
-                <Form
-                    {...storeAvailability.form()}
-                    options={{ preserveScroll: true }}
-                    resetOnSuccess
-                    className="flex flex-col gap-6"
-                >
-                    {({ processing, errors }) => (
-                        <>
-                            <AvailabilityFields
-                                idPrefix="new-availability"
-                                weekdays={weekdays}
-                                errors={errors}
-                            />
-                            <Button
-                                type="submit"
-                                className={`self-start ${wrappingLabel}`}
-                                disabled={processing}
-                            >
-                                {processing && <Spinner />}
-                                {t('provider.availability.form.submit')}
-                            </Button>
-                        </>
-                    )}
-                </Form>
-            </CardContent>
-        </Card>
+        <Form
+            {...storeAvailability.form()}
+            options={{ preserveScroll: true }}
+            resetOnSuccess
+            onSuccess={(page) => onSaved(page.flash)}
+            onFinish={submit.restore}
+            className="flex flex-col gap-4"
+        >
+            {({ processing, errors }) => (
+                <>
+                    <AvailabilityFields
+                        idPrefix="new-availability"
+                        weekdays={weekdays}
+                        errors={errors}
+                    />
+                    {/* Disabled while sending: useSubmitFocus gives it the focus back afterwards. */}
+                    <Button
+                        ref={submit.ref}
+                        type="submit"
+                        className={`self-start ${wrappingLabel}`}
+                        disabled={processing}
+                    >
+                        {processing && <Spinner />}
+                        {t('provider.availability.form.submit')}
+                    </Button>
+                </>
+            )}
+        </Form>
     );
 }
 

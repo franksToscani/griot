@@ -14,7 +14,9 @@ function Toaster({ ...props }: ToasterProps) {
         <Sonner
             theme={appearance}
             className="toaster group"
-            position="bottom-right"
+            // Top centre on every page (#53): at the bottom right a toast covered the "add" form
+            // that stays in view in the provider's area, and the buttons of the home page.
+            position="top-center"
             containerAriaLabel={notificationsLabel}
             style={
                 {

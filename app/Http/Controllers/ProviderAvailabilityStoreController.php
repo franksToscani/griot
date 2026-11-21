@@ -33,7 +33,7 @@ class ProviderAvailabilityStoreController extends Controller
         $page = route('provider.availability.index');
 
         try {
-            $manageAvailability->create($provider, $request->availabilityData());
+            $availability = $manageAvailability->create($provider, $request->availabilityData());
         } catch (AvailabilityLimitReached) {
             // redirectTo(): the Referer is not reliable.
             throw ValidationException::withMessages([
@@ -44,6 +44,9 @@ class ProviderAvailabilityStoreController extends Controller
         }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('provider.availability.created')]);
+        // The day of the new slot, brought into view with the focus on its title
+        // (hooks/use-flash-focus.ts); the slots stay ordered by time.
+        Inertia::flash('focus', 'availability-day-'.$availability->weekday->value);
 
         return redirect()->to($page);
     }

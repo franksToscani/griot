@@ -31,8 +31,10 @@ class ProviderServiceIndexController extends Controller
         // check is already there if one day the route receives an identifier.
         Gate::authorize('update', $provider);
 
-        // All of them, active or not, in the order they were created; the categories in one query.
-        $services = $provider->services()->with('category')->orderBy('id')->get();
+        // All of them, active or not, the most recent first (#53: a new service is at the top, next
+        // to the form); the categories in one query. Only this list: the public page has its own
+        // order (Provider::withPublicProfile(), by name), which does not change.
+        $services = $provider->services()->with('category')->orderByDesc('id')->get();
 
         return Inertia::render('provider/services/index', [
             // resolve() gives plain lists, without a "data" wrapper.

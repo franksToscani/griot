@@ -415,6 +415,8 @@ Si parte con la A per i primi due o tre provider; la C diventa utile per una pro
 - Ogni correzione passa da una PR con `composer ci:check` verde.
 - **Decisione sulla durata (#53):** confermata la regola: una prenotazione occupa la durata massima del servizio più i minuti delle opzioni. Corretta la presentazione: un solo campo obbligatorio « tempo da tenere libero » con un esempio dal vivo; la durata minima diventa facoltativa e solo informativa per il cliente; il cliente vede l'ora di fine massima prima di confermare ([bookings.md](bookings.md), « Quanto tempo occupa una prenotazione »). Da fare dopo una nuova prova, se serve: gli orari non disponibili mostrati disattivati invece che nascosti.
 
+- **Fatto (#53), meno scorrimento nei servizi e negli orari:** da 1280 px il modulo « Aggiungi » resta in vista a destra della lista (la seconda eccezione alla regola « niente `sticky` », [accessibility.md](accessibility.md)); sotto si apre in una finestra da un pulsante in cima. Servizi più recenti per primi nella lista del professionista (la pagina pubblica resta per nome); dopo un salvataggio il servizio o il giorno è portato in vista con il focus; dopo la modifica di un servizio si torna sulla sua scheda. Orari: giorni chiusi su una riga, aiuto piegato in « Come funziona ». Messaggi (toast) in alto al centro in tutto il sito. **Da fare:** lo stesso per le opzioni; il focus perso dai pulsanti disattivati durante l'invio negli altri moduli; l'elenco di cosa manca nel profilo con i link (PR 2).
+
 **Traduzioni** _Come utente voglio usare il sito nella mia lingua._
 
 - Tutti i testi dell'interfaccia sono in file di traduzione, senza testo scritto direttamente nei componenti.

@@ -28,9 +28,12 @@ class ProviderServiceStoreController extends Controller
         // check is already there if one day the route receives an identifier.
         Gate::authorize('update', $provider);
 
-        $provider->services()->create($request->serviceData());
+        $service = $provider->services()->create($request->serviceData());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('provider.services.created')]);
+        // The card of the new service, brought into view with the focus on its title
+        // (hooks/use-flash-focus.ts).
+        Inertia::flash('focus', 'service-'.$service->id);
 
         return to_route('provider.services.index');
     }

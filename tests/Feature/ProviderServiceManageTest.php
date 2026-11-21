@@ -192,7 +192,9 @@ test('a valid edit changes the fields, not is_active nor provider_id', function 
 
     $this->actingAs($provider->user)
         ->put(route('provider.services.update', $service->id), psmForm())
+        // Back on the list, the changed card named by the flash, no #anchor (#53, ProviderAddPanelTest).
         ->assertRedirect(route('provider.services.index'))
+        ->assertInertiaFlash('focus', 'service-'.$service->id)
         ->assertSessionHasNoErrors()
         ->assertInertiaFlash('toast', ['type' => 'success', 'message' => 'Servizio aggiornato.']);
 
