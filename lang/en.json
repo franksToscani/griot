@@ -739,7 +739,7 @@
     "provider.photos.consent": "The people who can be recognised in this photo have agreed to its publication.",
     "provider.validation.photo_required": "Choose a photo.",
     "provider.validation.photo_invalid": "The file is not a valid photo: use a JPG, PNG or WebP image.",
-    "provider.validation.photo_max": "The photo is too large: up to 2 MB.",
+    "provider.validation.photo_max": "The photo is too large: up to :max MB.",
     "provider.validation.photo_dimensions": "The photo can be at most 4000 pixels on each side.",
     "provider.validation.photo_too_small": "The photo is too small: at least :min pixels on the longest side.",
     "provider.validation.photo_unreadable": "The photo cannot be read. Try another file.",

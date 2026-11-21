@@ -126,9 +126,11 @@ test('the edit page has exactly the eight fields of the provider, and its galler
                 'slug' => 'salone-awa',
                 'is_published' => true,
                 'avatar_url' => Storage::disk(MediaDisk::NAME)->url('avatars/awa.jpg'),
+                // The weight the server takes for the photo (#53): above it, made smaller first.
+                'avatar_max_kilobytes' => 1536,
                 // The photos of the work and their limits (#143, GalleryProfileCardTest).
                 'photos' => [],
-                'gallery' => ['max_photos' => 9, 'min_side' => 800],
+                'gallery' => ['max_photos' => 15, 'min_side' => 800],
             ]))
         ->assertDontSee('Barberia Kofi');
 });

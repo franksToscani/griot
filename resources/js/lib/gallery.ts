@@ -34,6 +34,19 @@ export function photoAlt(
         : t(fallbackKey, { ...replacements, number, total });
 }
 
+// The grid of the thumbnails in the card « Foto del tuo lavoro » of the edit page, and the width
+// of one thumbnail in it, for the browser's choice in srcset (#53: the 400 px size alone was
+// enlarged two or three times on a phone). The two are kept together: the sizes follow the grid.
+// - below 768 px one column: the page's padding (p-4, 2rem) and the card's (px-6, 3rem) taken off;
+// - from 768 px three columns in the card, at most 42rem (max-w-2xl) less 3rem of padding and two
+//   gaps of 1rem: about 12.3rem, so 13rem;
+// - from 1280 px two columns in the 24rem column of the page (add-panel.tsx, TWO_COLUMNS) less 3rem
+//   of padding and one gap of 1rem: 10rem.
+export const THUMBNAIL_GRID =
+    'grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-2';
+export const THUMBNAIL_SIZES =
+    '(min-width: 1280px) 10rem, (min-width: 768px) 13rem, calc(100vw - 5rem)';
+
 // How many photos the mosaic shows: from 768 px up the large one and up to 4 small ones, below it
 // the large one and up to 2. The others are reached in the zoom, through "Vedi tutte le foto".
 export const MOSAIC_WIDE = 5;

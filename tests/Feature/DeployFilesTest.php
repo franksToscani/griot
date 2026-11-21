@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\RobotsController;
 use App\Http\Middleware\NoIndexSite;
+use App\Http\Requests\StoreProviderAvatarRequest;
 use Symfony\Component\Yaml\Yaml;
 
 /*
@@ -144,7 +145,7 @@ test('php.ini accepts more than the validation of the photos, and the comments s
     $megabytes = fn (string $value) => (int) rtrim($value, 'M');
 
     expect($ini)->toMatchArray([
-        'upload_max_filesize' => '3M',
+        'upload_max_filesize' => '5M',
         'post_max_size' => '8M',
         'memory_limit' => '256M',
         'opcache.enable' => '1',
@@ -154,14 +155,16 @@ test('php.ini accepts more than the validation of the photos, and the comments s
     ]);
 
     // The validation in KB stays below PHP's limit: a file in between gets the clear message.
-    foreach (['app/Http/Requests/StoreProviderPhotoRequest.php' => 2048, 'app/Http/Requests/StoreProviderAvatarRequest.php' => 1536] as $path => $kilobytes) {
-        $source = dplSource($path);
-        expect($source)->toContain("'max:{$kilobytes}',")
-            ->and($source)->toContain('upload_max_filesize of 3M (docker/php.ini), on purpose')
-            ->and($kilobytes)->toBeLessThan($megabytes($ini['upload_max_filesize']) * 1024);
+    // The gallery's weight is read from the configuration (booking.gallery.max_kilobytes).
+    expect(dplSource('app/Http/Requests/StoreProviderPhotoRequest.php'))->toContain("'max:'.self::maxKilobytes(),")
+        ->toContain('upload_max_filesize of 5M (docker/php.ini), on purpose');
+    expect(dplSource('app/Http/Requests/StoreProviderAvatarRequest.php'))->toContain("'max:'.self::MAX_KILOBYTES,")
+        ->toContain('upload_max_filesize of 5M (docker/php.ini), on purpose');
+    foreach ([config()->integer('booking.gallery.max_kilobytes'), StoreProviderAvatarRequest::MAX_KILOBYTES] as $kilobytes) {
+        expect($kilobytes)->toBeLessThan($megabytes($ini['upload_max_filesize']) * 1024);
     }
     expect($megabytes($ini['post_max_size']))->toBeGreaterThan($megabytes($ini['upload_max_filesize']));
-    expect(dplSource('docs/gallery.md'))->toContain('è volutamente **più alto** di quello della validazione (2 MB)');
+    expect(dplSource('docs/gallery.md'))->toContain('è volutamente **più alto** di quello della validazione (4 MB)');
 });
 
 test('Caddy serves public/ through PHP, without HTTPS nor admin, with the header of the private site', function () {
@@ -320,7 +323,7 @@ test('the docker-build job builds, starts and checks the image, with pinned acti
         'test "$(docker exec "$CONTAINER" id -u)" != "0"',
         "for module in pdo_pgsql gd exif 'Zend OPcache'; do",
         'gd_info()["WebP Support"]',
-        'check upload_max_filesize 3M',
+        'check upload_max_filesize 5M',
         'check post_max_size 8M',
         'check memory_limit 256M',
         'frankenphp ru[n] ',

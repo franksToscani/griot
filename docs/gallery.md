@@ -4,9 +4,9 @@ Le foto del lavoro di un provider, in testa alla sua pagina pubblica (issue #143
 
 ## Decisioni
 
-- Al massimo 9 foto per provider (`config('booking.gallery.max_photos')`). La galleria **non** è richiesta per pubblicare il profilo.
+- Al massimo 15 foto per provider (`config('booking.gallery.max_photos')`; erano 9 fino a #53). La galleria **non** è richiesta per pubblicare il profilo.
 - Il mosaico comparirà già con 1 foto.
-- Ogni foto è salvata come WebP in 3 dimensioni del lato lungo: 400, 800 e 1600 px (`booking.gallery.sizes`), qualità 82 (`booking.gallery.quality`).
+- Ogni foto è salvata come WebP in 3 dimensioni del lato lungo: 400, 800 e 1600 px (`booking.gallery.sizes`), qualità 82 (`booking.gallery.quality`). Le dimensioni non si tolgono né si cambiano: gli indirizzi delle foto già salvate si ricavano da lì (`ProviderPhoto::sizes()`). Aggiungerne una più grande è sicuro, perché le foto vecchie non ce l'hanno e non la elencano.
 - Una foto non viene mai ingrandita: una dimensione più lunga della foto non si produce. La più piccola c'è sempre, al massimo grande quanto la foto.
 - I metadati dell'originale (EXIF con la posizione GPS, commenti, profili colore) vengono tolti: si salvano solo i pixel, ricodificati. Una foto scattata col telefono di lato viene raddrizzata.
 - Testo alternativo facoltativo, scritto dal provider nella sua lingua; senza, un testo di riserva tradotto (PR successive).
@@ -34,22 +34,24 @@ Tabella `provider_photos` (modello `App\Models\ProviderPhoto`, relazione `Provid
 
 - Le dimensioni prodotte non sono salvate: `ProviderPhoto::sizes()` le ricava da `width`, `height` e dalla configurazione, così un indirizzo non punta mai a un file che non c'è.
 - `pathFor()`, `paths()` e `urlFor()` danno i percorsi e gli indirizzi tramite `App\Support\MediaDisk`.
-- Il massimo di 9 e l'ordine li garantisce il codice, in una transazione con `lockForUpdate` sul provider, come per le disponibilità.
+- Il massimo di foto e l'ordine li garantisce il codice, in una transazione con `lockForUpdate` sul provider, come per le disponibilità.
 
 ## Caricamento
 
 `POST /provider/photos` (`provider.photos.store`), solo per il provider loggato, sempre nella propria galleria: un id nel corpo della richiesta è ignorato.
 
-- Regole (`StoreProviderPhotoRequest`): JPG, PNG o WebP, al massimo 2 MB e 4000 px per lato, almeno 800 px sul lato più lungo; `consent` obbligatorio (`accepted`); `alt_text` facoltativo, al massimo 150 caratteri, spazi tolti, vuoto diventa `null`.
-- Il limite di PHP (`upload_max_filesize=3M`, `post_max_size=8M` in `docker/php.ini`) è volutamente **più alto** di quello della validazione (2 MB): un file tra 2 e 3 MB arriva a Laravel e riceve il messaggio chiaro della regola `max:2048`; solo un file oltre 3 MB viene rifiutato da PHP prima (messaggio « uploaded »).
-- `App\Profile\StoreProviderPhoto` ricodifica la foto **prima** della transazione (il lavoro lento non tiene il lock), poi blocca il provider con `lockForUpdate`, controlla il massimo di 9, scrive le dimensioni sul disco e crea la riga: nome casuale di 40 caratteri, `width`/`height` della dimensione più grande, `position` = ultima + 1, `consent_at` = adesso.
+- Regole (`StoreProviderPhotoRequest`): JPG, PNG o WebP, al massimo 4 MB (`booking.gallery.max_kilobytes`) e 4000 px per lato, almeno 800 px sul lato più lungo; `consent` obbligatorio (`accepted`); `alt_text` facoltativo, al massimo 150 caratteri, spazi tolti, vuoto diventa `null`.
+- Il limite di PHP (`upload_max_filesize=5M`, `post_max_size=8M` in `docker/php.ini`) è volutamente **più alto** di quello della validazione (4 MB): un file tra 4 e 5 MB arriva a Laravel e riceve il messaggio chiaro della regola `max` (« al massimo 4 MB », dal config); solo un file oltre 5 MB viene rifiutato da PHP prima (messaggio « uploaded »). `post_max_size` resta più alto di `upload_max_filesize`: c'è posto anche per descrizione e consenso.
+- `App\Profile\StoreProviderPhoto` ricodifica la foto **prima** della transazione (il lavoro lento non tiene il lock), poi blocca il provider con `lockForUpdate`, controlla il massimo (`max_photos`), scrive le dimensioni sul disco e crea la riga: nome casuale di 40 caratteri, `width`/`height` della dimensione più grande, `position` = ultima + 1, `consent_at` = adesso.
 - Se qualcosa fallisce a metà (galleria piena, scrittura di una dimensione, database) i file già scritti vengono tolti e la riga non resta: la transazione la annulla. La pulizia usa `MediaDisk::deleteQuietly()`: un file che non si riesce a togliere lascia solo un avviso nel log e non copre l'errore di partenza.
 - Errori per il provider, sul campo `photo` e di ritorno a `provider.edit`: galleria piena (`GalleryFull`), foto illeggibile (`InvalidAvatar`), un problema del disco (`PhotoNotStored`, segnalata anche con `report()`): una dimensione non scritta, un errore del bucket o il disco non configurato (le variabili `AWS_*` vuote: il disco si crea dentro un `try`). Il messaggio è lo stesso della foto del profilo: « Non è stato possibile salvare la foto. Riprova più tardi. » ([media-storage.md](media-storage.md)).
-- Limite di richieste `provider-photos`: 20 al minuto per utente (`booking.rate_limit_photos_per_minute`), comune a caricamento e cancellazione. Oltre il limite si torna al profilo con un errore sul campo `photo`, come per la foto del profilo.
+- Limite di richieste `provider-photos`: 40 al minuto per utente (erano 20 fino a #53) (`booking.rate_limit_photos_per_minute`), comune a caricamento e cancellazione. Oltre il limite si torna al profilo con un errore sul campo `photo`, come per la foto del profilo.
 
 ## Riduzione nel browser
 
 `resources/js/lib/resize-image.ts`, usato dalla scheda del profilo al momento dell'invio (mai durante il disegno della pagina): `targetSize()` porta il lato più lungo a 2400 px al massimo senza mai ingrandire, `resizeImage()` ridisegna la foto su un canvas come JPEG di qualità 0,85, raddrizzata. Se il browser non ci riesce invia l'originale: decide sempre il server.
+
+La foto del profilo (`AvatarForm` in `provider/edit.tsx`, #53) viene ridotta **solo se il file supera il limite del server** (1,5 MB, `StoreProviderAvatarRequest::MAX_KILOBYTES`, che arriva alla pagina come `avatar_max_kilobytes` di `ProviderEditResource`; il confronto è `needsResize()`, con i KB contati come la regola `max` di Laravel). Un file più leggero parte com'è, senza ricodifica: un PNG con trasparenza resta un PNG, un panorama tiene i suoi pixel. Quando serve, la stessa funzione con `AVATAR_MAX_SIDE` = 1024 px: il server la salva a 512 px (`StoreProviderAvatar`), quindi ha il doppio dei pixel che servono, e un JPEG di 1024 px a 0,85 resta molto sotto 1,5 MB. Come nella galleria: solo all'invio, e l'originale se il browser non riesce a leggerla; se anche ridotta supera il limite, risponde il server con il suo errore.
 
 ## Cancellazione
 
@@ -58,16 +60,16 @@ Tabella `provider_photos` (modello `App\Models\ProviderPhoto`, relazione `Provid
 
 ## Scheda nel profilo del provider
 
-`resources/js/components/gallery-form.tsx`, nella pagina `provider/edit` subito sotto « La tua foto ». I dati arrivano da `ProviderEditResource`: `photos` (`ProviderPhotoEditResource`: `id`, indirizzo della dimensione da 400 px, `width`, `height`, `alt_text`, `position`, in ordine; mai `name`, percorsi o `consent_at`) e `gallery` (`max_photos` dal config, `min_side` da `StoreProviderPhotoRequest`). Le Resource pubbliche non cambiano.
+`resources/js/components/gallery-form.tsx`, nella pagina `provider/edit` subito sotto « La tua foto ». I dati arrivano da `ProviderEditResource`: `photos` (`ProviderPhotoEditResource`: `id`, `variants` (tutte le dimensioni che esistono, come larghezza e indirizzo, come nella pagina pubblica; #53), `width`, `height`, `alt_text`, `position`, in ordine; mai `name`, percorsi o `consent_at`) e `gallery` (`max_photos` dal config, `min_side` da `StoreProviderPhotoRequest`). Le Resource pubbliche non cambiano.
 
 Cosa vede il provider:
 
-- Titolo « Foto del tuo lavoro » (h2, prende il focus dopo una rimozione), una riga su cosa caricare e il contatore « N di 9 foto ».
-- Nessuna foto: un invito, nessun elenco vuoto. Altrimenti un `<ul>` (una colonna sotto 768 px, tre sopra) con la miniatura quadrata (`width`/`height`, `loading="lazy"`, `decoding="async"`), la descrizione se c'è e il pulsante « Togli ». Il testo alternativo è la descrizione del provider, o « Foto 2 di 6 ».
+- Titolo « Foto del tuo lavoro » (h2, prende il focus dopo una rimozione), una riga su cosa caricare e il contatore « N di 15 foto ».
+- Nessuna foto: un invito, nessun elenco vuoto. Altrimenti un `<ul>` (una colonna sotto 768 px, tre sopra, due da 1280 px nella colonna di destra: `THUMBNAIL_GRID` in `resources/js/lib/gallery.ts`) con la miniatura quadrata (`srcset` con tutte le dimensioni e `sizes` = `THUMBNAIL_SIZES`, accanto alla griglia: `calc(100vw - 5rem)` sotto 768 px, `13rem` da 768 px, `10rem` da 1280 px; `width`/`height`, `loading="lazy"`, `decoding="async"`), la descrizione se c'è e il pulsante « Togli ». Il testo alternativo è la descrizione del provider, o « Foto 2 di 6 ».
 - « Togli » si chiama « Togli la foto 2 di 6 » per i lettori di schermo (testo `sr-only` da `t()`). La conferma è nel Dialog del kit, con « Annulla » e « Togli la foto »; dopo la rimozione il focus va al titolo della scheda e il toast « Foto eliminata. » viene letto.
 - Il modulo: file (`accept="image/jpeg,image/png,image/webp"`: un iPhone converte HEIC in JPEG), descrizione facoltativa con il suggerimento collegato, casella del consenso e « Aggiungi la foto ». Il pulsante si attiva con un file scelto; la casella non lo blocca: se manca, l'errore del server compare accanto. Dopo un errore il focus va al primo campo sbagliato.
 - All'invio la foto viene ridotta nel browser, poi inviata; durante entrambe le fasi il pulsante è disattivato e una regione `role="status"` dice « Caricamento in corso… ». Dopo un caricamento riuscito il modulo si svuota e la foto compare in fondo all'elenco.
-- Con 9 foto il modulo sparisce e resta il messaggio « Hai raggiunto il massimo di 9 foto. Togline una per aggiungerne un'altra. ».
+- Con 15 foto il modulo sparisce e resta il messaggio « Hai raggiunto il massimo di 15 foto. Togline una per aggiungerne un'altra. ».
 - Nessun ordinamento: l'ordine è quello di caricamento. Nessun carousel, nessuna animazione.
 
 Le piccole regole (stato vuoto, aperto o pieno, testo di riserva) stanno in `resources/js/lib/gallery.ts`, provate con Node in `GalleryProfileCardTest`.

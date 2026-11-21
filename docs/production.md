@@ -52,8 +52,8 @@ Finché i testi legali non sono rivisti ([legal.md](legal.md)) il sito è online
 
 ## Limiti di upload
 
-- PHP (`docker/php.ini`): `upload_max_filesize=3M`, `post_max_size=8M`, `memory_limit=256M` (una foto di 4000×4000 decodificata da GD occupa circa 64 MB).
-- La validazione resta più bassa, apposta: 2 MB per le foto della galleria, 1,5 MB per la foto del profilo. Un file tra il limite della validazione e 3 MB riceve il messaggio chiaro del modulo; solo oltre 3 MB lo rifiuta PHP ([gallery.md](gallery.md)).
+- PHP (`docker/php.ini`): `upload_max_filesize=5M`, `post_max_size=8M`, `memory_limit=256M` (una foto di 4000×4000 decodificata da GD occupa circa 64 MB).
+- La validazione resta più bassa, apposta: 4 MB per le foto della galleria (`booking.gallery.max_kilobytes`), 1,5 MB per la foto del profilo. Un file tra il limite della validazione e 5 MB riceve il messaggio chiaro del modulo; solo oltre 5 MB lo rifiuta PHP ([gallery.md](gallery.md)).
 
 ## Dati iniziali
 
