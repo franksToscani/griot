@@ -2,6 +2,8 @@
 
 Risultati del lavoro sull'issue #55: cosa è stato cambiato, come è protetto dai test, cosa è stato misurato e cosa no.
 
+Quello che questo documento descrive per i lettori di schermo vale per quanto è già costruito e resta com'è. Per le funzioni nuove vale la regola della sezione 9.
+
 ## 1. Obiettivo e perimetro
 
 **Obiettivo di lavoro**: WCAG 2.2 livello AA. È il riferimento usato per decidere e misurare, non una certificazione: nessun audit esterno, nessuna dichiarazione di conformità.
@@ -207,7 +209,7 @@ Data: novembre 2026, sul codice delle PR #128, #129 e #134. Strumenti: Playwrigh
 
 **Non provato**
 
-- Nessuna prova completa con un lettore di schermo: NVDA, VoiceOver, TalkBack, Orca.
+- Nessuna prova completa con un lettore di schermo: NVDA, VoiceOver, TalkBack, Orca. Le funzioni nuove seguono la regola della sezione 9 (solo HTML nativo, salvo dove servirebbe di più): le valuterà l'audit #175.
 - Nessuna prova su un telefono vero, né con "riduci movimento" di iOS o Android.
 - Nessuna prova con il tema ad alto contrasto di Windows: solo l'emulazione di Chromium, con una tavolozza chiara.
 
@@ -219,7 +221,7 @@ Data: novembre 2026, sul codice delle PR #128, #129 e #134. Strumenti: Playwrigh
 
 - Ordine dei titoli nelle impostazioni: l'h2 « Impostazioni » viene prima dell'h1, e l'h1 è ripetuto da un h2 con lo stesso testo.
 - Voce attiva della Select aperta e del menu utente nei colori forzati: senza lo sfondo non si distingue.
-- Errori accessibili nei moduli del provider (servizi, opzioni, disponibilità, profilo), come quelli fatti in #125 per prenotazione e accesso.
+- Errori nei moduli del provider (servizi, opzioni, disponibilità, profilo): il collegamento degli errori ai campi per i lettori di schermo, come in #125 per prenotazione e accesso, si valuta nell'audit #175. Il focus sul primo campo sbagliato (tastiera) oggi c'è solo nella galleria e in « Nuova prenotazione », non in questi quattro moduli: si valuta nello stesso audit. Per le funzioni nuove vale la regola della sezione 9.
 - Plurali nei testi tradotti.
 
 **Debito (issue #130)**
@@ -271,7 +273,7 @@ Data: novembre 2026, sul codice delle PR #128, #129 e #134. Strumenti: Playwrigh
 ## 8. Checklist per nuove funzioni
 
 - [ ] Ogni testo, etichetta e `aria-label` con `t()`, chiavi in it, fr ed en.
-- [ ] Ogni campo ha un'etichetta; il suo errore è collegato con `aria-describedby` e, dopo un invio rifiutato, il focus va al primo campo sbagliato.
+- [ ] Ogni campo ha un'etichetta; dopo un invio rifiutato il focus va al primo campo sbagliato. Il collegamento dell'errore con `aria-describedby` resta dove c'è già; in una funzione nuova solo se serve (sezione 9).
 - [ ] Controlli di almeno 44×44 px sotto 768 px; i link isolati usano `touchTarget`.
 - [ ] Focus visibile: ogni `outline-none` ha `focus-visible:outline-hidden`; niente `tabIndex` positivi.
 - [ ] Un solo h1 per pagina, poi h2 e h3 senza salti.
@@ -281,4 +283,16 @@ Data: novembre 2026, sul codice delle PR #128, #129 e #134. Strumenti: Playwrigh
 - [ ] Colori dai token di `app.css` o dalla palette; i nuovi abbinamenti aggiunti al test di contrasto.
 - [ ] Ambra (`highlight`) e arancio (`brand`) solo come sfondo con il loro testo marrone; il filo arancio (`decor`) mai per dare un significato; arancio e rosso degli errori mai scambiati; errori e stati con i loro colori di sempre.
 - [ ] Link dentro un testo sempre sottolineati: sono marroni come il testo.
-- [ ] Un test Pest per ogni regola nuova, con una controprova: rompere la regola e vedere fallire il test giusto.
+- [ ] Un test Pest per ogni regola nuova, con una controprova: rompere la regola e vedere fallire il test giusto. Nessun test dedicato solo ai lettori di schermo (sezione 9).
+
+## 9. Regola per le funzioni nuove (21 novembre 2026)
+
+**Decisione** (Franks): per le funzioni nuove, HTML nativo fatto bene: etichette sui campi, pulsanti e link veri, titoli in ordine, componenti Radix, un nome per i pulsanti con solo icona. Gli extra per i lettori di schermo (annunci, `aria-describedby` aggiuntivi, testi nascosti di contesto, regioni live) si aggiungono solo dove la funzione sarebbe inutilizzabile senza. Nessun test dedicato solo ai lettori di schermo.
+
+**Cosa resta com'è**: il livello per i lettori di schermo già costruito, con i suoi test e le sue descrizioni in questo documento. Non si toglie niente.
+
+**Cosa vale per tutto, nuovo e già fatto**: tastiera, focus visibile, contrasto, aree di tocco di 44 px sotto 768 px, movimento ridotto, la regola delle traduzioni (`LocaleEverywhereTest`: nessun `aria-label` con testo scritto a mano) e i nomi dei pulsanti con solo icona, che servono anche al controllo vocale.
+
+**Perché**: il costo misurato del livello per i lettori di schermo è basso (circa il 2-3% del codice, 10-30 minuti per PR), ma una parte è inseparabile dal resto (`aria-invalid`, `aria-current`, `aria-disabled`), quindi non si rimuove. Si evita invece di allargarlo con un rituale a ogni PR.
+
+**Dopo**: l'audit #175 resta in coda e valuterà anche le funzioni nuove.
