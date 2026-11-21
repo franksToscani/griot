@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Requests\StoreProviderAvatarRequest;
 use App\Http\Requests\StoreProviderPhotoRequest;
 use App\Models\Provider;
 use Illuminate\Http\Request;
@@ -33,6 +34,8 @@ class ProviderEditResource extends JsonResource
             'is_published' => $this->is_published,
             // The current photo for the photo form, or null for the initials.
             'avatar_url' => $this->avatarUrl(),
+            // The weight the server takes for the photo: above it the browser makes it smaller.
+            'avatar_max_kilobytes' => StoreProviderAvatarRequest::MAX_KILOBYTES,
             // The gallery of the work (issue #143), in the order of the relation: position, then id.
             'photos' => ProviderPhotoEditResource::collection($this->photos)->resolve($request),
             // For the texts of the card: how many photos at most, and the shortest longest side.

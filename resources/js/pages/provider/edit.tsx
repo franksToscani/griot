@@ -1,5 +1,6 @@
-import { Form, Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { Form, Head, useForm } from '@inertiajs/react';
+import { useRef, useState } from 'react';
+import type { FormEvent } from 'react';
 import {
     GalleryForm,
     TITLE_ID as GALLERY_TITLE_ID,
@@ -29,6 +30,7 @@ import {
     SetupStepsNav,
 } from '@/components/setup-steps';
 import { useTranslation } from '@/hooks/use-translation';
+import { AVATAR_MAX_SIDE, needsResize, resizeImage } from '@/lib/resize-image';
 import { touchTarget } from '@/lib/touch-target';
 import { dashboard } from '@/routes';
 import { edit, update } from '@/routes/provider';
@@ -214,6 +216,7 @@ export default function ProviderEditPage({ provider, app_url }: Props) {
                         <AvatarForm
                             name={provider.name}
                             avatarUrl={provider.avatar_url}
+                            maxKilobytes={provider.avatar_max_kilobytes}
                         />
                     </div>
 
@@ -230,16 +233,53 @@ export default function ProviderEditPage({ provider, app_url }: Props) {
 
 // The photo, in a form of its own: a separate request from the profile, so pressing Enter in a
 // profile field never sends it, and its ids ("avatar") are not used by the profile form.
+// The photo is made smaller in the browser only when the form is sent, and only if it is heavier
+// than the server takes (maxKilobytes, from StoreProviderAvatarRequest through the page's props):
+// a lighter one goes as it is, so a PNG with transparency or a panorama is never rewritten. If the
+// browser cannot read it, the original goes and the server decides (resize-image.ts).
 function AvatarForm({
     name,
     avatarUrl,
+    maxKilobytes,
 }: {
     name: string;
     avatarUrl: string | null;
+    maxKilobytes: number;
 }) {
     const { t } = useTranslation();
-    // Whether a file is chosen: the input is not controlled, so React needs to be told.
-    const [hasFile, setHasFile] = useState(false);
+    const fileInput = useRef<HTMLInputElement>(null);
+    // From the click to the start of the request: the resize, which can take a moment.
+    const [preparing, setPreparing] = useState(false);
+    const form = useForm<{ avatar: File | null }>({ avatar: null });
+    const busy = preparing || form.processing;
+
+    const submit = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const original = form.data.avatar;
+
+        if (original === null || busy) {
+            return;
+        }
+
+        setPreparing(true);
+        const avatar = needsResize(original, maxKilobytes)
+            ? await resizeImage(original, AVATAR_MAX_SIDE)
+            : original;
+
+        form.transform(() => ({ avatar }));
+        form.post(storeAvatar.url(), {
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => {
+                // Empty again: the file input, which React does not control, and the button off.
+                form.reset();
+                if (fileInput.current !== null) {
+                    fileInput.current.value = '';
+                }
+            },
+            onFinish: () => setPreparing(false),
+        });
+    };
 
     return (
         <Card className="max-w-2xl">
@@ -253,61 +293,49 @@ function AvatarForm({
                 </h2>
             </CardHeader>
             <CardContent>
-                {/* resetOnSuccess empties the file input after a successful upload, and onSuccess
-                    turns the button off again: no "chosen" state left with an empty input. */}
-                <Form
-                    {...storeAvatar.form()}
-                    options={{ preserveScroll: true }}
-                    encType="multipart/form-data"
-                    resetOnSuccess
-                    onSuccess={() => setHasFile(false)}
-                    className="flex flex-col gap-4"
-                >
-                    {({ processing, errors }) => (
-                        <>
-                            {/* Alone above the upload field: the photo has its own alternative text. */}
-                            <ProviderAvatar
-                                name={name}
-                                avatarUrl={avatarUrl}
-                                className="size-24 text-2xl"
-                                decorative={false}
-                            />
-                            <div className="grid gap-2">
-                                <Label htmlFor="avatar">
-                                    {t('provider.avatar.label')}
-                                </Label>
-                                <Input
-                                    id="avatar"
-                                    name="avatar"
-                                    type="file"
-                                    accept="image/jpeg,image/png,image/webp"
-                                    aria-describedby="avatar-help"
-                                    onChange={(event) =>
-                                        setHasFile(
-                                            (event.target.files?.length ?? 0) >
-                                                0,
-                                        )
-                                    }
-                                />
-                                <p
-                                    id="avatar-help"
-                                    className="text-sm text-muted-foreground"
-                                >
-                                    {t('provider.avatar.help')}
-                                </p>
-                                <InputError message={errors.avatar} />
-                            </div>
-                            <Button
-                                type="submit"
-                                className="self-start"
-                                disabled={!hasFile || processing}
-                            >
-                                {processing && <Spinner />}
-                                {t('provider.avatar.submit')}
-                            </Button>
-                        </>
-                    )}
-                </Form>
+                <form onSubmit={submit} className="flex flex-col gap-4">
+                    {/* Alone above the upload field: the photo has its own alternative text. */}
+                    <ProviderAvatar
+                        name={name}
+                        avatarUrl={avatarUrl}
+                        className="size-24 text-2xl"
+                        decorative={false}
+                    />
+                    <div className="grid gap-2">
+                        <Label htmlFor="avatar">
+                            {t('provider.avatar.label')}
+                        </Label>
+                        <Input
+                            ref={fileInput}
+                            id="avatar"
+                            name="avatar"
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            aria-describedby="avatar-help"
+                            onChange={(event) =>
+                                form.setData(
+                                    'avatar',
+                                    event.target.files?.[0] ?? null,
+                                )
+                            }
+                        />
+                        <p
+                            id="avatar-help"
+                            className="text-sm text-muted-foreground"
+                        >
+                            {t('provider.avatar.help')}
+                        </p>
+                        <InputError message={form.errors.avatar} />
+                    </div>
+                    <Button
+                        type="submit"
+                        className="self-start"
+                        disabled={form.data.avatar === null || busy}
+                    >
+                        {busy && <Spinner />}
+                        {t('provider.avatar.submit')}
+                    </Button>
+                </form>
             </CardContent>
         </Card>
     );

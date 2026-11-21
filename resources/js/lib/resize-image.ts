@@ -1,10 +1,26 @@
 // A photo made smaller in the browser before it is sent (issue #143): a phone photo is often
-// 3-6 MB and 4000 pixels or more, the server takes at most 2 MB and 4000 pixels a side. Smaller
-// also means faster on a mobile connection. The server checks everything again.
+// 3-6 MB and 4000 pixels or more, the server takes at most 4 MB for the gallery, 1.5 MB for the
+// provider's photo, and 4000 pixels a side. Smaller also means faster on a mobile connection. The
+// server checks everything again.
 
 // The longest side of the photo sent, in pixels, and the JPEG quality (0-1).
 export const MAX_SIDE = 2400;
 export const JPEG_QUALITY = 0.85;
+
+// The provider's photo (#53): the server keeps it at 512 px on the longest side
+// (StoreProviderAvatar), so 1024 leaves it twice the pixels it needs, and a JPEG of 1024 px at
+// 0.85 stays far below its 1.5 MB (a few hundred KB for a photo).
+export const AVATAR_MAX_SIDE = 1024;
+
+// Whether a photo must be made smaller before it is sent: only when it is heavier than what the
+// server takes (in KB, as Laravel's "max" rule counts them). A lighter one goes as it is, not
+// rewritten: a PNG with transparency stays a PNG, a panorama keeps its pixels.
+export function needsResize(
+    file: { size: number },
+    maxKilobytes: number,
+): boolean {
+    return file.size > maxKilobytes * 1024;
+}
 
 export type Size = { width: number; height: number };
 

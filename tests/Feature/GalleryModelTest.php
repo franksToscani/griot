@@ -176,10 +176,12 @@ test('the avatar uses the shared encoder, with its one size of 512', function ()
 // ---------------------------------------------------------------------------------------------
 
 test('the gallery sizes, quality and maximum are in config/booking.php, not in the code', function () {
+    // The sizes never change: the addresses of the photos already saved are made from them.
     expect(config('booking.gallery'))->toBe([
-        'max_photos' => 9,
+        'max_photos' => 15,
         'sizes' => [400, 800, 1600],
         'quality' => 82,
+        'max_kilobytes' => 4096,
     ]);
 
     foreach (['Profile/WebpEncoder.php', 'Models/ProviderPhoto.php'] as $path) {

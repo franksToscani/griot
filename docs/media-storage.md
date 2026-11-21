@@ -10,6 +10,7 @@ Dove stanno le immagini del sito (oggi la foto del provider, domani la galleria 
     - `s3` (produzione): un bucket compatibile S3, con i file pubblici (`visibility` `public`), un errore se una scrittura fallisce (`throw`), e l'intestazione `Cache-Control: public, max-age=31536000, immutable` su ogni file caricato (i nomi sono casuali, quindi un file non cambia mai).
 - Il disco `public` e il disco predefinito (`FILESYSTEM_DISK`) non cambiano.
 - L'indirizzo di un'immagine è assoluto: in locale parte da `APP_URL`, in produzione da `AWS_URL`. Non è salvato nel database: viene ricostruito dal percorso a ogni pagina.
+- Limiti dei file (#53): la galleria accetta fino a 4 MB (`booking.gallery.max_kilobytes`), la foto del profilo fino a 1,5 MB, entrambe al massimo 4000 px per lato; PHP accetta fino a 5 MB (`upload_max_filesize` in `docker/php.ini`). Il browser riduce prima dell'invio le foto della galleria a 2400 px e quella del profilo a 1024 px, quest'ultima solo se il file supera il limite del server (`resources/js/lib/resize-image.ts`). Su disco restano solo i WebP ricodificati: 400, 800 e 1600 px per la galleria, 512 px per il profilo.
 - Il driver S3 è il pacchetto `league/flysystem-aws-s3-v3`. `composer.json` richiede anche le estensioni PHP `gd` (con WebP) ed `exif`, usate per ricodificare la foto.
 
 ## Al deploy (produzione)

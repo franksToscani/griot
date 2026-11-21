@@ -118,7 +118,7 @@ return [
     'rate_limit_avatar_per_minute' => 10,
 
     // Gallery uploads and removals of a logged-in provider together, per user (not per IP).
-    'rate_limit_photos_per_minute' => 20,
+    'rate_limit_photos_per_minute' => 40,
 
     // Publish and unpublish of a logged-in provider together, per user (not per IP).
     'rate_limit_publish_per_minute' => 10,
@@ -149,14 +149,20 @@ return [
     |
     | At most this many photos per provider. Each photo is kept as WebP in a
     | few sizes (the longest side, in pixels), never enlarged: a size longer
-    | than the photo is not made. The smallest is always there.
+    | than the photo is not made. The smallest is always there. The sizes are
+    | never changed nor removed: the addresses of the photos already saved are
+    | made from them (ProviderPhoto::sizes()).
+    |
+    | max_kilobytes: the heaviest file the gallery takes, below PHP's
+    | upload_max_filesize (docker/php.ini) on purpose.
     |
     */
 
     'gallery' => [
-        'max_photos' => 9,
+        'max_photos' => 15,
         'sizes' => [400, 800, 1600],
         'quality' => 82,
+        'max_kilobytes' => 4096,
     ],
 
 ];

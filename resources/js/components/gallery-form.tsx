@@ -25,7 +25,14 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { useTranslation } from '@/hooks/use-translation';
 import { errorId, fieldA11y, focusFirstInvalid } from '@/lib/form-a11y';
-import { galleryState, photoAlt } from '@/lib/gallery';
+import {
+    fallbackSrc,
+    galleryState,
+    photoAlt,
+    srcSet,
+    THUMBNAIL_GRID,
+    THUMBNAIL_SIZES,
+} from '@/lib/gallery';
 import { resizeImage } from '@/lib/resize-image';
 // The gallery's own "store" and "destroy", not the profile ones of '@/routes/provider'.
 import {
@@ -87,8 +94,9 @@ export function GalleryForm({
                     </p>
                 ) : (
                     // One column on phones, three from md; two from xl, where the card is the 24rem
-                    // column of the profile page. key = id, so that each row keeps its own dialog.
-                    <ul className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-2">
+                    // column of the profile page (THUMBNAIL_GRID, with its sizes in lib/gallery.ts).
+                    // key = id, so that each row keeps its own dialog.
+                    <ul className={THUMBNAIL_GRID}>
                         {photos.map((photo, index) => (
                             <li key={photo.id} className="flex flex-col gap-2">
                                 <PhotoItem
@@ -129,9 +137,12 @@ function PhotoItem({
     return (
         <>
             {/* width and height: the space is kept while the photo loads. A square crop for the
-                thumbnails only: the photo itself is not cut. */}
+                thumbnails only: the photo itself is not cut. Every size in srcset: the browser
+                takes the one the thumbnail needs on that screen. */}
             <img
-                src={photo.url}
+                src={fallbackSrc(photo.variants)}
+                srcSet={srcSet(photo.variants)}
+                sizes={THUMBNAIL_SIZES}
                 width={photo.width}
                 height={photo.height}
                 alt={photoAlt(t, photo.alt_text, number, total)}

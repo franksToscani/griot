@@ -1,3 +1,5 @@
+import type { PhotoVariant } from '@/types/provider';
+
 // Shape of App\Http\Resources\ProviderAreaResource: the logged-in provider's own profile.
 export type ProviderArea = {
     name: string;
@@ -23,6 +25,8 @@ export type ProviderEdit = ProviderProfileValues & {
     slug: string;
     is_published: boolean;
     avatar_url: string | null;
+    // StoreProviderAvatarRequest::MAX_KILOBYTES: above it the photo is made smaller first.
+    avatar_max_kilobytes: number;
     photos: ProviderPhotoEdit[];
     gallery: GalleryLimits;
 };
@@ -30,8 +34,8 @@ export type ProviderEdit = ProviderProfileValues & {
 // Shape of App\Http\Resources\ProviderPhotoEditResource: a photo of the work, in the edit page.
 export type ProviderPhotoEdit = {
     id: number;
-    // The smallest size (400 px on the longest side).
-    url: string;
+    // Every size that exists, smallest first, for srcset (as ProviderPhotoPublic).
+    variants: PhotoVariant[];
     width: number;
     height: number;
     alt_text: string | null;

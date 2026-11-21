@@ -39,17 +39,17 @@ class StoreProviderPhotoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // bail: one message per wrong file. max:2048 (KB, 2 MB) stays below PHP's
-            // upload_max_filesize of 3M (docker/php.ini), on purpose: a file between 2 and 3 MB
-            // gets this clear message; a bigger one does not even reach Laravel as a valid file
-            // (see messages(), "uploaded"). JPEG, PNG and WebP only: no SVG (it can contain
-            // scripts), no GIF.
+            // bail: one message per wrong file. The weight (booking.gallery.max_kilobytes, 4 MB)
+            // stays below PHP's upload_max_filesize of 5M (docker/php.ini), on purpose: a file
+            // between the two gets this clear message; a bigger one does not even reach Laravel as
+            // a valid file (see messages(), "uploaded"). JPEG, PNG and WebP only: no SVG (it can
+            // contain scripts), no GIF.
             'photo' => [
                 'bail',
                 'required',
                 'file',
                 'mimes:jpg,jpeg,png,webp',
-                'max:2048',
+                'max:'.self::maxKilobytes(),
                 'dimensions:max_width=4000,max_height=4000',
                 function (string $attribute, mixed $value, Closure $fail): void {
                     $size = $value instanceof UploadedFile ? @getimagesize($value->getRealPath()) : false;
@@ -75,16 +75,32 @@ class StoreProviderPhotoRequest extends FormRequest
         return [
             'photo.required' => __('provider.validation.photo_required'),
             'photo.uploaded' => $this->tooBigForPhp()
-                ? __('provider.validation.photo_max')
+                ? __('provider.validation.photo_max', ['max' => self::maxMegabytes()])
                 : __('provider.validation.photo_invalid'),
             'photo.file' => __('provider.validation.photo_invalid'),
             'photo.mimes' => __('provider.validation.photo_invalid'),
-            'photo.max' => __('provider.validation.photo_max'),
+            'photo.max' => __('provider.validation.photo_max', ['max' => self::maxMegabytes()]),
             'photo.dimensions' => __('provider.validation.photo_dimensions'),
             'consent.accepted' => __('provider.validation.photo_consent'),
             'alt_text.string' => __('provider.validation.photo_alt_max', ['max' => 150]),
             'alt_text.max' => __('provider.validation.photo_alt_max', ['max' => 150]),
         ];
+    }
+
+    /**
+     * The heaviest photo taken, in KB: the one place that reads it from the configuration.
+     */
+    public static function maxKilobytes(): int
+    {
+        return config()->integer('booking.gallery.max_kilobytes');
+    }
+
+    /**
+     * The same weight in MB, for the message.
+     */
+    private static function maxMegabytes(): int
+    {
+        return intdiv(self::maxKilobytes(), 1024);
     }
 
     /**

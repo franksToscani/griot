@@ -15,6 +15,12 @@ use LogicException;
 class StoreProviderAvatarRequest extends FormRequest
 {
     /**
+     * The heaviest photo taken, in KB (1.5 MB). The edit page gets it too (ProviderEditResource):
+     * the browser makes a photo smaller only when it is heavier than this.
+     */
+    public const MAX_KILOBYTES = 1536;
+
+    /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
@@ -32,8 +38,8 @@ class StoreProviderAvatarRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // bail: one message per wrong file. max:1536 (KB, 1.5 MB) stays below PHP's
-            // upload_max_filesize of 3M (docker/php.ini), on purpose: a file between the two gets
+            // bail: one message per wrong file. MAX_KILOBYTES (1.5 MB) stays below PHP's
+            // upload_max_filesize of 5M (docker/php.ini), on purpose: a file between the two gets
             // this clear message; a bigger one does not even reach Laravel as a valid file (see
             // messages(), "uploaded").
             // JPEG, PNG and WebP only: no SVG (it can contain scripts), no GIF.
@@ -42,7 +48,7 @@ class StoreProviderAvatarRequest extends FormRequest
                 'required',
                 'file',
                 'mimes:jpg,jpeg,png,webp',
-                'max:1536',
+                'max:'.self::MAX_KILOBYTES,
                 'dimensions:min_width=200,min_height=200,max_width=4000,max_height=4000',
             ],
         ];

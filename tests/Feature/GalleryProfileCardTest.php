@@ -56,21 +56,28 @@ test('the edit page gets its own photos in their order, with only what the card 
     expect(array_column($props['photos'], 'id'))->toBe([$first->id, $second->id, $third->id]);
     expect($props['photos'][0])->toBe([
         'id' => $first->id,
-        'url' => MediaDisk::get()->url("gallery/{$first->name}-400.webp"),
+        // Every size that exists, for srcset (#53): not the 400 alone, enlarged on a phone.
+        'variants' => [
+            ['width' => 400, 'url' => MediaDisk::get()->url("gallery/{$first->name}-400.webp")],
+            ['width' => 800, 'url' => MediaDisk::get()->url("gallery/{$first->name}-800.webp")],
+            ['width' => 1600, 'url' => MediaDisk::get()->url("gallery/{$first->name}-1600.webp")],
+        ],
         'width' => 1600,
         'height' => 1200,
         'alt_text' => 'Box braids lunghe',
         'position' => 1,
     ]);
     expect($props['photos'][1])->toMatchArray(['width' => 800, 'height' => 533, 'position' => 2])
+        // A photo of 800 has only the sizes that exist: 400 and 800, never a 1600 that is not there.
+        ->and(array_column($props['photos'][1]['variants'], 'width'))->toBe([400, 800])
         ->and($props['photos'][2]['alt_text'])->toBeNull();
-    expect($props['gallery'])->toBe(['max_photos' => 9, 'min_side' => 800]);
+    expect($props['gallery'])->toBe(['max_photos' => 15, 'min_side' => 800]);
 
     // Never the name, a path or the consent.
     $json = (string) json_encode($props['photos']);
     expect($json)->not->toContain('"name"')->not->toContain('consent')->not->toContain('"path');
     foreach ($props['photos'] as $photo) {
-        expect(array_keys($photo))->toBe(['id', 'url', 'width', 'height', 'alt_text', 'position']);
+        expect(array_keys($photo))->toBe(['id', 'variants', 'width', 'height', 'alt_text', 'position']);
     }
 });
 
@@ -126,7 +133,7 @@ test('the card sits right under the photo of the profile, with the photos and th
         // Right after the photo of the profile and last of the content, before the footer of the
         // guide to the first steps (SetupStepsTest): from xl in the right column (ProfileLayoutTest),
         // so the left column closes between the two.
-        ->toMatch('/<AvatarForm\s+name=\{provider\.name\}\s+avatarUrl=\{provider\.avatar_url\}\s*\/>\s*<\/div>\s*<GalleryForm\s+photos=\{provider\.photos\}\s+limits=\{provider\.gallery\}\s*\/>\s*<\/div>\s*<SetupStepsFooter page="business" \/>\s*<\/div>/');
+        ->toMatch('/<AvatarForm\s+name=\{provider\.name\}\s+avatarUrl=\{provider\.avatar_url\}\s+maxKilobytes=\{provider\.avatar_max_kilobytes\}\s*\/>\s*<\/div>\s*<GalleryForm\s+photos=\{provider\.photos\}\s+limits=\{provider\.gallery\}\s*\/>\s*<\/div>\s*<SetupStepsFooter page="business" \/>\s*<\/div>/');
 });
 
 test('the card has one h2, as the photo of the profile above it, and the title takes the focus', function () {
@@ -145,14 +152,17 @@ test('the photos are a list, each with its thumbnail and its own removal', funct
     $source = gpcSource();
 
     expect($source)
-        // One column on phones, three from md, two from xl (the 24rem column of the profile page).
-        ->toMatch('/<ul className="grid grid-cols-1 gap-4 md:grid-cols-3 xl:grid-cols-2">\s*\{photos\.map\(\(photo, index\) => \(\s*<li key=\{photo\.id\}/')
+        // One column on phones, three from md, two from xl (the 24rem column of the profile page):
+        // THUMBNAIL_GRID, kept with its sizes in lib/gallery.ts (ProviderPhotosQualityTest).
+        ->toMatch('/<ul className=\{THUMBNAIL_GRID\}>\s*\{photos\.map\(\(photo, index\) => \(\s*<li key=\{photo\.id\}/')
         ->toMatch('/<PhotoItem\s+photo=\{photo\}\s+number=\{index \+ 1\}\s+total=\{total\}\s*\/>/');
 
-    // The thumbnail: the smallest size, its space kept, loaded only when near.
+    // The thumbnail: every size in srcset, its space kept, loaded only when near.
     preg_match('/<img[\s\S]*?\/>/', $source, $img);
     expect($img[0])
-        ->toContain('src={photo.url}')
+        ->toContain('src={fallbackSrc(photo.variants)}')
+        ->toContain('srcSet={srcSet(photo.variants)}')
+        ->toContain('sizes={THUMBNAIL_SIZES}')
         ->toContain('width={photo.width}')
         ->toContain('height={photo.height}')
         ->toContain('alt={photoAlt(t, photo.alt_text, number, total)}')
@@ -242,8 +252,10 @@ test('no colour of its own, no sticky element, one column on phones', function (
         ->not->toContain('fixed')
         ->not->toContain('outline-none')
         ->not->toMatch('/\banimate-/');
-    // Without a prefix, so on phones: one column only (md: and xl: are wider screens).
-    expect(preg_match_all('/(?<!md:|xl:)grid-cols-([0-9]+)/', $source, $columns))->toBe(1)
+    // Without a prefix, so on phones: one column only (md: and xl: are wider screens). The grid is
+    // THUMBNAIL_GRID in lib/gallery.ts; the card has no grid of its own.
+    expect($source)->not->toContain('grid-cols');
+    expect(preg_match_all('/(?<!md:|xl:)grid-cols-([0-9]+)/', gpcSource('js/lib/gallery.ts'), $columns))->toBe(1)
         ->and($columns[1])->toBe(['1']);
 });
 
@@ -313,12 +325,12 @@ test('the texts of the card exist in Italian, French and English, with the same 
         expect(preg_match('/ [:?!;](?![a-z])/', $json('fr')[$key]))->toBe(0, "fr {$key}");
     }
 
-    expect(__('provider.gallery.count', ['count' => 2, 'max' => 9], 'it'))->toBe('2 di 9 foto')
-        ->and(__('provider.gallery.full', ['max' => 9], 'it'))->toBe("Hai raggiunto il massimo di 9 foto. Togline una per aggiungerne un'altra.")
+    expect(__('provider.gallery.count', ['count' => 2, 'max' => 15], 'it'))->toBe('2 di 15 foto')
+        ->and(__('provider.gallery.full', ['max' => 15], 'it'))->toBe("Hai raggiunto il massimo di 15 foto. Togline una per aggiungerne un'altra.")
         ->and(__('provider.gallery.fallback_alt', ['number' => 2, 'total' => 6], 'it'))->toBe('Foto 2 di 6')
         ->and(__('provider.gallery.alt_label', [], 'it'))->toBe('Descrizione della foto (facoltativa)')
         ->and(__('provider.gallery.submit', [], 'it'))->toBe('Aggiungi la foto')
         ->and(__('provider.gallery.uploading', [], 'it'))->toBe('Caricamento in corso…')
         ->and(__('provider.gallery.remove_title', ['number' => 2, 'total' => 6], 'fr'))->toBe("Retirer la photo 2 sur 6\u{00A0}?")
-        ->and(__('provider.gallery.description', ['max' => 9], 'fr'))->toStartWith("Montrez votre travail\u{00A0}: ajoutez de 3 à 9 photos.");
+        ->and(__('provider.gallery.description', ['max' => 15], 'fr'))->toStartWith("Montrez votre travail\u{00A0}: ajoutez de 3 à 15 photos.");
 });

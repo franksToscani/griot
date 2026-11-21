@@ -148,12 +148,13 @@ test('the list, the area and the edit page keep their own data', function () {
         ->get(route('dashboard'))
         ->assertInertia(fn (Assert $page) => $page->has('provider', 6));
 
-    // The edit page: the card's own fields (PR C), not the public ones.
+    // The edit page: the card's own fields (PR C). Since #53 it has every size for srcset, as the
+    // public page, plus its position; no single address any more.
     $this->actingAs($provider->user)
         ->get(route('provider.edit'))
         ->assertInertia(fn (Assert $page) => $page
-            ->has('provider.photos.0', fn (Assert $photo) => $photo->hasAll(['id', 'url', 'width', 'height', 'alt_text', 'position']))
-            ->missing('provider.photos.0.variants'));
+            ->has('provider.photos.0', fn (Assert $photo) => $photo->hasAll(['id', 'variants', 'width', 'height', 'alt_text', 'position']))
+            ->missing('provider.photos.0.url'));
 });
 
 // ---------------------------------------------------------------------------------------------

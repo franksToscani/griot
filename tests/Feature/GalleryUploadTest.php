@@ -112,20 +112,20 @@ test('a photo is added with its sizes, its text and the moment of the consent, l
         ->and($provider->photos()->where('position', 2)->sole()->alt_text)->toBeNull();
 });
 
-test('the ninth photo is added, the tenth is refused with nothing saved', function () {
+test('the fifteenth photo is added, the sixteenth is refused with nothing saved', function () {
     $provider = Provider::factory()->create();
-    ProviderPhoto::factory()->count(8)->for($provider)->sequence(fn ($sequence) => ['position' => $sequence->index + 1])->create();
+    ProviderPhoto::factory()->count(14)->for($provider)->sequence(fn ($sequence) => ['position' => $sequence->index + 1])->create();
 
     guPost($provider->user, guValid())->assertSessionHasNoErrors();
-    expect($provider->photos()->count())->toBe(9)
-        ->and($provider->photos()->max('position'))->toBe(9);
+    expect($provider->photos()->count())->toBe(15)
+        ->and($provider->photos()->max('position'))->toBe(15);
     $files = MediaDisk::get()->allFiles();
 
     guPost($provider->user, guValid())
-        ->assertSessionHasErrors(['photo' => 'Hai già 9 foto: eliminane una per aggiungerne un\'altra.'])
+        ->assertSessionHasErrors(['photo' => 'Hai già 15 foto: eliminane una per aggiungerne un\'altra.'])
         ->assertRedirect(route('provider.edit'));
 
-    expect($provider->photos()->count())->toBe(9)
+    expect($provider->photos()->count())->toBe(15)
         ->and(MediaDisk::get()->allFiles())->toBe($files);
 });
 
@@ -144,7 +144,7 @@ test('a refused upload saves nothing', function (Closure $data, string $field, s
     'not an image' => [fn () => guValid(['photo' => guUpload('non è una foto', 'foto.jpg')]), 'photo', "Il file non è una foto valida: usa un'immagine JPG, PNG o WebP."],
     'under 800 on the longest side' => [fn () => guValid(['photo' => guUpload(guImage(799, 500))]), 'photo', 'La foto è troppo piccola: almeno 800 pixel sul lato più lungo.'],
     'over 4000 on a side' => [fn () => guValid(['photo' => guUpload(guImage(4001, 1000))]), 'photo', 'La foto può avere al massimo 4000 pixel per lato.'],
-    'over 2 MB' => [fn () => guValid(['photo' => guUpload(guImage(1000, 800).str_repeat("\0", 2049 * 1024))]), 'photo', 'La foto è troppo pesante: al massimo 2 MB.'],
+    'over 4 MB' => [fn () => guValid(['photo' => guUpload(guImage(1000, 800).str_repeat("\0", 4097 * 1024))]), 'photo', 'La foto è troppo pesante: al massimo 4 MB.'],
 ]);
 
 test('800 on the longest side is enough, whichever side it is', function (int $width, int $height) {
@@ -412,5 +412,5 @@ test('the texts of the gallery exist in Italian, French and English, with the sa
     expect(__('provider.photos.consent', [], 'it'))->toBe('Le persone riconoscibili in questa foto hanno accettato che venga pubblicata.')
         ->and(__('provider.photos.consent', [], 'fr'))->toBe("Les personnes reconnaissables sur cette photo ont accepté qu'elle soit publiée.")
         ->and(__('provider.photos.consent', [], 'en'))->toBe('The people who can be recognised in this photo have agreed to its publication.')
-        ->and(__('provider.validation.gallery_full', ['max' => 9], 'fr'))->toBe("Vous avez déjà 9 photos\u{00A0}: supprimez-en une pour en ajouter une autre.");
+        ->and(__('provider.validation.gallery_full', ['max' => 15], 'fr'))->toBe("Vous avez déjà 15 photos\u{00A0}: supprimez-en une pour en ajouter une autre.");
 });
