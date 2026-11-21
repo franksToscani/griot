@@ -133,11 +133,10 @@ function EditForm({
     const { t } = useTranslation();
 
     return (
-        <Form
-            {...update.form(service.id)}
-            options={{ preserveScroll: true }}
-            className="flex flex-col gap-6"
-        >
+        // No preserveScroll: the save goes back to the list (#53), where the card of this service
+        // is brought into view with the focus on its title (useFlashFocus). Keeping this page's
+        // height there would land at a random point of the list.
+        <Form {...update.form(service.id)} className="flex flex-col gap-6">
             {({ processing, errors }) => (
                 <>
                     <div className="grid gap-2">

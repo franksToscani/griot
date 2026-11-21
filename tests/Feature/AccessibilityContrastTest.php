@@ -278,3 +278,19 @@ test('no light green-600 text is left in the pages: the status messages use gree
         expect((string) file_get_contents(resource_path("js/pages/{$page}.tsx")))->toContain('text-green-700 dark:text-green-600');
     }
 });
+
+test('the outline of a card just saved: the full ring colour, at least 3:1 on the page and on the card', function (string $theme) {
+    // docs/accessibility.md, « Evidenziazione dopo il salvataggio »: an outline in the ring colour,
+    // never with an opacity, drawn just outside the card (outline-offset), so on the page, and
+    // touching the card.
+    $panel = (string) file_get_contents(resource_path('js/components/add-panel.tsx'));
+    expect($panel)->toContain(' data-[just-saved]:outline-ring\';')
+        ->not->toMatch('#data-\[just-saved\]:outline-ring/#');
+
+    $tokens = accTokens($theme);
+    foreach (['background', 'card'] as $surface) {
+        $ratio = accRatio(accSrgb($tokens['ring']), accSrgb($tokens[$surface]));
+
+        expect($ratio)->toBeGreaterThanOrEqual(3.0, sprintf('ring on %s, %s theme: %.2f:1', $surface, $theme, $ratio));
+    }
+})->with(['light', 'dark']);

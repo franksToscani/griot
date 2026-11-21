@@ -70,7 +70,7 @@ test('guests, unverified users and users without a provider are sent away', func
     expect(Service::query()->count())->toBe(0);
 });
 
-test('the page lists only the own services, inactive too, in creation order, with exactly eight keys', function () {
+test('the page lists only the own services, inactive too, the most recent first, with exactly eight keys', function () {
     $provider = psvProvider();
     $first = Service::factory()->for($provider)->for($this->psvCategory)->create(['name' => 'Primo', 'price' => '10.00', 'duration_min' => 30, 'duration_max' => 45, 'description' => null]);
     $second = Service::factory()->for($provider)->for($this->psvCategory)->inactive()->create(['name' => 'Secondo']);
@@ -85,7 +85,10 @@ test('the page lists only the own services, inactive too, in creation order, wit
         ->assertInertia(fn (Assert $page) => $page
             ->component('provider/services/index')
             ->has('services', 2)
-            ->where('services.0', [
+            // The most recent first (#53, ProviderAddPanelTest): the second one, then the first.
+            ->where('services.0.id', $second->id)
+            ->where('services.0.is_active', false)
+            ->where('services.1', [
                 'id' => $first->id,
                 'name' => 'Primo',
                 'description' => null,
@@ -95,8 +98,6 @@ test('the page lists only the own services, inactive too, in creation order, wit
                 'duration_max' => 45,
                 'is_active' => true,
             ])
-            ->where('services.1.id', $second->id)
-            ->where('services.1.is_active', false)
             ->where('categories', fn ($categories) => collect($categories)->pluck('name')->all() === ['Ciglia', 'Treccine', 'Zeta']))
         ->assertDontSee('Servizio Di Un Altro');
 });

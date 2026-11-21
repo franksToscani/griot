@@ -32,6 +32,10 @@ class ProviderServiceUpdateController extends Controller
         $manageService->update($service, $request->serviceData());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('provider.services.updated')]);
+        // Back on the card that was changed, not at a random height: the "focus" flash brings it into
+        // view, focuses its title and highlights the card (hooks/use-flash-focus.ts). No #anchor in the
+        // address: a reload of the list would focus the title again, without any save.
+        Inertia::flash('focus', 'service-'.$service->id);
 
         return to_route('provider.services.index');
     }
