@@ -431,6 +431,7 @@ Si parte con la A per i primi due o tre provider; la C diventa utile per una pro
 - Contrasto sufficiente, campi con etichetta, navigazione con la tastiera nei form di prenotazione.
 - Verifica con uno strumento automatico (per esempio Lighthouse) e un controllo a mano delle due pagine principali.
 - Risultati, verifiche eseguite e debiti aperti dell'issue #55: [docs/accessibility.md](accessibility.md).
+- **Decisione del 21/11/2026, regola leggera per le funzioni nuove:** HTML nativo fatto bene; extra per i lettori di schermo solo dove la funzione sarebbe inutilizzabile senza, nessun test dedicato solo ai lettori. Il livello già costruito resta, con i suoi test; tastiera, focus, contrasto, 44 px, movimento ridotto e traduzioni valgono per tutto. L'audit #175 resta in coda ([accessibility.md](accessibility.md), sezione 9).
 
 **Privacy di base** _Come cliente voglio sapere come vengono usati i miei dati._
 
