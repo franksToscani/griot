@@ -11,7 +11,10 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * pages show, chosen one by one. Never the model itself: a relation loaded on it by a controller
  * (the provider, one day the bookings with the customers' names) would end up in every page.
  *
- * - name: the user menu and the profile settings;
+ * - name: the user menu. For a provider, the name of the business (providers.name): one name only,
+ *   the one the customers see. Read from the provider the page already loaded (the provider's area
+ *   and the settings load it), never with a query of its own; elsewhere the account's name, which
+ *   the profile keeps the same (UpdateProviderProfile, providers:sync-account-names);
  * - email: the user menu and the profile settings;
  * - email_verified_at: the profile settings, which offer to send the link again when it is null.
  *
@@ -29,7 +32,7 @@ class AuthUserResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'name' => $this->name,
+            'name' => $this->relationLoaded('provider') && $this->provider !== null ? $this->provider->name : $this->name,
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at?->toJSON(),
         ];

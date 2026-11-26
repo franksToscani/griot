@@ -7,7 +7,9 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { touchTarget } from '@/lib/touch-target';
 import { edit } from '@/routes/profile';
+import { edit as editProvider } from '@/routes/provider';
 import type { Auth } from '@/types';
 import { send } from '@/routes/verification';
 import { useTranslation } from '@/hooks/use-translation';
@@ -16,15 +18,48 @@ type PageProps = {
     auth: Auth;
 };
 
+// The style of the links of this page (as "send the verification again").
+const LINK =
+    'text-foreground underline decoration-input underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current!';
+
+// One name for a provider, the business one (providers.name): shown here, changed only in the
+// profile. The sentence is translated whole; the name, written by the provider, takes the place
+// of ":name". A link that stands alone: 44px on phones (touchTarget).
+function BusinessName({ name }: { name: string }) {
+    const { t } = useTranslation();
+    const [before, after = ''] = t('settings.profile.business_name').split(
+        ':name',
+    );
+
+    return (
+        <div className="grid gap-2">
+            <p className="text-sm">
+                {before}
+                <strong className="font-semibold">{name}</strong>
+                {after}
+            </p>
+            <Link
+                href={editProvider()}
+                className={`self-start text-sm ${LINK} ${touchTarget}`}
+            >
+                {t('settings.profile.business_name_link')}
+            </Link>
+        </div>
+    );
+}
+
 export default function Profile({
     mustVerifyEmail,
     status,
     has_bookings,
+    provider_name,
 }: {
     mustVerifyEmail: boolean;
     status?: string;
     // A provider with bookings cannot delete the account (issue #133).
     has_bookings: boolean;
+    // The business name of a provider, or null: then the field "Nome" of the account.
+    provider_name: string | null;
 }) {
     const { t } = useTranslation();
 
@@ -58,24 +93,30 @@ export default function Profile({
                 >
                     {({ processing, errors }) => (
                         <>
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">{t('common.name')}</Label>
+                            {provider_name !== null ? (
+                                <BusinessName name={provider_name} />
+                            ) : (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="name">
+                                        {t('common.name')}
+                                    </Label>
 
-                                <Input
-                                    id="name"
-                                    className="mt-1 block w-full"
-                                    defaultValue={user.name}
-                                    name="name"
-                                    required
-                                    autoComplete="name"
-                                    placeholder={t('common.full_name')}
-                                />
+                                    <Input
+                                        id="name"
+                                        className="mt-1 block w-full"
+                                        defaultValue={user.name}
+                                        name="name"
+                                        required
+                                        autoComplete="name"
+                                        placeholder={t('common.full_name')}
+                                    />
 
-                                <InputError
-                                    className="mt-2"
-                                    message={errors.name}
-                                />
-                            </div>
+                                    <InputError
+                                        className="mt-2"
+                                        message={errors.name}
+                                    />
+                                </div>
+                            )}
 
                             <div className="grid gap-2">
                                 <Label htmlFor="email">

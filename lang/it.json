@@ -545,6 +545,8 @@
     "settings.profile.unverified": "Il tuo indirizzo email non è verificato.",
     "settings.profile.resend": "Clicca qui per ricevere di nuovo l'email di verifica.",
     "settings.profile.link_sent": "Ti abbiamo mandato un nuovo link di verifica.",
+    "settings.profile.business_name": "Il nome che vedono i clienti è quello della tua attività: :name.",
+    "settings.profile.business_name_link": "Modifica il nome nel tuo profilo",
     "settings.security.head": "Impostazioni di sicurezza",
     "settings.security.title": "Cambia la password",
     "settings.security.description": "Usa una password lunga e difficile da indovinare per proteggere l'account",
@@ -849,5 +851,8 @@
     "console.provider_create.done": "Creato il professionista « :name » (:slug), non pubblicato.",
     "console.provider_create.password": "Password iniziale, mostrata solo ora: :password",
     "console.provider_create.change": "Comunicala al professionista in modo sicuro: potrà cambiarla in Impostazioni → Sicurezza.",
+    "console.sync_names.line": ":provider diverso",
+    "console.sync_names.summary": "Professionisti controllati: :checked. Diversi: :different. Aggiornati: :updated. Senza account: :without.",
+    "console.sync_names.dry_run": "Nessun nome cambiato: rilancia con --force per dare a ogni account il nome dell'attività.",
     "console.failed_jobs.summary": ":count job falliti nuovi dall'ultimo controllo."
 }

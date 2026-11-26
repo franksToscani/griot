@@ -159,9 +159,10 @@ test('auth.user holds the name, the email and the verification only, never the m
         ->assertInertia(fn (Assert $page) => $page->where('auth.user', fn ($shared) => array_keys($shared->all()) === ['name', 'email', 'email_verified_at']));
 
     $this->actingAs($user)->get(route('dashboard'))->assertOk()
-        ->assertInertia(function (Assert $page) use ($user) {
+        ->assertInertia(function (Assert $page) use ($user, $provider) {
             $shared = $page->toArray()['props']['auth']['user'];
-            expect($shared)->toBe(['name' => $user->name, 'email' => $user->email, 'email_verified_at' => $user->email_verified_at?->toJSON()]);
+            // One name for a provider, the business one (OneProviderNameTest).
+            expect($shared)->toBe(['name' => $provider->name, 'email' => $user->email, 'email_verified_at' => $user->email_verified_at?->toJSON()]);
             expect(json_encode($page->toArray()['props']['auth']))->not->toMatch('/password|remember_token|two_factor|"id"|provider|created_at/');
         });
 

@@ -8,7 +8,9 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use RuntimeException;
 
 /**
- * Creates the provider of a user, not published, with a unique slug derived from its name.
+ * Creates the provider of a user, not published, with a unique slug derived from its name. Once
+ * the provider is saved the account's name follows the business one (one name, SyncAccountName).
+ * No transaction of its own: the retries on a slug taken meanwhile read the database again.
  */
 final class CreateProviderProfile
 {
@@ -47,15 +49,20 @@ final class CreateProviderProfile
                 if ($saved === false) {
                     throw new RuntimeException(sprintf('The provider of user %d was not saved.', $user->id));
                 }
-
-                return $saved;
             } catch (UniqueConstraintViolationException) {
                 // Two unique columns: user_id (the same user submitted twice) or slug (another
                 // provider took the chosen one in the meantime: read the slugs again and retry).
                 if ($this->hasProvider($user)) {
                     throw ProviderAlreadyExists::for($user);
                 }
+
+                continue;
             }
+
+            // Only once the provider is saved: one name, the business one (SyncAccountName).
+            SyncAccountName::from($saved, $user);
+
+            return $saved;
         }
 
         // Does not happen in normal use: it needs five other providers taking the chosen slug
