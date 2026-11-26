@@ -90,11 +90,20 @@ test('the pages outside React use the tokens too: the background before the page
     expect(array_map('floatval', preg_split('/\s+/', $light[1] ?? '') ?: []))->toBe(accTokens('light')['background'])
         ->and(array_map('floatval', preg_split('/\s+/', $dark[1] ?? '') ?: []))->toBe(accTokens('dark')['background']);
 
-    // The emails stay neutral: black text on white, nothing of the palette.
-    foreach (glob(resource_path('views/mail/*.blade.php')) ?: [] as $mail) {
+    // The emails stay neutral: black text on white, nothing of the palette. One exception, the action
+    // button (#53, docs/accessibility.md): cream on the site's green, only in its own partial.
+    $mails = [...(glob(resource_path('views/mail/*.blade.php')) ?: []), ...(glob(resource_path('views/mail/partials/*.blade.php')) ?: [])];
+    expect($mails)->toContain(resource_path('views/mail/partials/action-button.blade.php'));
+    foreach ($mails as $mail) {
         preg_match_all('/#[0-9a-fA-F]{6}\b/', (string) file_get_contents($mail), $found);
-        expect(array_values(array_diff(array_unique($found[0]), ['#ffffff', '#18181b'])))->toBe([], basename($mail));
+        $allowed = basename($mail) === 'action-button.blade.php' ? ['#ffffff', '#18181b', '#005c48', '#fefcf7'] : ['#ffffff', '#18181b'];
+        expect(array_values(array_diff(array_unique($found[0]), $allowed)))->toBe([], basename($mail));
     }
+    // The green is the primary of app.css, the cream its foreground.
+    expect(strtolower((string) file_get_contents(resource_path('views/mail/partials/action-button.blade.php'))))
+        ->toContain('bgcolor="#005c48"')
+        ->toContain('background-color: #005c48;')
+        ->toContain('color: #fefcf7;');
 });
 
 test('the orange of the brand and the decor line never say "error", and errors never use them', function () {

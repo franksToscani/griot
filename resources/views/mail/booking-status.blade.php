@@ -9,6 +9,9 @@
     <p>{{ __('booking.notice.greeting', ['name' => $customerName]) }}</p>
     <p>{{ $outcomeText }}</p>
 
+    {{-- The customer's private page of the booking. --}}
+    @include('mail.partials.action-button', ['url' => $url, 'label' => __('booking.notice.action')])
+
     <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
         <tr>
             <td style="padding: 4px 16px 4px 0; font-weight: bold; vertical-align: top;">{{ __('booking.notification.service') }}</td>
@@ -27,6 +30,6 @@
         @endif
     </table>
 
-    <p>{{ __('booking.notice.link') }}<br><a href="{{ $url }}">{{ $url }}</a></p>
+    @include('mail.partials.fallback-link', ['url' => $url])
 </body>
 </html>

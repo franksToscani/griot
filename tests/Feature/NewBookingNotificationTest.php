@@ -254,7 +254,9 @@ test('the phone is plain text, not a link', function () {
 
     // The only link is the booking's page in the provider's area.
     expect($html)->toContain("+39\u{00A0}333\u{00A0}123\u{00A0}4567")->not->toContain('tel:')
-        ->and(substr_count($html, '<a '))->toBe(1)
+        // The button and the same address written under the details (#53): one address only.
+        ->and(substr_count($html, '<a '))->toBe(2)
+        ->and(substr_count($html, '<a href="'.route('provider.bookings.show', ['booking' => $booking->id]).'"'))->toBe(2)
         ->and($html)->toContain('<a href="'.route('provider.bookings.show', ['booking' => $booking->id]).'"');
 });
 

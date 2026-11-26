@@ -379,7 +379,9 @@ test('subject, greeting, the hours of the threshold and the link to the pending 
         // Written to be read (PhoneNumber::display(), #177).
         "Telefono: +39\u{00A0}333\u{00A0}123\u{00A0}4567",
         '',
-        'Vai alle richieste in attesa: '.$listUrl,
+        // The action on one line, the address on the next (#53), as in the other emails.
+        'Vai alle richieste in attesa',
+        $listUrl,
         '',
     ]));
     expect($mail['html'])
@@ -449,8 +451,10 @@ test('the phone is plain text, not a link, and what the customer wrote is never 
         ->not->toContain('https://evil.example"')
         ->toContain('&lt;b&gt;Awa&lt;/b&gt; [link](https://evil.example) **Diop**');
     expect($mail['text'])->toContain('Cliente: <b>Awa</b> [link](https://evil.example) **Diop**');
-    // The only link is the provider's list.
-    expect(substr_count($mail['html'], '<a '))->toBe(1);
+    // The only address is the provider's list: the button and the same address written out (#53).
+    preg_match_all('/<a href="([^"]*)"/', $mail['html'], $hrefs);
+    expect(substr_count($mail['html'], '<a '))->toBe(2)
+        ->and(array_values(array_unique($hrefs[1])))->toBe([e(url('/provider/bookings?status=pending'))]);
     expect($mail['subject'])->toBe('Richiesta in attesa: Treccine');
 });
 

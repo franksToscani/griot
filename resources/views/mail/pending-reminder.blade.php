@@ -9,6 +9,9 @@
     <p>{{ __('booking.reminder.greeting', ['name' => $providerName]) }}</p>
     <p>{{ __('booking.reminder.intro', ['hours' => $hours]) }}</p>
 
+    {{-- The only link: the provider's own list of pending requests. --}}
+    @include('mail.partials.action-button', ['url' => $listUrl, 'label' => __('booking.reminder.action')])
+
     <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
         <tr>
             <td style="padding: 4px 16px 4px 0; font-weight: bold; vertical-align: top;">{{ __('booking.reminder.service') }}</td>
@@ -35,7 +38,6 @@
         </tr>
     </table>
 
-    {{-- The only link: the provider's own list of pending requests. --}}
-    <p style="margin-top: 24px;"><a href="{{ $listUrl }}" style="color: #18181b;">{{ __('booking.reminder.action') }}</a></p>
+    @include('mail.partials.fallback-link', ['url' => $listUrl])
 </body>
 </html>
