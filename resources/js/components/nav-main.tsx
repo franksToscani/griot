@@ -6,9 +6,11 @@ import {
     SidebarMenuBadge,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useTranslation } from '@/hooks/use-translation';
+import { markClosedByNavigation } from '@/lib/menu-navigation';
 import { toUrl } from '@/lib/utils';
 import type { NavGroup } from '@/types';
 
@@ -19,6 +21,16 @@ import type { NavGroup } from '@/types';
 export function NavMain({ groups }: { groups: NavGroup[] }) {
     const { currentUrl } = useCurrentUrl();
     const { t } = useTranslation();
+    const { isMobile, setOpenMobile } = useSidebar();
+
+    // On phones the menu is a panel over the page: a chosen page closes it at once, also the page
+    // already shown, and the focus goes to the content (lib/menu-navigation.ts, #244).
+    const closeMenu = () => {
+        if (isMobile) {
+            markClosedByNavigation();
+            setOpenMobile(false);
+        }
+    };
 
     const isActive = (href: NavGroup['items'][number]['href']): boolean => {
         const path = new URL(toUrl(href), window.location.origin).pathname;
@@ -57,6 +69,7 @@ export function NavMain({ groups }: { groups: NavGroup[] }) {
                                         <Link
                                             href={item.href}
                                             prefetch
+                                            onClick={closeMenu}
                                             aria-current={
                                                 active ? 'page' : undefined
                                             }

@@ -244,6 +244,42 @@ body:has([data-floating-actions]) {
 }
 
 /*
+ * The "Menu" button at the bottom right of the provider's area on phones (components/provider-menu-
+ * button, docs/accessibility.md, « Il tasto Menu in basso »): only below 768 px, where it is shown.
+ * The same room as for the home's buttons, so that what gets the focus, and the end of the page (the
+ * last "Salva"), are never under it. While a field is being written in, it is hidden: the keyboard
+ * of the phone pushes it over the field. Not for boxes, radios, buttons or files: there nothing is
+ * written. "Menu" at the top of the page stays.
+ */
+@media (width < 48rem) {
+    html:has([data-provider-menu]) {
+        scroll-padding-bottom: 8rem;
+    }
+
+    body:has([data-provider-menu]) {
+        padding-bottom: calc(8rem + env(safe-area-inset-bottom));
+    }
+
+    body:has(
+            input:not(
+                    [type='checkbox'],
+                    [type='radio'],
+                    [type='button'],
+                    [type='submit'],
+                    [type='reset'],
+                    [type='file'],
+                    [type='range'],
+                    [type='color']
+                ):focus,
+            textarea:focus,
+            select:focus
+        )
+        [data-provider-menu] {
+        display: none;
+    }
+}
+
+/*
  * The motion of the home page (docs/accessibility.md, "Movimento"): declared only for who has not
  * asked for less motion, so with "reduce motion" none of it exists (and the rule above ends what
  * is left at once). Only opacity and transform move; nothing loops.

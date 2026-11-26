@@ -7,7 +7,6 @@ import {
     LIST_COLUMN,
     PAGE_HEADER_WIDTH,
     TWO_COLUMNS,
-    useSubmitFocus,
 } from '@/components/add-panel';
 import type { OnSaved } from '@/components/add-panel';
 import InputError from '@/components/input-error';
@@ -32,6 +31,7 @@ import {
     SetupStepsNav,
 } from '@/components/setup-steps';
 import { useFlashFocus } from '@/hooks/use-flash-focus';
+import { useFormFocus } from '@/hooks/use-form-focus';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatDuration, formatPrice } from '@/lib/format';
 import { dashboard } from '@/routes';
@@ -192,7 +192,7 @@ function AddServiceForm({
     onSaved: OnSaved;
 }) {
     const { t } = useTranslation();
-    const submit = useSubmitFocus();
+    const submit = useFormFocus();
 
     return (
         <Form
@@ -200,7 +200,8 @@ function AddServiceForm({
             options={{ preserveScroll: true }}
             resetOnSuccess
             onSuccess={(page) => onSaved(page.flash)}
-            onFinish={submit.restore}
+            onError={submit.onError}
+            onFinish={submit.onFinish}
             className="@container flex flex-col gap-4"
         >
             {({ processing, errors }) => (
@@ -294,7 +295,7 @@ function AddServiceForm({
 
                     {/* The request limit, for example. */}
                     <InputError message={errors.services} />
-                    {/* Disabled while sending: useSubmitFocus gives it the focus back afterwards. */}
+                    {/* Disabled while sending: useFormFocus gives it the focus back afterwards, or to the field of an error. */}
                     <Button
                         ref={submit.ref}
                         type="submit"

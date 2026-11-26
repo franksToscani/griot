@@ -37,6 +37,7 @@ import {
     SetupStepsFooter,
     SetupStepsNav,
 } from '@/components/setup-steps';
+import { useFormFocus } from '@/hooks/use-form-focus';
 import { useTranslation } from '@/hooks/use-translation';
 import { AVATAR_MAX_SIDE, needsResize, resizeImage } from '@/lib/resize-image';
 import { touchTarget } from '@/lib/touch-target';
@@ -106,6 +107,8 @@ function ProfileIndex() {
 // and the photo on the left, the gallery on the right (the widths of add-panel.tsx).
 export default function ProviderEditPage({ provider, app_url }: Props) {
     const { t } = useTranslation();
+    // After a refused save: the first wrong field of this long page, in view (#244).
+    const submit = useFormFocus();
     // The address as it is being typed, for the whole link under the field.
     const [slug, setSlug] = useState(provider.slug);
 
@@ -135,6 +138,8 @@ export default function ProviderEditPage({ provider, app_url }: Props) {
                                 <Form
                                     {...update.form()}
                                     options={{ preserveScroll: true }}
+                                    onError={submit.onError}
+                                    onFinish={submit.onFinish}
                                     className="flex flex-col gap-6"
                                 >
                                     {({ processing, errors }) => (
@@ -208,6 +213,7 @@ export default function ProviderEditPage({ provider, app_url }: Props) {
                                             />
 
                                             <Button
+                                                ref={submit.ref}
                                                 type="submit"
                                                 className="self-start"
                                                 disabled={processing}
@@ -260,6 +266,8 @@ function AvatarForm({
     const [preparing, setPreparing] = useState(false);
     const form = useForm<{ avatar: File | null }>({ avatar: null });
     const busy = preparing || form.processing;
+    // "submit" is the handler below: the focus of the form has its own name here.
+    const focus = useFormFocus();
 
     const submit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -285,7 +293,11 @@ function AvatarForm({
                     fileInput.current.value = '';
                 }
             },
-            onFinish: () => setPreparing(false),
+            onError: focus.onError,
+            onFinish: () => {
+                setPreparing(false);
+                focus.onFinish();
+            },
         });
     };
 
@@ -331,6 +343,7 @@ function AvatarForm({
                         <InputError message={form.errors.avatar} />
                     </div>
                     <Button
+                        ref={focus.ref}
                         type="submit"
                         className="self-start"
                         disabled={form.data.avatar === null || busy}

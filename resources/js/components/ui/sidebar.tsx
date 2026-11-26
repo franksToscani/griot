@@ -20,7 +20,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { MAIN_CONTENT_ID } from "@/components/skip-link"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { consumeClosedByNavigation } from "@/lib/menu-navigation"
 import { cn } from "@/lib/utils"
 import { useTranslation } from "@/hooks/use-translation"
 
@@ -185,13 +187,22 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
+          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&_[data-sidebar=header]]:pr-12"
           style={
             {
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
             } as React.CSSProperties
           }
           side={side}
+          // Closed because a page was chosen (lib/menu-navigation.ts): the focus goes to the content
+          // of the page. Closed with the X (visible, #244: the header leaves it room), outside or
+          // with Esc, Radix gives it back to the "Menu" button that opened the panel.
+          onCloseAutoFocus={(event) => {
+            if (consumeClosedByNavigation()) {
+              event.preventDefault()
+              document.getElementById(MAIN_CONTENT_ID)?.focus({ preventScroll: true })
+            }
+          }}
         >
           {/* Inside the panel: with the menu closed its hidden title is not left on the page. */}
           <SheetHeader className="sr-only">

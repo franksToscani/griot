@@ -12,6 +12,7 @@ import { edit } from '@/routes/profile';
 import { edit as editProvider } from '@/routes/provider';
 import type { Auth } from '@/types';
 import { send } from '@/routes/verification';
+import { useFormFocus } from '@/hooks/use-form-focus';
 import { useTranslation } from '@/hooks/use-translation';
 
 type PageProps = {
@@ -62,6 +63,8 @@ export default function Profile({
     provider_name: string | null;
 }) {
     const { t } = useTranslation();
+    // Before any return: a hook (#244).
+    const submit = useFormFocus();
 
     const { auth } = usePage<PageProps>().props;
     const user = auth.user;
@@ -94,6 +97,8 @@ export default function Profile({
                     options={{
                         preserveScroll: true,
                     }}
+                    onError={submit.onError}
+                    onFinish={submit.onFinish}
                     className="space-y-6"
                 >
                     {({ processing, errors }) => (
@@ -175,6 +180,7 @@ export default function Profile({
 
                             <div className="flex items-center gap-4">
                                 <Button
+                                    ref={submit.ref}
                                     disabled={processing}
                                     data-test="update-profile-button"
                                 >

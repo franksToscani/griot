@@ -21,8 +21,10 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { useTranslation } from '@/hooks/use-translation';
+import { markClosedByNavigation } from '@/lib/menu-navigation';
 import { pendingRequestsText } from '@/lib/pending-requests';
 import { dashboard } from '@/routes';
 import { edit, preview } from '@/routes/provider';
@@ -42,6 +44,7 @@ export function AppSidebar() {
     // Missing outside the private area, null for a user without a provider.
     const nav = usePage().props.provider_nav ?? null;
     const pending = nav?.pending_requests ?? 0;
+    const { isMobile, setOpenMobile } = useSidebar();
 
     const groups: NavGroup[] = [
         {
@@ -116,7 +119,17 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link
+                                href={dashboard()}
+                                prefetch
+                                onClick={() => {
+                                    // As the items of the menu (nav-main.tsx): chosen, the panel closes.
+                                    if (isMobile) {
+                                        markClosedByNavigation();
+                                        setOpenMobile(false);
+                                    }
+                                }}
+                            >
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

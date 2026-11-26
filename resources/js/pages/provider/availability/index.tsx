@@ -8,7 +8,6 @@ import {
     LIST_COLUMN,
     PAGE_HEADER_WIDTH,
     TWO_COLUMNS,
-    useSubmitFocus,
 } from '@/components/add-panel';
 import type { OnSaved } from '@/components/add-panel';
 import InputError from '@/components/input-error';
@@ -34,6 +33,7 @@ import {
     SetupStepsNav,
 } from '@/components/setup-steps';
 import { useFlashFocus } from '@/hooks/use-flash-focus';
+import { useFormFocus } from '@/hooks/use-form-focus';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
 // Explicit names: "store", "update" and "destroy" also exist for the profile and the services.
@@ -339,6 +339,7 @@ function EditAvailabilityDialog({
 }) {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
+    const submit = useFormFocus();
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -360,6 +361,8 @@ function EditAvailabilityDialog({
                     {...updateAvailability.form(availability.id)}
                     options={{ preserveScroll: true }}
                     onSuccess={() => setOpen(false)}
+                    onError={submit.onError}
+                    onFinish={submit.onFinish}
                     className="flex flex-col gap-6"
                 >
                     {({ processing, errors }) => (
@@ -372,6 +375,7 @@ function EditAvailabilityDialog({
                             />
                             <InputError message={errors.services} />
                             <Button
+                                ref={submit.ref}
                                 type="submit"
                                 className={`self-start ${wrappingLabel}`}
                                 disabled={processing}
@@ -396,6 +400,7 @@ function DeleteAvailabilityDialog({
 }) {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
+    const submit = useFormFocus();
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -416,7 +421,10 @@ function DeleteAvailabilityDialog({
                 <Form
                     {...destroyAvailability.form(availabilityId)}
                     options={{ preserveScroll: true }}
-                    onFinish={() => setOpen(false)}
+                    onFinish={() => {
+                        setOpen(false);
+                        submit.onFinish();
+                    }}
                 >
                     {({ processing }) => (
                         <DialogFooter className="gap-2">
@@ -432,6 +440,7 @@ function DeleteAvailabilityDialog({
                                 </Button>
                             </DialogClose>
                             <Button
+                                ref={submit.ref}
                                 type="submit"
                                 variant="destructive"
                                 className={wrappingLabel}
@@ -459,7 +468,7 @@ function AddAvailabilityForm({
     onSaved: OnSaved;
 }) {
     const { t } = useTranslation();
-    const submit = useSubmitFocus();
+    const submit = useFormFocus();
 
     return (
         <Form
@@ -467,7 +476,8 @@ function AddAvailabilityForm({
             options={{ preserveScroll: true }}
             resetOnSuccess
             onSuccess={(page) => onSaved(page.flash)}
-            onFinish={submit.restore}
+            onError={submit.onError}
+            onFinish={submit.onFinish}
             className="flex flex-col gap-4"
         >
             {({ processing, errors }) => (
@@ -477,7 +487,7 @@ function AddAvailabilityForm({
                         weekdays={weekdays}
                         errors={errors}
                     />
-                    {/* Disabled while sending: useSubmitFocus gives it the focus back afterwards. */}
+                    {/* Disabled while sending: useFormFocus gives it the focus back afterwards, or to the field of an error. */}
                     <Button
                         ref={submit.ref}
                         type="submit"

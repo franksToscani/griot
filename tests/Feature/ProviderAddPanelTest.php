@@ -236,14 +236,17 @@ test('after a save the item is in view with the focus, at once, the dialog inclu
 
     $panel = apSource(AP_PANEL);
     expect($panel)
-        ->toMatch('/onCloseAutoFocus=\{\(event\) => \{[\s\S]*?if \(id && document\.getElementById\(id\)\) \{\s*event\.preventDefault\(\);\s*window\.requestAnimationFrame\(\(\) => revealAndFocus\(id\)\);/')
+        ->toMatch('/onCloseAutoFocus=\{\(event\) => \{[\s\S]*?if \(id && document\.getElementById\(id\)\) \{\s*event\.preventDefault\(\);\s*window\.requestAnimationFrame\(\(\) => revealAndFocus\(id\)\);/');
+    // The button gets the focus back only if nobody took it: useFormFocus (#244), re-exported here.
+    expect(apSource('resources/js/hooks/use-form-focus.ts'))
         ->toMatch('/if \(active === null \|\| active === document\.body\) \{\s*ref\.current\?\.focus\(\);/');
+    expect($panel)->toMatch("/export \\{\\s*useFormFocus,\\s*useFormFocus as useSubmitFocus,?\\s*\\} from '@\\/hooks\\/use-form-focus';/");
 
     foreach (AP_PAGES as $file) {
         expect(apSource($file))
             ->toContain('useFlashFocus();')
-            ->toContain('onSuccess={(page) => onSaved(page.flash)}')
-            ->toContain('onFinish={submit.restore}')
+            // On the "add" form itself, not anywhere in the page (the other forms have them too, #244).
+            ->toMatch('/onSuccess=\{\(page\) => onSaved\(page\.flash\)\}\s*onError=\{submit\.onError\}\s*onFinish=\{submit\.onFinish\}/')
             ->toContain('ref={submit.ref}')
             ->toContain('options={{ preserveScroll: true }}');
     }
@@ -255,7 +258,8 @@ test('after a save the item is in view with the focus, at once, the dialog inclu
 
 test('the edit of a service keeps no scroll position: the list shows the changed card', function () {
     expect(apSource('resources/js/pages/provider/services/edit.tsx'))
-        ->toContain('<Form {...update.form(service.id)} className="flex flex-col gap-6">')
+        // The focus after a refused save (#244): onError and onFinish, still no preserveScroll.
+        ->toMatch('/<Form\s+\{\.\.\.update\.form\(service\.id\)\}\s+onError=\{submit\.onError\}\s+onFinish=\{submit\.onFinish\}\s+className="flex flex-col gap-6"\s*>/')
         ->not->toMatch('/update\.form\(service\.id\)\}\s*options=/');
 });
 

@@ -23,6 +23,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { useFormFocus } from '@/hooks/use-form-focus';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatOptionExtras, priceForInput } from '@/lib/format';
 import { dashboard } from '@/routes';
@@ -248,6 +249,7 @@ function EditOptionDialog({
 }) {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
+    const submit = useFormFocus();
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -272,6 +274,8 @@ function EditOptionDialog({
                     })}
                     options={{ preserveScroll: true }}
                     onSuccess={() => setOpen(false)}
+                    onError={submit.onError}
+                    onFinish={submit.onFinish}
                     className="flex flex-col gap-6"
                 >
                     {({ processing, errors }) => (
@@ -282,6 +286,7 @@ function EditOptionDialog({
                                 errors={errors}
                             />
                             <Button
+                                ref={submit.ref}
                                 type="submit"
                                 className={`self-start ${wrappingLabel}`}
                                 disabled={processing}
@@ -308,6 +313,7 @@ function HideOptionDialog({
 }) {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
+    const submit = useFormFocus();
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -331,7 +337,10 @@ function HideOptionDialog({
                         option: optionId,
                     })}
                     options={{ preserveScroll: true }}
-                    onFinish={() => setOpen(false)}
+                    onFinish={() => {
+                        setOpen(false);
+                        submit.onFinish();
+                    }}
                 >
                     {({ processing }) => (
                         <DialogFooter className="gap-2">
@@ -345,6 +354,7 @@ function HideOptionDialog({
                                 </Button>
                             </DialogClose>
                             <Button
+                                ref={submit.ref}
                                 type="submit"
                                 variant="destructive"
                                 className={wrappingLabel}
@@ -370,14 +380,17 @@ function ShowOptionButton({
     optionId: number;
 }) {
     const { t } = useTranslation();
+    const submit = useFormFocus();
 
     return (
         <Form
             {...activateOption.form({ service: serviceId, option: optionId })}
             options={{ preserveScroll: true }}
+            onFinish={submit.onFinish}
         >
             {({ processing }) => (
                 <Button
+                    ref={submit.ref}
                     type="submit"
                     variant="outline"
                     size="sm"
@@ -401,6 +414,7 @@ function DeleteOptionDialog({
 }) {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
+    const submit = useFormFocus();
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -424,7 +438,10 @@ function DeleteOptionDialog({
                         option: optionId,
                     })}
                     options={{ preserveScroll: true }}
-                    onFinish={() => setOpen(false)}
+                    onFinish={() => {
+                        setOpen(false);
+                        submit.onFinish();
+                    }}
                 >
                     {({ processing }) => (
                         <DialogFooter className="gap-2">
@@ -438,6 +455,7 @@ function DeleteOptionDialog({
                                 </Button>
                             </DialogClose>
                             <Button
+                                ref={submit.ref}
                                 type="submit"
                                 variant="destructive"
                                 className={wrappingLabel}
@@ -458,6 +476,7 @@ function DeleteOptionDialog({
 // resetOnSuccess empties the fields.
 function AddOptionForm({ serviceId }: { serviceId: number }) {
     const { t } = useTranslation();
+    const submit = useFormFocus();
 
     return (
         <Card className="max-w-2xl">
@@ -471,6 +490,8 @@ function AddOptionForm({ serviceId }: { serviceId: number }) {
                     {...storeOption.form(serviceId)}
                     options={{ preserveScroll: true }}
                     resetOnSuccess
+                    onError={submit.onError}
+                    onFinish={submit.onFinish}
                     className="flex flex-col gap-6"
                 >
                     {({ processing, errors }) => (
@@ -480,6 +501,7 @@ function AddOptionForm({ serviceId }: { serviceId: number }) {
                                 errors={errors}
                             />
                             <Button
+                                ref={submit.ref}
                                 type="submit"
                                 className={`self-start ${wrappingLabel}`}
                                 disabled={processing}
