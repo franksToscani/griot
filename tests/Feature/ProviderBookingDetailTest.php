@@ -63,7 +63,7 @@ function pbdSource(string $path): string
     return (string) file_get_contents(resource_path($path));
 }
 
-const PBD_ACTION = 'Apri la richiesta per confermarla o rifiutarla';
+const PBD_ACTION = 'Apri la richiesta';
 
 // ---------------------------------------------------------------------------------------------
 // The email
@@ -78,8 +78,10 @@ test('the email links to the booking\'s page, an absolute address with the id on
     expect($mail->viewData['url'])->toBe($url);
 
     $html = (string) $mail->render();
-    expect($html)->toContain('<a href="'.$url.'" style="color: #18181b;">'.PBD_ACTION.'</a>')
-        ->and(substr_count($html, '<a '))->toBe(1);
+    // The button (#53), and the same address written out under the details.
+    expect($html)->toMatch('/<a href="'.preg_quote($url, '/').'" style="display: block;[^"]*">'.PBD_ACTION.'<\/a>/')
+        ->and(substr_count($html, '<a '))->toBe(2)
+        ->and(substr_count($html, '<a href="'.$url.'"'))->toBe(2);
 
     $text = view($mail->view['text'], $mail->viewData)->render();
     expect($text)->toContain(PBD_ACTION."\n".$url."\n");
@@ -257,8 +259,8 @@ test('the booking\'s page: a link back to the list, one h1 for the focus, the re
 test('the new texts in the three languages', function () {
     $expected = [
         'it' => ['booking.notification.action' => PBD_ACTION, 'provider.bookings.back' => 'Torna alle prenotazioni', 'provider.bookings.show.title' => 'Dettagli della prenotazione'],
-        'fr' => ['booking.notification.action' => 'Ouvrez la demande pour la confirmer ou la refuser', 'provider.bookings.back' => 'Retour aux réservations', 'provider.bookings.show.title' => 'Détails de la réservation'],
-        'en' => ['booking.notification.action' => 'Open the request to confirm or reject it', 'provider.bookings.back' => 'Back to bookings', 'provider.bookings.show.title' => 'Booking details'],
+        'fr' => ['booking.notification.action' => 'Ouvrir la demande', 'provider.bookings.back' => 'Retour aux réservations', 'provider.bookings.show.title' => 'Détails de la réservation'],
+        'en' => ['booking.notification.action' => 'Open the request', 'provider.bookings.back' => 'Back to bookings', 'provider.bookings.show.title' => 'Booking details'],
     ];
 
     foreach ($expected as $locale => $texts) {

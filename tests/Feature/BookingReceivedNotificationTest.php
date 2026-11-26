@@ -212,10 +212,13 @@ test('the private link and the warning are in the HTML and in the text', functio
     $text = view($mail->view['text'], $mail->viewData)->render();
 
     expect($url)->toStartWith('http')
-        ->and($html)->toContain('<a href="'.e($url).'">'.e($url).'</a>')
-        ->and(substr_count($html, '<a '))->toBe(1)
+        // The button, then the same address written out under the details (#53).
+        ->and($html)->toContain('>Vedi la tua prenotazione</a>')
+        ->and($html)->toMatch('/<a href="'.preg_quote(e($url), '/').'" style="[^"]*">'.preg_quote(e($url), '/').'<\/a>/')
+        ->and(substr_count($html, '<a '))->toBe(2)
+        ->and(substr_count($html, '<a href="'.e($url).'"'))->toBe(2)
         ->and($html)->toContain($warning)
-        ->and($text)->toContain("Puoi rivedere la prenotazione qui:\n".$url."\n")
+        ->and($text)->toContain("Vedi la tua prenotazione\n".$url."\n")
         ->and($text)->toContain($warning)
         // The warning comes after the link.
         ->and(strpos($text, $warning))->toBeGreaterThan(strpos($text, $url));
@@ -276,7 +279,8 @@ test('what the customer wrote is shown as text, never as HTML or Markdown', func
         ->toContain('&lt;script&gt;alert(1)&lt;/script&gt;<br />')
         ->toContain('**grassetto** [clicca](https://evil.example.test)')
         ->toContain('&lt;b&gt;Awa&lt;/b&gt;')
-        ->and(substr_count($html, '<a '))->toBe(1)
+        // The button and the address written out (#53): two links, one address, never what was written.
+        ->and(substr_count($html, '<a '))->toBe(2)
         // The text version shows the characters as written.
         ->and($text)->toContain("<script>alert(1)</script>\n**grassetto** [clicca](https://evil.example.test)");
 });

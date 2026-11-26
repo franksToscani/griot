@@ -81,7 +81,12 @@ export default function Profile({
                 <Heading
                     variant="small"
                     title={t('settings.nav.profile')}
-                    description={t('settings.profile.description')}
+                    // A provider changes only the email here: the name is the business one (#53).
+                    description={t(
+                        provider_name !== null
+                            ? 'settings.profile.description_provider'
+                            : 'settings.profile.description',
+                    )}
                 />
 
                 <Form

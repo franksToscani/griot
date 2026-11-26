@@ -9,6 +9,9 @@
     <p>{{ __('booking.notification.greeting', ['name' => $providerName]) }}</p>
     <p>{{ __('booking.notification.intro') }}</p>
 
+    {{-- The booking's page, behind the login: it shows the request, it never answers it. --}}
+    @include('mail.partials.action-button', ['url' => $url, 'label' => __('booking.notification.action')])
+
     <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
         <tr>
             <td style="padding: 4px 16px 4px 0; font-weight: bold; vertical-align: top;">{{ __('booking.notification.service') }}</td>
@@ -48,8 +51,7 @@
         @endif
     </table>
 
-    {{-- A plain link to the booking's page, behind the login: it shows the request, it never answers it. --}}
-    <p style="margin-top: 24px;"><a href="{{ $url }}" style="color: #18181b;">{{ __('booking.notification.action') }}</a></p>
+    @include('mail.partials.fallback-link', ['url' => $url])
 
     <p>{{ __('booking.notification.outro') }}</p>
 </body>

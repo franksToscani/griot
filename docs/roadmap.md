@@ -423,6 +423,8 @@ Si parte con la A per i primi due o tre provider; la C diventa utile per una pro
 
 - **Fatto (#53), foto dei professionisti, PR 2 (caricamento multiplo):** più foto in una volta, in coda nel browser e inviate una alla volta alla rotta di sempre (il server non cambia); per ogni file descrizione facoltativa, stato scritto, barra di avanzamento nativa, « Togli dall'elenco » e « Riprova »; una sola casella di consenso per il gruppo, inviata con ogni foto; i file oltre i posti liberi rifiutati prima dell'invio; alla fine focus sul titolo della galleria e un riepilogo. La foto del profilo si apre più grande da un pulsante, nel Dialog del kit ([gallery.md](gallery.md)). **Fuori:** variante da 2048 px, qualità del server, ricodifica delle foto vecchie, 3 colonne nella scheda, trascina e rilascia, ritaglio, riordino (#156), mosaico (#192), testi della privacy (#131), CDN.
 
+- **Fatto (#53), email più chiare:** nelle quattro email con un link (nuova richiesta, promemoria, richiesta inviata, esito) l'azione è un bottone pieno nel verde del sito subito dopo la frase iniziale (`mail/partials/action-button.blade.php`, l'unica eccezione alle email neutre), con lo stesso indirizzo scritto per intero sotto i dettagli; nelle versioni testo « etichetta: valore » passa da una traduzione, con lo spazio non separabile del francese prima dei due punti (26 casi). In Impostazioni il sottotitolo per i professionisti dice solo « Aggiorna l'indirizzo email » ([bookings.md](bookings.md), [accessibility.md](accessibility.md)).
+
 **Traduzioni** _Come utente voglio usare il sito nella mia lingua._
 
 - Tutti i testi dell'interfaccia sono in file di traduzione, senza testo scritto direttamente nei componenti.

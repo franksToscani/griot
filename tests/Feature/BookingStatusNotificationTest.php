@@ -208,7 +208,8 @@ test('subject and body of each outcome, with the local time and the private addr
             ->toContain('Treccine')
             ->toContain('giovedì 29 ottobre 2026')
             ->toContain('09:00–11:45')
-            ->toContain('Puoi rivedere la prenotazione qui:')
+            // The button's text (#53), and the private address.
+            ->toContain('Vedi la tua prenotazione')
             ->toContain($url)
             // No reason was written.
             ->not->toContain('Motivo');
@@ -276,8 +277,11 @@ test('what the customer and the provider wrote is shown as text, never as Markdo
         ->toContain('**Salone** &lt;b&gt;Awa&lt;/b&gt; ha annullato la tua prenotazione.')
         ->toContain('[clicca qui](https://evil.example/phish)<br />')
         ->toContain('&lt;script&gt;alert(2)&lt;/script&gt;');
-    // The only link is the private address.
-    expect(preg_match_all('/<a\s/', $html))->toBe(1);
+    // The only address is the private one: the button and the same address written out (#53).
+    preg_match_all('/<a href="([^"]*)"/', $html, $hrefs);
+    expect(preg_match_all('/<a\s/', $html))->toBe(2)
+        ->and(array_values(array_unique($hrefs[1])))->toHaveCount(1)
+        ->and($hrefs[1][0])->toContain('/bookings/');
     expect(bsnText($mail))->toContain("[clicca qui](https://evil.example/phish)\n<script>alert(2)</script>");
     expect($mail->subject)->toBe('Prenotazione annullata: Treccine');
 });
@@ -349,7 +353,7 @@ test('the Italian texts are exactly the expected ones', function () {
         'booking.notice.cancelled' => ':provider ha annullato la tua prenotazione.',
         'booking.notice.when' => 'Quando',
         'booking.notice.reason' => 'Motivo',
-        'booking.notice.link' => 'Puoi rivedere la prenotazione qui:',
+        'booking.notice.action' => 'Vedi la tua prenotazione',
     ];
 
     foreach ($texts as $key => $text) {
