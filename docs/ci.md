@@ -52,27 +52,13 @@ Quando un avviso con eccezione non compare più, il log mostra un avvertimento: 
 
 **Regola:** un'eccezione per avviso, sempre con una scadenza, al massimo 2-3 settimane; ognuna è scritta e motivata qui, con un issue di promemoria per la scadenza. Alla scadenza si ricontrolla e, se serve ancora, si rinnova con una PR che aggiorna la data e la motivazione.
 
-**Eccezioni in vigore:**
+**Eccezioni in vigore:** nessuna.
 
-| Avviso                                                                   | Pacchetto                                     | Scadenza        |
-| ------------------------------------------------------------------------ | --------------------------------------------- | --------------- |
-| [GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf) | `picomatch` `<=4.0.7`, ReDoS (CWE-1333, alta) | 2 dicembre 2026 |
+Alla scadenza di un'eccezione si rilegge l'avviso (pagina di GitHub: `first_patched_version`, intervallo, eventuale ritiro) e si controlla con `npm view <pacchetto> dist-tags versions` se c'è una versione corretta: se c'è, si aggiornano i pacchetti con un aggiornamento mirato e si toglie l'eccezione; se non c'è, si rinnova la data rifacendo la valutazione.
 
-GHSA-fc5q-39xc-vjpf, perché è accettata (analisi del 18 novembre 2026):
+**Storia delle eccezioni:**
 
-- **Nessuna versione corretta pubblicata:** la 4.0.7 è l'ultima di `picomatch` e l'avviso dice `first_patched_version: null`. `npm audit fix --force` proporrebbe `laravel-vite-plugin@2.1.0` e `@vitejs/plugin-react@5.2.0`, versioni maggiori più vecchie di quelle in uso con vite 8.
-- **Solo strumenti di build:** `picomatch` arriva da vite, `tinyglobby`, `fdir`, `@inertiajs/vite`, `laravel-vite-plugin`, `vite-plugin-full-reload`, `@vitejs/plugin-react` e `@rolldown/plugin-babel`. Sono in `dependencies` come nel kit di partenza, per questo `--omit=dev` li conta, ma girano solo in `npm run build` e `vp dev`. Il codice dell'app non importa `picomatch`.
-- **Nessun Node nell'immagine finale**, dedotto da `Dockerfile` e `.dockerignore`: Node e `npm ci` esistono solo nella fase `assets`; la fase `runtime` riparte dall'immagine FrankenPHP e copia solo `/app` dalla fase `vendor` (dove `.dockerignore` esclude `node_modules` e `npm ci` non gira) e `public/build` dalla fase `assets`.
-- **Schemi scritti solo da noi:** l'avviso richiede uno schema glob costruito apposta (`+(*)`, `+(*a)`). Gli schemi vengono da `vite.config.ts` e dai plugin; il testo confrontato sono i percorsi dei file della repository. Al massimo una PR malevola potrebbe bloccare una build della CI, o qualcuno il proprio `vp dev`.
-
-Non verificato:
-
-- l'immagine non si costruisce sui computer di sviluppo (niente Docker): l'assenza di Node e di `node_modules` nell'immagine finale viene dalla lettura del `Dockerfile`, non da un controllo sull'immagine, e il job `docker-build` non la verifica;
-- che `public/build` non contenga `picomatch` (un `grep` vuoto) è solo un indizio: la build locale può essere vecchia;
-- lo sfruttamento si basa sulla descrizione dell'avviso; il codice di vite non è stato letto per escludere che un percorso o un URL di `vp dev` diventi uno schema;
-- l'avviso può cambiare (intervallo, versione corretta): alla scadenza va riletto.
-
-Come si ricontrolla alla scadenza: `npm view picomatch dist-tags versions` (c'è una versione oltre la 4.0.7?) e la pagina dell'avviso (`first_patched_version`). Se c'è una versione corretta, si aggiornano i pacchetti con un aggiornamento mirato e si toglie l'eccezione; se non c'è, si rinnova la data rifacendo la valutazione qui sopra.
+- GHSA-fc5q-39xc-vjpf (`picomatch` `<=4.0.7`, ReDoS): eccezione tolta il 26/11/2026, avviso ritirato da GitHub il 18/11/2026.
 
 ### `production-build`
 

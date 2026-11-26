@@ -10,11 +10,11 @@
 // The date is always today's date: nothing from the environment can move it.
 import { execFileSync } from 'node:child_process';
 
-// One exception per advisory, always with an expiry date, at most 2-3 weeks away.
+// One exception per advisory, always with an expiry date, at most 2-3 weeks away, explained in
+// docs/ci.md and with an issue to remember the date. None today: GHSA-fc5q-39xc-vjpf (picomatch)
+// was taken away on 26/11/2026, after GitHub withdrew the advisory on 18/11/2026.
 const EXCEPTIONS = {
-    // picomatch <= 4.0.7, ReDoS with a crafted glob pattern; no fixed version published.
-    // Only in the build tools (vite and its plugins): nothing of Node runs in production.
-    'GHSA-fc5q-39xc-vjpf': '2026-12-02',
+    // 'GHSA-xxxx-xxxx-xxxx': 'YYYY-MM-DD',
 };
 
 const today = new Date().toISOString().slice(0, 10);
