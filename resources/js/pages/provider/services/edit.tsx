@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import { useFormFocus } from '@/hooks/use-form-focus';
 import { useTranslation } from '@/hooks/use-translation';
 import { priceForInput } from '@/lib/format';
 import { dashboard } from '@/routes';
@@ -131,12 +132,18 @@ function EditForm({
     categories: Category[];
 }) {
     const { t } = useTranslation();
+    const submit = useFormFocus();
 
     return (
         // No preserveScroll: the save goes back to the list (#53), where the card of this service
         // is brought into view with the focus on its title (useFlashFocus). Keeping this page's
         // height there would land at a random point of the list.
-        <Form {...update.form(service.id)} className="flex flex-col gap-6">
+        <Form
+            {...update.form(service.id)}
+            onError={submit.onError}
+            onFinish={submit.onFinish}
+            className="flex flex-col gap-6"
+        >
             {({ processing, errors }) => (
                 <>
                     <div className="grid gap-2">
@@ -231,6 +238,7 @@ function EditForm({
                     />
 
                     <Button
+                        ref={submit.ref}
                         type="submit"
                         className={`self-start ${wrappingLabel}`}
                         disabled={processing}
@@ -255,6 +263,7 @@ function LimitError() {
 function DeactivateButton({ serviceId }: { serviceId: number }) {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
+    const submit = useFormFocus();
 
     return (
         <div className="flex flex-col gap-2">
@@ -281,6 +290,7 @@ function DeactivateButton({ serviceId }: { serviceId: number }) {
                         {...deactivate.form(serviceId)}
                         options={{ preserveScroll: true }}
                         onSuccess={() => setOpen(false)}
+                        onFinish={submit.onFinish}
                     >
                         {({ processing }) => (
                             <DialogFooter className="gap-2">
@@ -296,6 +306,7 @@ function DeactivateButton({ serviceId }: { serviceId: number }) {
                                     </Button>
                                 </DialogClose>
                                 <Button
+                                    ref={submit.ref}
                                     type="submit"
                                     variant="destructive"
                                     className={wrappingLabel}
@@ -316,17 +327,20 @@ function DeactivateButton({ serviceId }: { serviceId: number }) {
 // Activating needs no confirmation: it only shows the service again.
 function ActivateButton({ serviceId }: { serviceId: number }) {
     const { t } = useTranslation();
+    const submit = useFormFocus();
 
     return (
         <Form
             {...activate.form(serviceId)}
             options={{ preserveScroll: true }}
+            onFinish={submit.onFinish}
             className="flex flex-col gap-2"
         >
             {({ processing }) => (
                 <>
                     <LimitError />
                     <Button
+                        ref={submit.ref}
                         type="submit"
                         className={`self-start ${wrappingLabel}`}
                         disabled={processing}
@@ -353,6 +367,7 @@ function DeleteSection({
     const { t } = useTranslation();
     const { errors } = usePage().props;
     const [open, setOpen] = useState(false);
+    const submit = useFormFocus();
 
     return (
         <div className="flex flex-col gap-3">
@@ -385,7 +400,10 @@ function DeleteSection({
                         <Form
                             {...destroy.form(serviceId)}
                             options={{ preserveScroll: true }}
-                            onFinish={() => setOpen(false)}
+                            onFinish={() => {
+                                setOpen(false);
+                                submit.onFinish();
+                            }}
                         >
                             {({ processing }) => (
                                 <DialogFooter className="gap-2">
@@ -401,6 +419,7 @@ function DeleteSection({
                                         </Button>
                                     </DialogClose>
                                     <Button
+                                        ref={submit.ref}
                                         type="submit"
                                         variant="destructive"
                                         className={wrappingLabel}

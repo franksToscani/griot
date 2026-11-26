@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react';
-import { useCallback, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -174,21 +174,10 @@ export function AddPanelLink({ id, label }: { id: string; label: string }) {
     );
 }
 
-// A submit button that is disabled while sending loses the focus (the page gets it). Once the
-// request is over, the focus goes back to the button, unless something else took it meanwhile (the
-// new item, after a save).
-export function useSubmitFocus() {
-    const ref = useRef<HTMLButtonElement>(null);
-
-    const restore = useCallback(() => {
-        window.requestAnimationFrame(() => {
-            const active = document.activeElement;
-
-            if (active === null || active === document.body) {
-                ref.current?.focus();
-            }
-        });
-    }, []);
-
-    return { ref, restore };
-}
+// The focus of a form after a refused submit and at the end of every submit: useFormFocus
+// (hooks/use-form-focus.ts, #244). Exported here too, under its old name as well, for the forms that
+// took useSubmitFocus from this file.
+export {
+    useFormFocus,
+    useFormFocus as useSubmitFocus,
+} from '@/hooks/use-form-focus';

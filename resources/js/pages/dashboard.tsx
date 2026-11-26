@@ -32,6 +32,7 @@ import {
     SetupStepsFooter,
     SetupStepsNav,
 } from '@/components/setup-steps';
+import { useFormFocus } from '@/hooks/use-form-focus';
 import { useTranslation } from '@/hooks/use-translation';
 import { dashboard } from '@/routes';
 import { touchTarget } from '@/lib/touch-target';
@@ -176,6 +177,7 @@ function PendingSummary() {
 // load: after a refused publish the page is reloaded with the current list.
 function PublishSection({ publishing }: { publishing: PublishingStatus }) {
     const { t } = useTranslation();
+    const submit = useFormFocus();
 
     return (
         <>
@@ -189,6 +191,7 @@ function PublishSection({ publishing }: { publishing: PublishingStatus }) {
             <Form
                 {...publish.form()}
                 options={{ preserveScroll: true }}
+                onFinish={submit.onFinish}
                 className="flex flex-col gap-2"
             >
                 {({ processing, errors }) => (
@@ -207,6 +210,7 @@ function PublishSection({ publishing }: { publishing: PublishingStatus }) {
                             </Button>
                             {/* Off while something is missing; the server checks again anyway. */}
                             <Button
+                                ref={submit.ref}
                                 type="submit"
                                 className={wrappingLabel}
                                 disabled={!publishing.can_publish || processing}
@@ -275,6 +279,7 @@ function IncompleteWarning({ publishing }: { publishing: PublishingStatus }) {
 function UnpublishButton() {
     const { t } = useTranslation();
     const [open, setOpen] = useState(false);
+    const submit = useFormFocus();
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -299,6 +304,7 @@ function UnpublishButton() {
                     {...unpublish.form()}
                     options={{ preserveScroll: true }}
                     onSuccess={() => setOpen(false)}
+                    onFinish={submit.onFinish}
                 >
                     {({ processing, errors }) => (
                         <div className="flex flex-col gap-4">
@@ -315,6 +321,7 @@ function UnpublishButton() {
                                     </Button>
                                 </DialogClose>
                                 <Button
+                                    ref={submit.ref}
                                     type="submit"
                                     variant="destructive"
                                     className={wrappingLabel}

@@ -9,6 +9,7 @@ import {
     CardHeader,
 } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
+import { useFormFocus } from '@/hooks/use-form-focus';
 import { useTranslation } from '@/hooks/use-translation';
 import { setup, store } from '@/routes/provider';
 
@@ -16,6 +17,7 @@ import { setup, store } from '@/routes/provider';
 // not published. The fields are shared with the edit page (ProviderProfileFields).
 export default function ProviderSetup() {
     const { t } = useTranslation();
+    const submit = useFormFocus();
 
     return (
         <>
@@ -34,6 +36,8 @@ export default function ProviderSetup() {
                         <Form
                             {...store.form()}
                             options={{ preserveScroll: true }}
+                            onError={submit.onError}
+                            onFinish={submit.onFinish}
                             className="flex flex-col gap-6"
                         >
                             {({ processing, errors }) => (
@@ -47,6 +51,7 @@ export default function ProviderSetup() {
                                     />
 
                                     <Button
+                                        ref={submit.ref}
                                         type="submit"
                                         className="self-start"
                                         disabled={processing}
