@@ -469,7 +469,7 @@ test('the backups of docs/deploy.md: the restore test of 18/11/2026, what is not
         '### Che cosa c\'è (verificato sulla dashboard il 18/11/2026)',
         '### Decisioni (Franks, 18/11/2026)',
         '### Prova di ripristino in locale (fatta il 18/11/2026)',
-        '### Non ancora provato: il ripristino completo su Render (da fare prima del lancio)',
+        '### Non provato: il ripristino completo su Render (rischio accettato il 26/11/2026)',
         '### Ogni mese: l\'esportazione manuale',
         '### Rischio accettato: le foto non hanno copia (decisione del 18/11/2026)',
         '### Registro delle prove e delle esportazioni',
@@ -492,14 +492,29 @@ test('the backups of docs/deploy.md: the restore test of 18/11/2026, what is not
         ->toContain('**cancellarlo dopo 14 giorni**')
         // Why the restore on Render is not tried yet: DB_URL comes from the Blueprint.
         ->toContain('`fromDatabase`')
-        ->toContain('Le foto su Scaleway **non hanno né copia né versioning**');
+        ->toContain('Le foto su Scaleway **non hanno né copia né versioning**')
+        // The decisions of 26/11/2026: no automatic copies, the restore on Render not tried, both to
+        // be seen again before many providers, with the two limits written next to them.
+        ->toContain('- **Copie automatiche con allarme: no** (decisione del 26/11/2026).')
+        ->toContain('Resta solo l\'esportazione manuale mensile, con il promemoria nel calendario.')
+        ->toContain('- **Ripristino completo su Render: non provato, rischio accettato** (decisione del 26/11/2026).')
+        ->toContain('- **Da rivedere prima di aprire a molti professionisti** (26/11/2026)')
+        ->toContain('oltre i 3 giorni del recupero a un punto nel tempo la copertura dipende solo dall\'esportazione mensile')
+        ->toContain('le foto su Scaleway non hanno copia')
+        ->not->toContain('da decidere')
+        ->not->toContain('da fare prima del lancio')
+        ->not->toContain('va provato prima del lancio');
 
     // Never a real address of a database or a bucket: only placeholders.
     expect($runbook)->not->toMatch('#postgres(ql)?://(?!<)#')
         // The placeholders of the runbook: <…> or nome-del-bucket (section 3).
         ->not->toMatch('#https://(?!<|nome-del-bucket\.)[a-z0-9-]+\.s3\.[a-z-]+\.scw\.cloud#');
     expect(dplSource('docs/production.md'))->toContain('## Backup e ripristino (#63)')
-        ->toContain('**Prova di ripristino in locale fatta e riuscita** (18/11/2026)');
+        ->toContain('**Prova di ripristino in locale fatta e riuscita** (18/11/2026)')
+        ->toContain('Copie automatiche con allarme: no (decisione del 26/11/2026).')
+        ->toContain('**Il ripristino completo su Render non è provato**')
+        ->not->toContain('Copie automatiche con allarme: da decidere.')
+        ->not->toContain('**Ancora da fare prima del lancio:**');
 });
 
 test('every variable that render.yaml leaves to the dashboard is explained in docs/deploy.md', function () {

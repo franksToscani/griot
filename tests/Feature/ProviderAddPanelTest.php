@@ -210,7 +210,9 @@ test('the dialog: its title, its own height and scroll, the kit\'s Esc and focus
 
     expect($panel)
         ->toMatch('/<DialogContent\s+aria-describedby=\{undefined\}\s+className="max-h-\[calc\(100svh-2rem\)\] overflow-y-auto"/')
-        ->toContain('<DialogTitle id={`${id}-title`}>{title}</DialogTitle>')
+        // Audit #175, A: no id of our own on the dialog's title, Radix names the dialog with its own.
+        ->toContain('<DialogTitle>{title}</DialogTitle>')
+        ->not->toMatch('/<DialogTitle\s+id=/')
         ->toMatch('/<DialogTrigger asChild>\s*<Button className=\{`self-start \$\{wrappingLabel\}`\}>\s*<Plus aria-hidden="true" \/>\s*\{openLabel\}/')
         ->not->toMatch('/aria-label(?!ledby)/');
     foreach (AP_PAGES as $file) {

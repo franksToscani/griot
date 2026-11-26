@@ -164,6 +164,10 @@ function Sidebar({
 }) {
   const { t } = useTranslation()
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  // The phone's panel: the element that had the focus when it opened (one of the "Menu" buttons),
+  // and its navigation.
+  const opener = React.useRef<HTMLElement | null>(null)
+  const nav = React.useRef<HTMLElement>(null)
 
   if (collapsible === "none") {
     return (
@@ -194,13 +198,41 @@ function Sidebar({
             } as React.CSSProperties
           }
           side={side}
+          // Opened: the element with the focus is kept first (the "Menu" button pressed), then the
+          // focus goes to the first link of the navigation. Radix alone skips the links and took
+          // the language selector, near the end of the panel (audit #175).
+          onOpenAutoFocus={(event) => {
+            opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
+            const first = nav.current?.querySelector<HTMLElement>("a[href]")
+
+            if (first) {
+              event.preventDefault()
+              first.focus()
+            }
+          }}
           // Closed because a page was chosen (lib/menu-navigation.ts): the focus goes to the content
           // of the page. Closed with the X (visible, #244: the header leaves it room), outside or
-          // with Esc, Radix gives it back to the "Menu" button that opened the panel.
+          // with Esc: back to the element kept at the opening. Radix gives the focus back only to a
+          // DialogTrigger, and the "Menu" buttons call toggleSidebar: without this the focus was
+          // lost on the body (audit #175). If that element is gone or hidden (the button at the
+          // bottom is hidden while a field is written in), "Menu" at the top of the page.
           onCloseAutoFocus={(event) => {
+            const target = opener.current
+            opener.current = null
+
             if (consumeClosedByNavigation()) {
               event.preventDefault()
               document.getElementById(MAIN_CONTENT_ID)?.focus({ preventScroll: true })
+
+              return
+            }
+
+            event.preventDefault()
+
+            if (target?.isConnected && target.getClientRects().length > 0) {
+              target.focus()
+            } else {
+              document.querySelector<HTMLElement>("[data-menu-top]")?.focus()
             }
           }}
         >
@@ -210,7 +242,7 @@ function Sidebar({
             <SheetDescription>{t("nav.sidebar_description")}</SheetDescription>
           </SheetHeader>
           {/* A landmark: the menu is a navigation, reached with the landmarks list. */}
-          <nav aria-label={t("nav.sidebar")} className="flex h-full w-full flex-col">
+          <nav ref={nav} aria-label={t("nav.sidebar")} className="flex h-full w-full flex-col">
             {children}
           </nav>
         </SheetContent>

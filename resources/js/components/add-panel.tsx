@@ -102,12 +102,7 @@ function PanelCard({ id, title, children }: Omit<PanelProps, 'mode'>) {
     );
 }
 
-function PanelDialog({
-    id,
-    title,
-    openLabel,
-    children,
-}: Omit<PanelProps, 'mode'>) {
+function PanelDialog({ title, openLabel, children }: Omit<PanelProps, 'mode'>) {
     const [open, setOpen] = useState(false);
     // The element to focus once the dialog is closed after a save.
     const target = useRef<string | null>(null);
@@ -142,8 +137,11 @@ function PanelDialog({
                     }
                 }}
             >
+                {/* No id of our own (audit #175): Radix gives the title its id and names the dialog
+                    with it (aria-labelledby). An id written here replaced Radix's, and the dialog
+                    pointed to a title that did not exist. "<id>-title" is the column's title only. */}
                 <DialogHeader>
-                    <DialogTitle id={`${id}-title`}>{title}</DialogTitle>
+                    <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
                 {children(onSaved)}
             </DialogContent>

@@ -126,7 +126,10 @@ test('the middleware shares them once, and the browser reads them from the props
         ->and($prop)->toMatch("/return 'translations\\.'\\.app\\(\\)->getLocale\\(\\)\\.'\\.'\\.self::hash\\(\\);/");
 
     // t() and pageText() read the translations of the page's props, which Inertia fills from the
-    // kept ones before "navigate".
+    // kept ones before "navigate" and before "success" (setPage merges them, then the event: Inertia
+    // 3.9.1). document-language.ts follows both events since the audit #175.
     expect((string) file_get_contents(resource_path('js/hooks/use-translation.ts')))->toContain('const { locale, translations } = usePage().props;');
-    expect((string) file_get_contents(resource_path('js/lib/document-language.ts')))->toContain('const { locale, translations } = event.detail.page.props;');
+    expect((string) file_get_contents(resource_path('js/lib/document-language.ts')))
+        ->toContain('const { locale, translations } = page.props;')
+        ->toContain("router.on('success', (event) => follow(event.detail.page));");
 });
