@@ -299,6 +299,7 @@ Data: novembre 2026, sul codice delle PR #128, #129 e #134. Strumenti: Playwrigh
 - [ ] Colori dai token di `app.css` o dalla palette; i nuovi abbinamenti aggiunti al test di contrasto.
 - [ ] Ambra (`highlight`) e arancio (`brand`) solo come sfondo con il loro testo marrone; il filo arancio (`decor`) mai per dare un significato; arancio e rosso degli errori mai scambiati; errori e stati con i loro colori di sempre.
 - [ ] Link dentro un testo sempre sottolineati: sono marroni come il testo.
+- [ ] Un testo sr-only dentro un contenitore che scorre o ritaglia (overflow-*) richiede un antenato con `relative`: altrimenti si posiziona rispetto alla pagina e la allarga (sbordo laterale su iPhone, 26/11/2026).
 - [ ] Un test Pest per ogni regola nuova, con una controprova: rompere la regola e vedere fallire il test giusto. Nessun test dedicato solo ai lettori di schermo (sezione 9).
 
 ## 9. Regola per le funzioni nuove (21 novembre 2026)

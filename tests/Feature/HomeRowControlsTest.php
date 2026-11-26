@@ -205,3 +205,29 @@ test('the four names exist in Italian, French and English, with the section, the
         expect($json('fr')[$key])->toEndWith("\u{00A0}: :section");
     }
 });
+
+// ---------------------------------------------------------------------------------------------
+// The width of the page (26/11/2026)
+// ---------------------------------------------------------------------------------------------
+
+test('the part that scrolls is relative: an sr-only text in a card never widens the page', function () {
+    // An sr-only text is position: absolute. Without a positioned ancestor it is placed against
+    // the page, far to the right of the screen inside the row, and the page moved sideways on
+    // iPhone. The class of the region, word by word: "relative" must be one of them.
+    preg_match('/<div\s+role="region"\s+aria-labelledby=\{titleId\}\s+tabIndex=\{0\}\s+className="([^"]*)"/', hrcSource('components/home/scroll-row.tsx'), $region);
+
+    expect($region)->toHaveCount(2);
+
+    $classes = preg_split('/\s+/', trim($region[1]));
+
+    expect($classes)->toContain('relative')
+        ->toContain('overflow-x-auto')
+        ->not->toContain('static');
+});
+
+test('the docs say why the row is relative, and the checklist keeps the rule for what comes next', function () {
+    expect((string) file_get_contents(base_path('docs/accessibility.md')))
+        ->toContain('- [ ] Un testo sr-only dentro un contenitore che scorre o ritaglia (overflow-*) richiede un antenato con `relative`: altrimenti si posiziona rispetto alla pagina e la allarga (sbordo laterale su iPhone, 26/11/2026).')
+        ->and((string) file_get_contents(base_path('docs/home.md')))
+        ->toContain('- **La fila è `relative`**: un testo `sr-only` in una scheda');
+});

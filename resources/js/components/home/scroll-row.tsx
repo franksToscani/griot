@@ -34,6 +34,9 @@ const AT_EDGE = 'aria-disabled:cursor-not-allowed aria-disabled:opacity-50';
 // - The cards snap to the start of the row (snap-x on the row, snap-start on the cards), but not
 //   while the row moves by itself or is dragged: the snap would fight the move.
 // - The names of the buttons are sr-only texts from t(), with the title of the section.
+// - The row is "relative": an sr-only text inside a card is position: absolute, and without a
+//   positioned ancestor it would be placed against the page, far to the right of the screen,
+//   and make the whole page wider (the page moved sideways on iPhone, 26/11/2026).
 export function ScrollRow<Item extends { id: number }>({
     titleId,
     title,
@@ -113,7 +116,7 @@ export function ScrollRow<Item extends { id: number }>({
                     role="region"
                     aria-labelledby={titleId}
                     tabIndex={0}
-                    className="min-w-0 flex-1 overflow-x-auto rounded-xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-hidden data-dragging:cursor-grabbing data-dragging:select-none data-[snap=on]:snap-x pointer-fine:cursor-grab"
+                    className="relative min-w-0 flex-1 overflow-x-auto rounded-xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-hidden data-dragging:cursor-grabbing data-dragging:select-none data-[snap=on]:snap-x pointer-fine:cursor-grab"
                     ref={rowRef}
                     data-snap={snap ? 'on' : 'off'}
                     data-dragging={row.dragging ? '' : undefined}
