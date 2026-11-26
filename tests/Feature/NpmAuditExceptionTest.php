@@ -43,7 +43,9 @@ test('every exception is a GitHub advisory with a real date, and is explained in
     $exceptions = naExceptions();
     $docs = (string) file_get_contents(base_path('docs/ci.md'));
 
-    expect($exceptions)->toBe(['GHSA-fc5q-39xc-vjpf' => '2026-12-02'])
+    // None today: GHSA-fc5q-39xc-vjpf was taken away after GitHub withdrew it (18/11/2026). The
+    // checks below hold for the exceptions of tomorrow.
+    expect($exceptions)->toBe([])
         ->and($docs)->toContain("#### Eccezioni all'audit npm")
         ->and($docs)->toContain('un\'eccezione per avviso, sempre con una scadenza, al massimo 2-3 settimane');
 
@@ -53,6 +55,25 @@ test('every exception is a GitHub advisory with a real date, and is explained in
         expect(checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1]))->toBeTrue("{$id}: {$date} is not a date");
         expect($docs)->toContain("[{$id}](https://github.com/advisories/{$id})");
     }
+});
+
+test('the mechanism stays ready: the list, the rule of the date, no exception in force, the history', function () {
+    $script = naScript();
+    $docs = (string) file_get_contents(base_path('docs/ci.md'));
+
+    expect($script)
+        ->toMatch('/\/\/ One exception per advisory, always with an expiry date, at most 2-3 weeks away,[\s\S]*?\nconst EXCEPTIONS = \{\n/')
+        ->toContain('if (until && today <= until) {')
+        ->toContain('console.error(until ? `Exception expired on ${until}: ${line}` : line);')
+        ->not->toContain('GHSA-fc5q-39xc-vjpf\': ');
+    expect($docs)
+        ->toContain('**Eccezioni in vigore:** nessuna.')
+        ->toContain('- GHSA-fc5q-39xc-vjpf (`picomatch` `<=4.0.7`, ReDoS): eccezione tolta il 26/11/2026, avviso ritirato da GitHub il 18/11/2026.')
+        // What to do when an advisory with an exception is no longer reported stays written.
+        ->toContain('Quando un avviso con eccezione non compare più, il log mostra un avvertimento: si tolgono l\'eccezione dallo script e la sua voce da qui.');
+    expect((string) file_get_contents(base_path('docs/roadmap.md')))
+        ->toContain('L\'eccezione per GHSA-fc5q-39xc-vjpf (`picomatch`) è tolta: avviso ritirato il 18/11/2026.')
+        ->not->toContain('eccezione a scadenza (2 dicembre 2026)');
 });
 
 test('the script runs npm audit on the production packages, fails on the rest and cannot be moved from outside', function () {
