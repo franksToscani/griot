@@ -296,3 +296,29 @@ test('the decisions on issue #186 are written, one for each point, and the logs 
         ->toContain('« If you have a Pro workspace or higher, Render generates a log entry for each HTTP request »')
         ->not->toContain('da verificare');
 });
+
+test('issue #186 is closed in the documents too: the check in Render\'s panel, step 4 of going public done, no longer among the open issues', function () {
+    $runbook = (string) file_get_contents(base_path('docs/deploy.md'));
+    $roadmap = (string) file_get_contents(base_path('docs/roadmap.md'));
+
+    // The check by hand in Render's panel, with its day and no data.
+    expect($runbook)
+        ->toContain('Verificato nel pannello di Render il 26/11/2026: workspace Hobby, nessuna riga di richiesta HTTP nei log, conservazione di circa 7 giorni.')
+        ->toContain('- **Da rivedere (#186)**: con un workspace Pro')
+        // Step 4 of « Da privato a pubblico »: done, with where the decisions are.
+        ->toMatch('/^4\. \*\*fatto:\*\* #186 chiusa il 19\/11\/2026 \(PR #222 e #223\).*« Decisioni sulla #186 ».*verificati nel pannello il 26\/11\/2026/m');
+
+    // Sprint 9: five open issues, the same in every list, and #186 among the closed ones.
+    preg_match('/^Gli issue ancora aperti di questo sprint sono (\d+): (.*)$/m', $roadmap, $open);
+    preg_match('/^- Aperti: (.*)$/m', $roadmap, $openList);
+    $stillOpen = (string) strstr($open[2] ?? '', 'Già chiusi:', true);
+    $closed = (string) strstr($open[2] ?? '', 'Già chiusi:');
+    expect($open[1] ?? null)->toBe('5')
+        ->and($stillOpen)->not->toContain('#186')
+        ->and($closed)->toContain('#186 (dati dei clienti nei log e nell\'URL)')
+        ->and($openList[1] ?? '')->not->toContain('#186')
+        ->and($roadmap)->not->toContain('l\'issue resta da chiudere')
+        ->toContain('chiusa il 19/11/2026 con la PR #223');
+    preg_match_all('/#(62|63|131|175|200)\b/', $stillOpen, $numbers);
+    expect(array_values(array_unique($numbers[1])))->toBe(['62', '63', '131', '175', '200']);
+});
