@@ -18,10 +18,13 @@ export function AppSidebarHeader({
             <div className="flex items-center gap-2">
                 {/* "Menu" written, not an icon alone (#244): the same toggleSidebar of the kit as
                     the button at the bottom of phones (provider-menu-button.tsx), so one panel and
-                    one state. Its name is the visible text; 44px below 768 px (the kit's Button). */}
+                    one state. Its name is the visible text; 44px below 768 px (the kit's Button).
+                    data-menu-top: where the panel gives the focus back when the button that opened
+                    it is gone or hidden (ui/sidebar.tsx). */}
                 <Button
                     type="button"
                     variant="outline"
+                    data-menu-top=""
                     onClick={toggleSidebar}
                     className="-ml-1"
                 >

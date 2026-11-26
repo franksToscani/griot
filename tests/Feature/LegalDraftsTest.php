@@ -308,17 +308,42 @@ test('issue #186 is closed in the documents too: the check in Render\'s panel, s
         // Step 4 of « Da privato a pubblico »: done, with where the decisions are.
         ->toMatch('/^4\. \*\*fatto:\*\* #186 chiusa il 19\/11\/2026 \(PR #222 e #223\).*« Decisioni sulla #186 ».*verificati nel pannello il 26\/11\/2026/m');
 
-    // Sprint 9: five open issues, the same in every list, and #186 among the closed ones.
+    // Sprint 9: three open issues since 26/11/2026 (#63 and #175 closed), the same in every list, and
+    // #186 among the closed ones.
     preg_match('/^Gli issue ancora aperti di questo sprint sono (\d+): (.*)$/m', $roadmap, $open);
     preg_match('/^- Aperti: (.*)$/m', $roadmap, $openList);
     $stillOpen = (string) strstr($open[2] ?? '', 'Già chiusi:', true);
     $closed = (string) strstr($open[2] ?? '', 'Già chiusi:');
-    expect($open[1] ?? null)->toBe('5')
+    expect($open[1] ?? null)->toBe('3')
         ->and($stillOpen)->not->toContain('#186')
         ->and($closed)->toContain('#186 (dati dei clienti nei log e nell\'URL)')
         ->and($openList[1] ?? '')->not->toContain('#186')
         ->and($roadmap)->not->toContain('l\'issue resta da chiudere')
         ->toContain('chiusa il 19/11/2026 con la PR #223');
-    preg_match_all('/#(62|63|131|175|200)\b/', $stillOpen, $numbers);
-    expect(array_values(array_unique($numbers[1])))->toBe(['62', '63', '131', '175', '200']);
+    preg_match_all('/#(\d+)\b/', $stillOpen, $numbers);
+    expect(array_values(array_unique($numbers[1])))->toBe(['62', '131', '200']);
+});
+
+test('issues #63 and #175 are closed in the roadmap (26/11/2026), and no list still has them open', function () {
+    $roadmap = (string) file_get_contents(base_path('docs/roadmap.md'));
+
+    preg_match('/^Gli issue ancora aperti di questo sprint sono (\d+): (.*)$/m', $roadmap, $open);
+    preg_match('/^- Aperti: (.*)$/m', $roadmap, $openList);
+    $stillOpen = (string) strstr($open[2] ?? '', 'Già chiusi:', true);
+    $closed = (string) strstr($open[2] ?? '', 'Già chiusi:');
+
+    foreach (['#63', '#175'] as $issue) {
+        expect(preg_match('/'.$issue.'\b/', $stillOpen))->toBe(0, "{$issue} among the open issues")
+            ->and(preg_match('/'.$issue.'\b/', $openList[1] ?? ''))->toBe(0, "{$issue} in « Aperti »");
+    }
+    expect($closed)
+        ->toContain('#63 (backup e ripristino: chiusa il 26/11/2026 per decisione del gestore)')
+        ->toContain('#175 (audit con axe: audit ridotto fatto il 26/11/2026, con le correzioni A, C, D ed E; l\'issue si chiude a mano dopo il merge)');
+    expect($roadmap)
+        ->toContain('#63, backup e ripristino: chiusa il 26/11/2026 per decisione del gestore')
+        ->toContain('#175, l\'audit con axe: audit ridotto fatto il 26/11/2026, con le correzioni A, C, D ed E')
+        ->toContain('L\'audit #175 è fatto il 26/11/2026, in versione ridotta')
+        ->toContain('- **Fatto il 26/11/2026 in versione ridotta**')
+        ->not->toContain('L\'audit #175 resta in coda')
+        ->not->toContain('per #63 il ripristino completo su Render e la decisione sulle copie automatiche');
 });

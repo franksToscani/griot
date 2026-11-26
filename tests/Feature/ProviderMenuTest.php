@@ -20,7 +20,7 @@ test('at the top: "Menu" written, the kit\'s outline button with its 44px, the s
     $header = pmSource('js/components/app-sidebar-header.tsx');
 
     expect($header)
-        ->toMatch('/<Button\s+type="button"\s+variant="outline"\s+onClick=\{toggleSidebar\}\s+className="-ml-1"\s*>\s*<MenuIcon aria-hidden="true" \/>\s*\{t\(\'nav\.menu\'\)\}\s*<\/Button>/')
+        ->toMatch('/<Button\s+type="button"\s+variant="outline"\s+data-menu-top=""\s+onClick=\{toggleSidebar\}\s+className="-ml-1"\s*>\s*<MenuIcon aria-hidden="true" \/>\s*\{t\(\'nav\.menu\'\)\}\s*<\/Button>/')
         ->toContain('const { toggleSidebar } = useSidebar();')
         // Not the icon alone of before: no SidebarTrigger, no icon size, no 28px.
         ->not->toContain('SidebarTrigger')
@@ -114,9 +114,39 @@ test('the X of the panel is visible again, with room in the header; after a clos
     expect($sidebar)
         ->not->toContain('[&>button]:hidden')
         ->toContain('[&_[data-sidebar=header]]:pr-12')
-        ->toMatch('/onCloseAutoFocus=\{\(event\) => \{\s*if \(consumeClosedByNavigation\(\)\) \{\s*event\.preventDefault\(\)\s*document\.getElementById\(MAIN_CONTENT_ID\)\?\.focus\(\{ preventScroll: true \}\)\s*\}\s*\}\}/');
+        ->toMatch('/if \(consumeClosedByNavigation\(\)\) \{\s*event\.preventDefault\(\)\s*document\.getElementById\(MAIN_CONTENT_ID\)\?\.focus\(\{ preventScroll: true \}\)\s*return\s*\}/');
     // The X of the kit's Sheet, translated, with its 44px area (TouchAndMotionTest).
     expect(pmSource('js/components/ui/sheet.tsx'))->toContain('{t("common.close")}');
+});
+
+test('audit #175, E: the panel opens on the first link of its navigation, after keeping who opened it', function () {
+    $sidebar = pmSource('js/components/ui/sidebar.tsx');
+
+    expect($sidebar)
+        ->toContain('const opener = React.useRef<HTMLElement | null>(null)')
+        ->toContain('const nav = React.useRef<HTMLElement>(null)')
+        ->toContain('<nav ref={nav} aria-label={t("nav.sidebar")}')
+        // Who had the focus is read first, then the focus moves: the other order would keep the link.
+        ->toMatch('/onOpenAutoFocus=\{\(event\) => \{\s*opener\.current = document\.activeElement instanceof HTMLElement \? document\.activeElement : null\s*const first = nav\.current\?\.querySelector<HTMLElement>\("a\[href\]"\)\s*if \(first\) \{\s*event\.preventDefault\(\)\s*first\.focus\(\)\s*\}\s*\}\}/');
+});
+
+test('audit #175, D: closed with the X, outside or Esc, the focus goes back to the "Menu" that opened the panel', function () {
+    $sidebar = pmSource('js/components/ui/sidebar.tsx');
+
+    expect($sidebar)
+        // Read and forgotten at every closing, also a closing for a page.
+        ->toMatch('/onCloseAutoFocus=\{\(event\) => \{\s*const target = opener\.current\s*opener\.current = null\s*if \(consumeClosedByNavigation\(\)\)/')
+        // Not for a page: Radix's own return is stopped, the button kept gets the focus, if it is
+        // still on the page and shown; otherwise "Menu" at the top.
+        ->toMatch('/return\s*\}\s*event\.preventDefault\(\)\s*if \(target\?\.isConnected && target\.getClientRects\(\)\.length > 0\) \{\s*target\.focus\(\)\s*\} else \{\s*document\.querySelector<HTMLElement>\("\[data-menu-top\]"\)\?\.focus\(\)\s*\}\s*\}\}/')
+        // The wrong comment of #250 is gone: Radix gives the focus back only to a DialogTrigger.
+        ->not->toContain('Radix gives it back to the "Menu" button that opened the panel')
+        ->toContain('Radix gives the focus back only to a');
+    expect(pmSource('js/lib/menu-navigation.ts'))
+        ->not->toContain('nothing is marked, and Radix gives the focus back to the button.')
+        ->toContain('Radix alone would give it only to a DialogTrigger');
+    // The fallback exists: the button at the top carries the mark (one only).
+    expect(substr_count(pmSource('js/components/app-sidebar-header.tsx'), 'data-menu-top=""'))->toBe(1);
 });
 
 test('the mark of a closing for a page is read once', function () {
@@ -152,4 +182,35 @@ test('the third exception is written, with its rules, and the checklist says thr
         ->toContain('**il pannello si chiude da solo**')
         ->toContain('la prima delle tre eccezioni alla regola « niente `sticky` »')
         ->toContain('e il tasto « Menu » in basso nell\'area del professionista sotto 768 px (« Il tasto Menu in basso »): sono tre');
+});
+
+test('the reduced audit #175 of 26/11/2026 is written: results, the three errors, false positives, the debts', function () {
+    $doc = (string) file_get_contents(base_path('docs/accessibility.md'));
+    preg_match('/\n## 6\. Limiti e debiti noti\n([\s\S]*?)\n## 7\./', $doc, $limits);
+    $section6 = $limits[1] ?? '';
+
+    // Section 5: the run, its tools and its results.
+    expect($doc)
+        ->toContain('axe-core, audit ridotto (#175, 26/11/2026)')
+        ->toContain('Playwright 1.65.1 con Chromium, axe-core 4.14.1')
+        ->toContain('112 combinazioni')
+        ->toContain('**0 violazioni nelle pagine pubbliche.**')
+        ->toContain('`aria-dialog-name` sul dialog « Aggiungi »')
+        ->toContain('`<html lang>` fermo sulla lingua vecchia dopo il cambio dal selettore')
+        ->toContain('alla chiusura finiva sul `body`')
+        ->toContain('Tasti « Menu » e pannello (26/11/2026)')
+        // The panel's focus, as it is now.
+        ->toContain('All\'apertura il focus va sul primo link del menu (audit #175);')
+        ->toContain('**Dopo**: l\'audit #175 è fatto il 26/11/2026')
+        ->not->toContain('l\'audit #175 resta in coda');
+    // Section 6: the false positives explained, the debts kept.
+    expect($section6)
+        ->toContain('axe non emula i colori forzati')
+        ->toContain('quando il testo sta sopra una foto o un livello')
+        ->toContain('Il 26/11/2026 lo stesso, 3 nodi per pagina')
+        ->toContain('Da confermare con il vero alto contrasto di Windows.')
+        ->toContain('è **rimandato** (decisione del 26/11/2026, dopo l\'audit #175): circa 40 campi in 12-13 file')
+        ->not->toContain('si valuta nell\'audit #175');
+    // Section 8: the two rules learnt.
+    expect($doc)->toContain('il titolo senza un `id` scritto a mano (Radix lo collega da solo)');
 });

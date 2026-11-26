@@ -224,8 +224,10 @@ Dalla pagina **Deploys** del servizio, un deploy riuscito → **Rollback** → *
 ### Decisioni (Franks, 18/11/2026)
 
 - **Copie fuori da Render: solo manuali, per ora.** Un'esportazione al mese (procedura qui sotto), con un promemoria nel calendario. Il file si cifra subito, si tiene il meno possibile e si cancella **dopo 14 giorni**.
-- **Copie automatiche con allarme** (un cron job di Render che salva ogni notte una copia in un bucket privato, più un controllo `backups:check` che avvisa per email se l'ultima copia manca, circa 1 $ al mese): **da decidere** dopo la prova del ripristino completo su Render e prima di aprire a molti professionisti.
+- **Copie automatiche con allarme: no** (decisione del 26/11/2026). Era la proposta di un cron job di Render che salva ogni notte una copia in un bucket privato, più un controllo `backups:check` che avvisa per email se l'ultima copia manca, circa 1 $ al mese. Resta solo l'esportazione manuale mensile, con il promemoria nel calendario.
 - **Niente workspace Pro per ora:** la finestra del recupero a un punto nel tempo resta di 3 giorni.
+- **Ripristino completo su Render: non provato, rischio accettato** (decisione del 26/11/2026). Che cosa manca è scritto qui sotto, in « Non provato ».
+- **Da rivedere prima di aprire a molti professionisti** (26/11/2026): le copie automatiche e la prova del ripristino su Render, sapendo che oltre i 3 giorni del recupero a un punto nel tempo la copertura dipende solo dall'esportazione mensile (si può perdere fino a un mese di dati) e che le foto su Scaleway non hanno copia (« Rischio accettato » qui sotto).
 - **I segreti** (`APP_KEY`, le due chiavi di Scaleway, la password della posta) hanno una copia in un gestore di password, fuori dalla repository e da Render. Gli altri valori della dashboard si ricostruiscono da questo documento e da [production.md](production.md).
 
 ### Prova di ripristino in locale (fatta il 18/11/2026)
@@ -282,9 +284,9 @@ Un'esportazione vera, ripristinata in un PostgreSQL sul proprio computer, senza 
 
 8. Una riga nel registro privato delle prove (sotto), mai nella repository.
 
-### Non ancora provato: il ripristino completo su Render (da fare prima del lancio)
+### Non provato: il ripristino completo su Render (rischio accettato il 26/11/2026)
 
-Il recupero a un punto nel tempo crea un **database nuovo**, con un nome nuovo. Il servizio prende `DB_URL` da `fromDatabase` nel Blueprint (`render.yaml`, `name: griot-db`): per collegarlo al database ripristinato serve una modifica a `render.yaml` (una PR) oppure un `DB_URL` scritto a mano nella pagina **Environment**. **Non sappiamo** se una sincronizzazione del Blueprint sovrascriverebbe un `DB_URL` scritto a mano. È proprio il caso in cui il sito servirebbe davvero, quindi va provato prima del lancio: un ripristino di prova in un database temporaneo, come ricollegare il servizio (senza farlo sulla produzione, o in un momento senza utenti), quanto tempo serve, e poi cancellare il database temporaneo (che si paga finché esiste).
+Il recupero a un punto nel tempo crea un **database nuovo**, con un nome nuovo. Il servizio prende `DB_URL` da `fromDatabase` nel Blueprint (`render.yaml`, `name: griot-db`): per collegarlo al database ripristinato serve una modifica a `render.yaml` (una PR) oppure un `DB_URL` scritto a mano nella pagina **Environment**. **Non sappiamo** se una sincronizzazione del Blueprint sovrascriverebbe un `DB_URL` scritto a mano. È proprio il caso in cui il sito servirebbe davvero: non provarlo è un rischio accettato il 26/11/2026, da rivedere prima di aprire a molti professionisti (« Decisioni » qui sopra). La prova, quando si farà: un ripristino di prova in un database temporaneo, come ricollegare il servizio (senza farlo sulla produzione, o in un momento senza utenti), quanto tempo serve, e poi cancellare il database temporaneo (che si paga finché esiste).
 
 ### Ogni mese: l'esportazione manuale
 

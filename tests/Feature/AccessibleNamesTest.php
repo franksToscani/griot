@@ -185,7 +185,11 @@ test('the status messages of the login pages are in a live region that is always
 
 test('<html lang> and the toasts\' label follow every page, the first one included', function () {
     expect(acnSource('js/lib/document-language.ts'))
-        ->toMatch("/router\\.on\\('navigate', \\(event\\) => \\{\\s*const \\{ locale, translations \\} = event\\.detail\\.page\\.props;\\s*document\\.documentElement\\.lang = locale\\.replace\\('_', '-'\\);\\s*notificationsLabel = translations\\['common\\.notifications'\\];/");
+        ->toMatch("/function follow\\(page: Page<SharedPageProps>\\): void \\{\\s*const \\{ locale, translations \\} = page\\.props;\\s*document\\.documentElement\\.lang = locale\\.replace\\('_', '-'\\);\\s*notificationsLabel = translations\\['common\\.notifications'\\];\\s*pageTranslations = translations;\\s*listeners\\.forEach\\(\\(listener\\) => listener\\(\\)\\);\\s*\\}/")
+        // Audit #175, C: also "success". The language selector posts and comes back to the same
+        // page: Inertia sends "success" without "navigate", and <html lang> kept the old language.
+        ->toContain("router.on('navigate', (event) => follow(event.detail.page));")
+        ->toContain("router.on('success', (event) => follow(event.detail.page));");
     // Before createInertiaApp: the "navigate" of the first page is not missed.
     $app = acnSource('js/app.tsx');
     // strpos() gives false for a missing call, and false is "less" than any position: check both.
@@ -214,7 +218,7 @@ test('the side menu is a navigation landmark, on the desktop and in the phone\'s
         ->not->toContain('<div
           data-sidebar="sidebar"');
     // Phone: inside the panel, around the content.
-    expect($source)->toMatch('/<nav aria-label=\{t\("nav\.sidebar"\)\} className="flex h-full w-full flex-col">\s*\{children\}\s*<\/nav>\s*<\/SheetContent>/');
+    expect($source)->toMatch('/<nav ref=\{nav\} aria-label=\{t\("nav\.sidebar"\)\} className="flex h-full w-full flex-col">\s*\{children\}\s*<\/nav>\s*<\/SheetContent>/');
 
     // A name of its own: not the one of the breadcrumb, of the settings or of the pages.
     $names = array_map(fn (string $key) => __($key, [], 'it'), ['nav.sidebar', 'common.breadcrumb', 'nav.settings', 'common.pagination.label']);
