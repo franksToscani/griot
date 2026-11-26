@@ -545,6 +545,8 @@
     "settings.profile.unverified": "Your email address is not verified.",
     "settings.profile.resend": "Click here to get the verification email again.",
     "settings.profile.link_sent": "We have sent you a new verification link.",
+    "settings.profile.business_name": "The name your customers see is your business name: :name.",
+    "settings.profile.business_name_link": "Change the name in your profile",
     "settings.security.head": "Security settings",
     "settings.security.title": "Change password",
     "settings.security.description": "Use a long password that is hard to guess to keep your account safe",
@@ -849,5 +851,8 @@
     "console.provider_create.done": "Created the provider \":name\" (:slug), not published.",
     "console.provider_create.password": "Initial password, shown only now: :password",
     "console.provider_create.change": "Give it to the provider in a safe way: they can change it in Settings → Security.",
+    "console.sync_names.line": ":provider different",
+    "console.sync_names.summary": "Providers checked: :checked. Different: :different. Updated: :updated. Without an account: :without.",
+    "console.sync_names.dry_run": "No name changed: run again with --force to give each account the name of the business.",
     "console.failed_jobs.summary": ":count new failed jobs since the last check."
 }

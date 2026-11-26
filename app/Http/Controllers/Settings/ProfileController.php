@@ -28,11 +28,16 @@ class ProfileController extends Controller
             // A provider with bookings cannot delete the account (issue #133): the page explains
             // it instead of asking the password.
             'has_bookings' => DeleteProviderAccount::hasBookings($request->user()),
+            // One name for a provider, the business one: shown here with a link to the profile,
+            // never edited here. Null without a provider, who keeps the field "Nome". The relation
+            // was just loaded by hasBookings(): no query of its own.
+            'provider_name' => $request->user()->provider?->name,
         ]);
     }
 
     /**
-     * Update the user's profile information.
+     * Update the user's profile information. For a provider only the email: the name is the
+     * business one, changed in the profile (ProfileUpdateRequest leaves it out of the data).
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {

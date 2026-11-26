@@ -314,6 +314,9 @@ test('the new profile is not public, but the dashboard shows it', function () {
     $user = User::factory()->create();
     ppcPost($user, ppcForm())->assertSessionHasNoErrors();
 
+    // As a customer sees it: logged in, the account's name (the business one since "one name",
+    // OneProviderNameTest) would be in the page's auth.user, not in the list.
+    app('auth')->forgetGuards();
     $this->get(route('providers.index'))->assertOk()->assertDontSee('Barberia Lagos');
     $this->get(route('providers.show', 'barberia-lagos'))->assertNotFound();
 

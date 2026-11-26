@@ -21,4 +21,5 @@ Solo un servizio attivo e una fascia oraria (nome e città li hai già). Descriz
 
 - Puoi seguire i passi nell'ordine che vuoi: ogni pagina funziona anche da sola.
 - Quando la pagina è pubblicata la guida sparisce. Da lì in poi trovi tutto nel menu laterale.
+- **Un solo nome**: quello della tua attività, che vedono i clienti. Lo cambi in « Modifica il tuo profilo »; Impostazioni lo mostra, con un link al profilo, ma non lo modifica. Per chi gestisce il sito: il nome dell'account (`users.name`) segue quello dell'attività a una via, a ogni salvataggio del profilo (`App\Profile\SyncAccountName`); per gli account salvati prima c'è `php artisan providers:sync-account-names`, che senza `--force` elenca soltanto (slug o `id-N` e totali, mai nomi né email).
 - Per condividere la tua pagina e stampare il QR code: [provider-link.md](provider-link.md).

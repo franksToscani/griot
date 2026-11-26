@@ -42,7 +42,9 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             // Only the fields the pages show (AuthUserResource), never the model with its relations.
-            'auth' => [
+            // A closure: read when the page is drawn, after the controller, so that the provider
+            // the page already loaded gives its name (one name, the business one).
+            'auth' => fn () => [
                 'user' => $request->user() === null ? null : (new AuthUserResource($request->user()))->resolve($request),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',

@@ -545,6 +545,8 @@
     "settings.profile.unverified": "Votre adresse e-mail n'est pas vérifiée.",
     "settings.profile.resend": "Cliquez ici pour recevoir de nouveau l'e-mail de vérification.",
     "settings.profile.link_sent": "Nous vous avons envoyé un nouveau lien de vérification.",
+    "settings.profile.business_name": "Le nom que voient vos clients est celui de votre activité : :name.",
+    "settings.profile.business_name_link": "Modifier le nom dans votre profil",
     "settings.security.head": "Paramètres de sécurité",
     "settings.security.title": "Changer le mot de passe",
     "settings.security.description": "Utilisez un mot de passe long et difficile à deviner pour protéger votre compte",
@@ -849,5 +851,8 @@
     "console.provider_create.done": "Professionnel « :name » (:slug) créé, non publié.",
     "console.provider_create.password": "Mot de passe initial, affiché seulement maintenant : :password",
     "console.provider_create.change": "Transmettez-le au professionnel de manière sûre : il pourra le changer dans Paramètres → Sécurité.",
+    "console.sync_names.line": ":provider différent",
+    "console.sync_names.summary": "Professionnels contrôlés : :checked. Différents : :different. Mis à jour : :updated. Sans compte : :without.",
+    "console.sync_names.dry_run": "Aucun nom modifié : relancez avec --force pour donner à chaque compte le nom de l'activité.",
     "console.failed_jobs.summary": ":count tâches échouées nouvelles depuis le dernier contrôle."
 }
